@@ -1,0 +1,265 @@
+{
+	"board": {
+		"class": "WtImage",
+		"children": [],
+		"name": "board",
+		"offsetX": "0",
+		"offsetY": "0",
+		"sizeX": "Math.min(w,h)",
+		"sizeY": "Math.min(w,h)",
+		"image": "go_map.png",
+		"sprite": "board_jpg"
+	},
+	"black": {
+		"class": "WtImage",
+		"children": [],
+		"name": "black",
+		"offsetX": "0",
+		"offsetY": "0",
+		"sizeX": "100",
+		"sizeY": "100",
+		"image": "go_map.png",
+		"sprite": "black_png"
+	},
+	"white": {
+		"class": "WtImage",
+		"children": [],
+		"name": "white",
+		"offsetX": "0",
+		"offsetY": "0",
+		"sizeX": "100",
+		"sizeY": "100",
+		"image": "go_map.png",
+		"sprite": "white_png"
+	},
+	"line": {
+		"class": "WtImage",
+		"children": [],
+		"name": "line",
+		"offsetX": "0",
+		"offsetY": "0",
+		"sizeX": "1",
+		"sizeY": "100",
+		"image": "go_map.png",
+		"sprite": "line_png"
+	},
+	"main": {
+		"class": "Widget",
+		"children": [
+			{
+				"class": "WtText",
+				"children": [],
+				"name": "txt_board_size",
+				"zIndex": 10,
+				"offsetX": "5",
+				"offsetY": "10",
+				"sizeX": "320",
+				"sizeY": "50",
+				"text": "Board Size: 7",
+				"font": "40px Arial",
+				"color": 16777215
+			},
+			{
+				"class": "WtButton",
+				"children": [],
+				"name": "btn_add_board_size",
+				"zIndex": 10,
+				"offsetX": "330",
+				"offsetY": "5",
+				"sizeX": "50",
+				"sizeY": "50",
+				"image": "go_map.png",
+				"sprite": "add_png",
+				"onclick": "add_board_size"
+			},
+			{
+				"class": "WtButton",
+				"children": [],
+				"name": "btn_sub_board_size",
+				"zIndex": 10,
+				"offsetX": "385",
+				"offsetY": "5",
+				"sizeX": "50",
+				"sizeY": "50",
+				"enable": false,
+				"image": "go_map.png",
+				"sprite": "sub_png",
+				"onclick": "sub_board_size"
+			},
+			{
+				"class": "WtText",
+				"children": [],
+				"zIndex": 10,
+				"offsetX": "5",
+				"offsetY": "70",
+				"sizeX": "320",
+				"sizeY": "50",
+				"text": "Player Color:",
+				"font": "40px Arial",
+				"color": 16777215
+			},
+			{
+				"class": "WtButton",
+				"children": [],
+				"name": "btn_player_color",
+				"zIndex": 10,
+				"offsetX": "330",
+				"offsetY": "65",
+				"sizeX": "50",
+				"sizeY": "50",
+				"image": "go_map.png",
+				"sprite": "black_png",
+				"onclick": "change_player_color"
+			},
+			{
+				"class": "WtText",
+				"children": [],
+				"name": "txt_komi",
+				"zIndex": 10,
+				"offsetX": "5",
+				"offsetY": "130",
+				"sizeX": "320",
+				"sizeY": "50",
+				"text": "Komi: 5.5",
+				"font": "40px Arial",
+				"color": 16777215
+			},
+			{
+				"class": "WtButton",
+				"children": [],
+				"name": "btn_add_komi",
+				"zIndex": 10,
+				"offsetX": "330",
+				"offsetY": "125",
+				"sizeX": "50",
+				"sizeY": "50",
+				"image": "go_map.png",
+				"sprite": "add_png",
+				"onclick": "add_komi"
+			},
+			{
+				"class": "WtButton",
+				"children": [],
+				"name": "btn_sub_komi",
+				"zIndex": 10,
+				"offsetX": "385",
+				"offsetY": "125",
+				"sizeX": "50",
+				"sizeY": "50",
+				"image": "go_map.png",
+				"sprite": "sub_png",
+				"onclick": "sub_komi"
+			},
+			{
+				"class": "WtButton",
+				"children": [
+					{
+						"class": "WtText",
+						"children": [],
+						"zIndex": 10,
+						"anchor": {
+							"x": 2,
+							"y": 5
+						},
+						"offsetX": "0",
+						"offsetY": "5",
+						"sizeX": "100",
+						"sizeY": "30",
+						"text": "pve",
+						"font": "30px Arial",
+						"text_align": 2
+					}],
+				"name": "btn_pve",
+				"zIndex": 10,
+				"offsetX": "10",
+				"offsetY": "180",
+				"sizeX": "200",
+				"sizeY": "77",
+				"image": "go_map.png",
+				"sprite": "start_png",
+				"onclick": "pve"
+			},
+			{
+				"class": "WtButton",
+				"children": [
+					{
+						"class": "WtText",
+						"children": [],
+						"zIndex": 10,
+						"anchor": {
+							"x": 2,
+							"y": 5
+						},
+						"offsetX": "0",
+						"offsetY": "5",
+						"sizeX": "100",
+						"sizeY": "30",
+						"text": "eve",
+						"font": "30px Arial",
+						"text_align": 2
+					}],
+				"name": "btn_eve",
+				"zIndex": 10,
+				"offsetX": "220",
+				"offsetY": "180",
+				"sizeX": "200",
+				"sizeY": "77",
+				"image": "go_map.png",
+				"sprite": "start_png",
+				"onclick": "eve"
+			}],
+		"name": "main",
+		"zIndex": 10,
+		"offsetX": "w>h?h:0",
+		"offsetY": "w>h?0:w",
+		"sizeX": "w>h?w-h:w",
+		"sizeY": "w>h?h:h-w"
+	},
+	"pass": {
+		"class": "WtButton",
+		"children": [
+			{
+				"class": "WtText",
+				"children": [],
+				"zIndex": 10,
+				"anchor": {
+					"x": 2,
+					"y": 5
+				},
+				"offsetX": "0",
+				"offsetY": "5",
+				"sizeX": "100",
+				"sizeY": "30",
+				"text": "PASS",
+				"font": "30px Arial",
+				"text_align": 2
+			}],
+		"name": "pass",
+		"zIndex": 10,
+		"offsetX": "w>h?h:0",
+		"offsetY": "w>h?0:w",
+		"sizeX": "300",
+		"sizeY": "100",
+		"image": "go_map.png",
+		"sprite": "start_png",
+		"onClick": "Signals.pass.dispatch();"
+	},
+	"info": {
+		"class": "WtText",
+		"children": [],
+		"name": "info",
+		"zIndex": 10,
+		"anchor": {
+			"x": 2,
+			"y": 5
+		},
+		"offsetX": "0",
+		"offsetY": "0",
+		"sizeX": "w",
+		"sizeY": "60",
+		"text": "info",
+		"font": "60px Arial",
+		"color": 6122151,
+		"text_align": 2
+	}
+}

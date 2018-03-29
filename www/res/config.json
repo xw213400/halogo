@@ -1,0 +1,44 @@
+{
+	"alpha": false,
+	"antialias": true,
+	"simple_atlas": [
+		{
+			"img": "go_map.png",
+			"cfg": "go_map.json"
+		}],
+	"design_size": {
+		"x": 1080,
+		"y": 1920
+	},
+	"clear_color": 1794060,
+	"entry_scene": "main",
+	"batches": {
+		"PRELOAD": {
+			"simple_atlas": [
+				{
+					"img": "go_map.png",
+					"cfg": "go_map.json"
+				}],
+			"atlas": [],
+			"dragonbones": [],
+			"resources": [
+                {
+					"path": "js",
+					"name": "signals.js"
+				},
+				{
+					"path": "js",
+					"name": "main.js"
+				},
+				{
+					"path": "js",
+					"name": "board.js"
+				},
+				{
+					"path": "scn",
+					"name": "main"
+                }
+            ]
+		}
+	}
+}

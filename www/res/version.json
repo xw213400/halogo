@@ -1,0 +1,57 @@
+{
+  "ani": {},
+  "cfg": {
+    "go_map.json": {
+      "md5": "cf514b03fbdd994fabec2bbf8dfa2c1a",
+      "version": 3
+    }
+  },
+  "img": {
+    "go_map.png": {
+      "md5": "5ad47092b93194a8ba5d5e1c16174510",
+      "version": 3
+    }
+  },
+  "mat": {},
+  "mdl": {},
+  "scn": {
+    "main": {
+      "md5": "e9385f1113c65456a5ffc1674fb856dd",
+      "version": 4
+    }
+  },
+  "geo": {},
+  "aud": {},
+  "js": {
+    "board.js": {
+      "md5": "a49e8af1e3009c76001ca0bcb348a88c",
+      "version": 1
+    },
+    "main.js": {
+      "md5": "763d85b4d6f1a5a17ce861d66e6645a5",
+      "version": 1
+    },
+    "signals.js": {
+      "md5": "d5816bafc6267671655fb0051ca567d9",
+      "version": 1
+    }
+  },
+  "": {
+    "config.json": {
+      "md5": "de61a30b2383bc54d14e0347e860c456",
+      "version": 7
+    },
+    "effect.json": {
+      "md5": "b050b72e6b9124063d00a6394d4d1b7e",
+      "version": 1
+    },
+    "version.json": {
+      "md5": "bd60906928cd2b359394237aec9c5e70",
+      "version": 12
+    },
+    "widget.json": {
+      "md5": "463985c86b26f6c4ecf1408f131fc757",
+      "version": 6
+    }
+  }
+}
