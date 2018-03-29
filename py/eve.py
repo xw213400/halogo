@@ -50,6 +50,6 @@ def main(size, n):
     
 
 if __name__ == '__main__':
-    size = int(sys.argv[1]) or 7
-    n = int(sys.argv[2]) or 1
+    n = int(sys.argv[1]) or 1
+    size = int(sys.argv[2]) or 7
     main(size, n)
