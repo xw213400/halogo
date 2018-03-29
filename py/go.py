@@ -43,7 +43,7 @@ CODE_KO = None
 CODE_SWAP = random.getrandbits(64)
 
 INPUT_BOARD = None
-FLAG_BOARD = None
+FLAG_BOARD = None #用于标记是否resonable
 
 
 class Position:
