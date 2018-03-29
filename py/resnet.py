@@ -183,10 +183,10 @@ def sim():
                     best_move = v
             i += 1
 
-        score = y[0, go.LN]
-        if score > best_score:
-            best_score = score
-            best_move = 0
+        # score = y[0, go.LN]
+        # if score > best_score:
+        #     best_score = score
+        #     best_move = 0
 
     go.SIM_POS.move2(go.SIM_POS, best_move)
     go.HASH_SIM[go.SIM_POS.hash_code] = 0
@@ -216,7 +216,11 @@ def train(position, best_move):
     if best_move == 0:
         target_data[0, go.LN] = 1
     else:
-        target_data[0, best_move - go.M - 1] = 1
+        j, i = go.toXY(best_move)
+        j -= 1
+        i -= 1
+        v = i * go.N + j
+        target_data[0, v] = 1
 
     optimizer.zero_grad()
 
@@ -231,7 +235,7 @@ def train(position, best_move):
         target = Variable(target_data)
 
     y = halo_resnet(x)
-    
+
     loss = criterion(y, target)
     loss.backward()
     optimizer.step()
