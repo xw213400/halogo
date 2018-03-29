@@ -1,3 +1,18 @@
+function gtp_move(i, j) {
+    if (i >= 8) {
+        i++;
+    }
+
+    return String.fromCharCode(65 + i, 49 + j);
+}
+
+function json_move(move) {
+    var i = move.charCodeAt(0) - 65;
+    if (i >= 9) { i--; }
+    j = parseInt(move.substr(1)) - 1;
+    return { i: i, j: j };
+}
+
 function Board() {
     this.size = 7;
     this.user = 'b'; //'b': black, 'w': white, 'v': viewer(eve mode)
@@ -61,60 +76,78 @@ Object.assign(Board.prototype, {
         }
     },
 
-    execute: function (msg) {
+    execute: function (cmd) {
+        var scope = this;
+
+        function check_caps(caps) {
+            caps = caps.split(',');
+            for (var i = 0; i !== caps.length; ++i) {
+                var move = json_move(caps[i]);
+                scope.remove(move.i, move.j);
+            }
+        }
+
         var request = new XMLHttpRequest();
-        request.open('POST', 'http://localhost:8008/execute', true);
+        request.open('POST', '/execute', true);
         request.setRequestHeader('Content-Type', 'application/json');
         request.onreadystatechange = () => {
             if (request.readyState === 4) {
                 console.log(request.response);
                 if (request.status === 200) {
-                    var res = JSON.parse(request.response);
-                    if (res.ok) {
-                        if (res.cmd === 'move') {
-                            if (res.pass) {
-                                this.passMove();
-                            } else {
-                                this.move(res.i, res.j);
-                            }
-                            this.execute({ cmd: 'genmove', color: this.next });
-                        } else if (res.cmd === 'start') {
+                    var msg = JSON.parse(request.response);
+                    switch (cmd[0]) {
+                        case 'boardsize':
+                            board.execute(["komi", this.komi]);
+                            break;
+                        case 'komi':
                             this.bstart = true;
                             Signals.start.dispatch();
                             if (this.user === 'v' || this.user !== this.next) {
-                                this.execute({ cmd: 'genmove', color: this.next });
+                                this.execute(['genmove', this.next]);
                             }
-                        } else if (res.cmd === 'genmove') {
-                            if (res.pass) {
+                            break;
+                        case 'play':
+                            if (msg[1] === 'pass') {
+                                this.passMove();
+                            } else {
+                                var move = json_move(msg[1]);
+                                this.move(move.i, move.j);
+                            }
+                            if (msg.length >= 3) {
+                                check_caps(msg[2]);
+                            }
+                            this.execute(['genmove', this.next]);
+                            break;
+                        case 'genmove':
+                            if (msg[1] === 'pass') {
                                 this.passMove();
                                 if (this.pass >= 2) {
                                     this.finish = true;
-                                    this.execute({ cmd: 'score' });
+                                    this.execute(['score']);
                                 } else {
-                                    Signals.genpass.dispatch();
+                                    Signals.passtip.dispatch();
                                 }
                             } else {
-                                this.move(res.i, res.j);
+                                var move = json_move(msg[1]);
+                                this.move(move.i, move.j);
+                            }
+                            if (msg.length >= 3) {
+                                check_caps(msg[2]);
                             }
                             if (this.user === 'v' && !this.finish) {
-                                this.execute({ cmd: 'genmove', color: this.next });
+                                this.execute(['genmove', this.next]);
                             }
-                        } else if (res.cmd === 'score') {
-                            Signals.finish.dispatch(res.score);
-                        }
-                        if (res.caps) {
-                            for (var i = 0; i !== res.caps.length; ++i) {
-                                var cap = res.caps[i];
-                                this.remove(cap.i, cap.j);
-                            }
-                        }
-                    } else {
-                        alert(res.msg);
+                            break;
+                        case 'score':
+                            Signals.finish.dispatch(msg[1]);
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
         }
-        request.send(JSON.stringify(msg));
+        request.send(JSON.stringify(cmd));
     },
 
     click: function (x, y) {
@@ -127,17 +160,12 @@ Object.assign(Board.prototype, {
         var center = gridsize * 0.5;
 
         if (Math.abs(x - center) < range && Math.abs(y - center) < range) {
-            this.execute({
-                cmd: 'move',
-                color: this.next,
-                i: i,
-                j: j
-            });
+            this.execute(['play', this.next, gtp_move(i, j)]);
         }
     },
 
-    remove: function(i, j) {
-        var key = i+'_'+j;
+    remove: function (i, j) {
+        var key = i + '_' + j;
         var stone = this.stones[key];
         if (stone) {
             delete this.stones[key];
@@ -148,7 +176,7 @@ Object.assign(Board.prototype, {
         }
     },
 
-    passMove: function() {
+    passMove: function () {
         this.pass++;
         if (this.uiLastStone) {
             this.uiLastStone.alpha = 1;
@@ -179,7 +207,7 @@ Object.assign(Board.prototype, {
         this.uiLastStone.alpha = 0.5;
         this.uiBoard.add(this.uiLastStone);
 
-        this.stones[i+'_'+j] = this.uiLastStone;
+        this.stones[i + '_' + j] = this.uiLastStone;
 
         this.next = this.next === 'b' ? 'w' : 'b';
     }

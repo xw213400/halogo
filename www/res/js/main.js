@@ -1,88 +1,100 @@
 var Signals = {
-    board_size: new Signal(),
-    player_color: new Signal(),
-    komi: new Signal(),
-    pve: new Signal(),
-    eve: new Signal(),
     start: new Signal(),
-    pass: new Signal(),
     finish: new Signal(),
-    genpass: new Signal()
+    passtip: new Signal()
 };
 
+var scene = null;
+var root = null;
+var uiMain = null;
+var btnAddBoardSize = null;
+var txtBoardSize = null;
+var btnSubBoardSize = null;
+var btnPlayerColor = null;
+var txtKomi = null;
+var btnPass = null;
+var txtInfo = null;
+var board = null;
+
+function boardsize(s) {
+    board.size += s;
+
+    if (board.size >= 19) {
+        btnAddBoardSize.setEnable(false);
+    } else if (!btnAddBoardSize.enable) {
+        btnAddBoardSize.setEnable(true);
+    }
+    if (board.size <= 7) {
+        btnSubBoardSize.setEnable(false);
+    } else if (!btnSubBoardSize.enable) {
+        btnSubBoardSize.setEnable(true);
+    }
+
+    txtBoardSize.text = 'Board Size: ' + board.size;
+    txtBoardSize.refresh();
+
+    board.clear();
+}
+
+function komi(k) {
+    board.komi += k;
+    txtKomi.text = 'Komi: ' + board.komi;
+    txtKomi.refresh();
+}
+
 function add_board_size() {
-    Signals.board_size.dispatch(2);
+    boardsize(2);
 }
 
 function sub_board_size() {
-    Signals.board_size.dispatch(-2);
+    boardsize(-2);
 }
 
 function change_player_color() {
-    Signals.player_color.dispatch();
-}
-
-function add_komi() {
-    Signals.komi.dispatch(0.5);
-}
-
-function sub_komi() {
-    Signals.komi.dispatch(-0.5);
-}
-
-function pass() {
-    Signals.pass.dispatch();
-}
-
-function pve() {
-    Signals.pve.dispatch();
-}
-
-function eve() {
-    Signals.eve.dispatch();
-}
-
-var EntryScene = (function () {
-    var funcs = Halo.ResourceManager.funcs();
-
-    funcs["add_board_size"] = add_board_size;
-    funcs["sub_board_size"] = sub_board_size;
-    funcs["change_player_color"] = change_player_color;
-    funcs["add_komi"] = add_komi;
-    funcs["sub_komi"] = sub_komi;
-    funcs["pass"] = pass;
-    funcs["pve"] = pve;
-    funcs["eve"] = eve;
-}());
-
-// for editor
-if (window.func_unloaders) {
-    window.func_unloaders['main.js'] = function () {
-        var funcs = Halo.ResourceManager.funcs();
-
-        delete funcs["add_board_size"];
-        delete funcs["sub_board_size"];
-        delete funcs["change_player_color"];
-        delete funcs["add_komi"];
-        delete funcs["sub_komi"];
-        delete funcs["pass"];
-        delete funcs["pve"];
-        delete funcs["eve"];
+    if (board.user === 'b') {
+        board.user = 'w';
+        btnPlayerColor.setSprite('go_map.png', 'white_png');
+    } else if (board.user === 'w') {
+        board.user = 'b';
+        btnPlayerColor.setSprite('go_map.png', 'black_png');
     }
 }
 
+function add_komi() {
+    komi(0.5);
+}
+
+function sub_komi() {
+    komi(-0.5);
+}
+
+function pass() {
+    if (board.next === board.user) {
+        board.execute(["play", board.user, 'pass']);
+    }
+}
+
+function pve() {
+    board.execute(["boardsize", board.size]);
+}
+
+function eve() {
+    board.user = 'v';
+    board.execute(["boardsize", board.size]);
+}
+
 function initBoard() {
-    var scene = Halo.Config.scene();
-    var root = scene.getWidgetRoot();
-    var uiMain = Halo.Config.createWidget('main');
-    var btnAddBoardSize = uiMain.getChild('btn_add_board_size');
-    var txtBoardSize = uiMain.getChild('txt_board_size');
-    var btnSubBoardSize = uiMain.getChild('btn_sub_board_size');
-    var btnPlayerColor = uiMain.getChild('btn_player_color');
-    var txtKomi = uiMain.getChild('txt_komi');
-    var btnPass = Halo.Config.createWidget('pass');
-    var txtInfo = Halo.Config.createWidget('info');
-    var board = new Board();
+    scene = Halo.Config.scene();
+    root = scene.getWidgetRoot();
+    uiMain = Halo.Config.createWidget('main');
+    btnAddBoardSize = uiMain.getChild('btn_add_board_size');
+    txtBoardSize = uiMain.getChild('txt_board_size');
+    btnSubBoardSize = uiMain.getChild('btn_sub_board_size');
+    btnPlayerColor = uiMain.getChild('btn_player_color');
+    txtKomi = uiMain.getChild('txt_komi');
+    btnPass = Halo.Config.createWidget('pass');
+    txtInfo = Halo.Config.createWidget('info');
+    board = new Board();
 
     txtInfo.visible = false;
     root.add(uiMain);
@@ -90,67 +102,6 @@ function initBoard() {
     root.add(txtInfo);
     root.relayout();
     board.clear();
-
-    Signals.board_size.add(function (s) {
-        board.size += s;
-        if (board.size >= 19) {
-            btnAddBoardSize.setEnable(false);
-        } else if (!btnAddBoardSize.enable) {
-            btnAddBoardSize.setEnable(true);
-        }
-        if (board.size <= 7) {
-            btnSubBoardSize.setEnable(false);
-        } else if (!btnSubBoardSize.enable) {
-            btnSubBoardSize.setEnable(true);
-        }
-
-        txtBoardSize.text = 'Board Size: ' + board.size;
-        txtBoardSize.refresh();
-
-        board.clear();
-    });
-
-    Signals.player_color.add(function () {
-        if (board.user === 'b') {
-            board.user = 'w';
-            btnPlayerColor.setSprite('go_map.png', 'white_png');
-        } else if (board.user === 'w') {
-            board.user = 'b';
-            btnPlayerColor.setSprite('go_map.png', 'black_png');
-        }
-    });
-
-    Signals.komi.add(function (k) {
-        board.komi += k;
-        txtKomi.text = 'Komi: ' + board.komi;
-        txtKomi.refresh();
-    });
-
-    Signals.pve.add(function () {
-        board.execute("boardsize " + board.size);
-        board.execute("komi " + board.komi);
-    });
-
-    Signals.eve.add(function () {
-        board.user = 'v';
-        board.execute({
-            cmd: 'start',
-            board: {
-                size: board.size,
-                komi: board.komi
-            }
-        });
-    });
-
-    Signals.pass.add(function () {
-        if (board.next === board.user) {
-            board.execute({
-                cmd: 'move',
-                color: board.user,
-                pass: true
-            });
-        }
-    });
 
     Signals.start.add(function () {
         root.remove(uiMain);
@@ -164,7 +115,7 @@ function initBoard() {
         txtInfo.refresh();
     });
 
-    Signals.genpass.add(function () {
+    Signals.passtip.add(function () {
         txtInfo.visible = true;
         txtInfo.text = "PASS";
         txtInfo.refresh();
@@ -179,13 +130,28 @@ var main = (function () {
     var funcs = Halo.ResourceManager.funcs();
 
     funcs["initBoard"] = initBoard;
+    funcs["add_board_size"] = add_board_size;
+    funcs["sub_board_size"] = sub_board_size;
+    funcs["change_player_color"] = change_player_color;
+    funcs["add_komi"] = add_komi;
+    funcs["sub_komi"] = sub_komi;
+    funcs["pass"] = pass;
+    funcs["pve"] = pve;
+    funcs["eve"] = eve;
 }());
 
-// for editor
 if (window.func_unloaders) {
     window.func_unloaders['main.js'] = function () {
         var funcs = Halo.ResourceManager.funcs();
 
         delete funcs["initBoard"];
+        delete funcs["add_board_size"];
+        delete funcs["sub_board_size"];
+        delete funcs["change_player_color"];
+        delete funcs["add_komi"];
+        delete funcs["sub_komi"];
+        delete funcs["pass"];
+        delete funcs["pve"];
+        delete funcs["eve"];
     }
 }

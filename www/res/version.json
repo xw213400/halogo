@@ -1,57 +1,67 @@
 {
-  "ani": {},
-  "cfg": {
-    "go_map.json": {
-      "md5": "cf514b03fbdd994fabec2bbf8dfa2c1a",
-      "version": 3
+  "": {
+    "effect.json": {
+      "size": 23, 
+      "version": 1, 
+      "md5": "b050b72e6b9124063d00a6394d4d1b7e"
+    }, 
+    "widget.json": {
+      "size": 4992, 
+      "version": 7, 
+      "md5": "3ea3d9edc545824594d5db781eaa65ec"
+    }, 
+    "version.json": {
+      "size": 1084, 
+      "version": 13, 
+      "md5": "85814b7e7d1bb0dd9403871f24837988"
+    }, 
+    "config.json": {
+      "size": 651, 
+      "version": 7, 
+      "md5": "de61a30b2383bc54d14e0347e860c456"
     }
-  },
-  "img": {
-    "go_map.png": {
-      "md5": "5ad47092b93194a8ba5d5e1c16174510",
-      "version": 3
-    }
-  },
-  "mat": {},
-  "mdl": {},
+  }, 
   "scn": {
     "main": {
-      "md5": "e9385f1113c65456a5ffc1674fb856dd",
-      "version": 4
+      "size": 332, 
+      "version": 4, 
+      "md5": "e9385f1113c65456a5ffc1674fb856dd"
     }
-  },
-  "geo": {},
-  "aud": {},
+  }, 
+  "img": {
+    "go_map.png": {
+      "size": 29336, 
+      "version": 3, 
+      "md5": "5ad47092b93194a8ba5d5e1c16174510"
+    }
+  }, 
+  "mdl": {}, 
+  "cfg": {
+    "go_map.json": {
+      "size": 651, 
+      "version": 3, 
+      "md5": "cf514b03fbdd994fabec2bbf8dfa2c1a"
+    }
+  }, 
+  "ani": {}, 
   "js": {
-    "board.js": {
-      "md5": "a49e8af1e3009c76001ca0bcb348a88c",
-      "version": 1
-    },
-    "main.js": {
-      "md5": "763d85b4d6f1a5a17ce861d66e6645a5",
-      "version": 1
-    },
     "signals.js": {
-      "md5": "d5816bafc6267671655fb0051ca567d9",
-      "version": 1
+      "size": 11654, 
+      "version": 1, 
+      "md5": "d5816bafc6267671655fb0051ca567d9"
+    }, 
+    "board.js": {
+      "size": 6668, 
+      "version": 2, 
+      "md5": "6664184cf64e9899f853b6a1f2ad330d"
+    }, 
+    "main.js": {
+      "size": 4536, 
+      "version": 2, 
+      "md5": "f831d5bff62c2d4e9cb6de662593052b"
     }
-  },
-  "": {
-    "config.json": {
-      "md5": "de61a30b2383bc54d14e0347e860c456",
-      "version": 7
-    },
-    "effect.json": {
-      "md5": "b050b72e6b9124063d00a6394d4d1b7e",
-      "version": 1
-    },
-    "version.json": {
-      "md5": "bd60906928cd2b359394237aec9c5e70",
-      "version": 12
-    },
-    "widget.json": {
-      "md5": "463985c86b26f6c4ecf1408f131fc757",
-      "version": 6
-    }
-  }
+  }, 
+  "geo": {}, 
+  "aud": {}, 
+  "mat": {}
 }
