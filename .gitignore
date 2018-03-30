@@ -6,6 +6,7 @@
 .DS_Store
 */.vscode
 .vscode
+package-lock.json
 
 # Folders
 node_modules
