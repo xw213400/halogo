@@ -44,6 +44,7 @@ CODE_SWAP = random.getrandbits(64)
 
 INPUT_BOARD = None
 FLAG_BOARD = None #用于标记是否resonable
+HASH_BOARD = None #标记该位置是否为下过的局面
 
 
 class Position:
@@ -64,12 +65,14 @@ class Position:
             i -= 1
             p = 1
             FLAG_BOARD[v] = False
+            HASH_BOARD[v] = False
             if self.resonable(v) and self.move2(MOVE_POS, v):
                 p = 2
-                # if MOVE_POS.hash_code not in HASH_SIM:
                 FLAG_BOARD[v] = True
             if v == self.ko:
                 p = 3
+            if MOVE_POS.hash_code in HASH_SIM:
+                HASH_BOARD[v] = True
             INPUT_BOARD[0, 0, i, j] = self.board[v] * self.next + 2
             INPUT_BOARD[0, 1, i, j] = p
 
@@ -409,7 +412,7 @@ class Position:
 def init(n):
     global N, M, LM, UP, DOWN, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN, FLAGS, EMPTY_BOARD, COORDS, FRONTIER, FLAG
     global POSITION, POSITION_POOL, SIM_POS, MOVE_POS, HASH_SIM, CODE_WHITE, CODE_BLACK, CODE_KO
-    global INPUT_BOARD, FLAG_BOARD
+    global INPUT_BOARD, FLAG_BOARD, HASH_BOARD
     N = n
     M = N + 1
     LN = N * N
@@ -449,6 +452,7 @@ def init(n):
 
     INPUT_BOARD = torch.zeros(1, 2, N, N)
     FLAG_BOARD = [True] * LM
+    HASH_BOARD = [False] * LM
 
     POSITION = Position()
     SIM_POS = Position()

@@ -154,7 +154,7 @@ def sim():
         v = go.COORDS[i]
         if go.FLAG_BOARD[v]:
             score = y[0, i]
-            if score > best_score:
+            if score > best_score and not go.HASH_BOARD[v]:
                 best_score = score
                 best_move = v
         i += 1
