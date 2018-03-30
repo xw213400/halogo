@@ -96,17 +96,7 @@ def print_input():
 
 
 def get(position):
-    for v in go.COORDS:
-        j, i = go.toXY(v)
-        j -= 1
-        i -= 1
-        p = 1
-        go.FLAG_BOARD[v] = False
-        if position.resonable(v) and position.move2(go.MOVE_POS, v):
-            p = 2
-            go.FLAG_BOARD[v] = True
-        go.INPUT_BOARD[0, 0, i, j] = position.board[v] + 2
-        go.INPUT_BOARD[0, 1, i, j] = p
+    position.input_board()
 
     # print("=====================")
     # print(position.text())
@@ -125,7 +115,7 @@ def get(position):
 
     pos = go.POSITION_POOL.pop()
     position.move2(pos, 0)
-    pos.prior = y[0, go.LN]
+    pos.prior = -1000000 #y[0, go.LN]
     positions.append(pos)
 
     i = 0
@@ -144,49 +134,35 @@ def get(position):
 
 
 def sim():
-    has_resonable = False
-    for v in go.COORDS:
-        j, i = go.toXY(v)
-        j -= 1
-        i -= 1
-        p = 1
-        go.FLAG_BOARD[v] = False
-        if go.SIM_POS.resonable(v) and go.SIM_POS.move2(go.MOVE_POS, v):
-            p = 2
-            has_resonable = True
-            if go.MOVE_POS.hash_code not in go.HASH_SIM:
-                go.FLAG_BOARD[v] = True
-
-        go.INPUT_BOARD[0, 0, i, j] = go.SIM_POS.board[v] + 2
-        go.INPUT_BOARD[0, 1, i, j] = p
+    go.SIM_POS.input_board()
 
     best_move = 0
     best_score = -1000000
 
-    if has_resonable:
-        x = None
-        y = None
-        if torch.cuda.is_available():
-            x = Variable(go.INPUT_BOARD).cuda()
-            y = halo_resnet(x).data.cpu().numpy()
-        else:
-            x = Variable(go.INPUT_BOARD)
-            y = halo_resnet(x).data.numpy()
+    # if has_resonable:
+    x = None
+    y = None
+    if torch.cuda.is_available():
+        x = Variable(go.INPUT_BOARD).cuda()
+        y = halo_resnet(x).data.cpu().numpy()
+    else:
+        x = Variable(go.INPUT_BOARD)
+        y = halo_resnet(x).data.numpy()
 
-        i = 0
-        while i < go.LN:
-            v = go.COORDS[i]
-            if go.FLAG_BOARD[v]:
-                score = y[0, i]
-                if score > best_score:
-                    best_score = score
-                    best_move = v
-            i += 1
+    i = 0
+    while i < go.LN:
+        v = go.COORDS[i]
+        if go.FLAG_BOARD[v]:
+            score = y[0, i]
+            if score > best_score:
+                best_score = score
+                best_move = v
+        i += 1
 
-        # score = y[0, go.LN]
-        # if score > best_score:
-        #     best_score = score
-        #     best_move = 0
+    # score = y[0, go.LN]
+    # if score > best_score:
+    #     best_score = score
+    #     best_move = 0
 
     go.SIM_POS.move2(go.SIM_POS, best_move)
     go.HASH_SIM[go.SIM_POS.hash_code] = 0
@@ -199,18 +175,11 @@ if torch.cuda.is_available():
     criterion = nn.MSELoss().cuda()
 else:
     criterion = nn.MSELoss()
-optimizer = optim.SGD(halo_resnet.parameters(), lr=0.0001)
+optimizer = optim.SGD(halo_resnet.parameters(), lr=0.000001)
 
 
 def train(position, best_move):
-    for v in go.COORDS:
-        j, i = go.toXY(v)
-        j -= 1
-        i -= 1
-        p = 2 if position.resonable(
-            v) and position.move2(go.MOVE_POS, v) else 1
-        go.INPUT_BOARD[0, 0, i, j] = position.board[v] + 2
-        go.INPUT_BOARD[0, 1, i, j] = p
+    position.input_board()
 
     target_data = torch.zeros(1, go.LN + 1)
     if best_move == 0:

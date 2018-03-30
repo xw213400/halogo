@@ -55,6 +55,24 @@ class Position:
         self.vertex = 0
         self.hash_code = 0
 
+    # INPUT_BOARD[0]: enemy:1, empty:2, self:3
+    # INPUT_BOARD[1]: unresonable:1, resonable:2, ko:3
+    def input_board(self):
+        for v in COORDS:
+            j, i = toXY(v)
+            j -= 1
+            i -= 1
+            p = 1
+            FLAG_BOARD[v] = False
+            if self.resonable(v) and self.move2(MOVE_POS, v):
+                p = 2
+                # if MOVE_POS.hash_code not in HASH_SIM:
+                FLAG_BOARD[v] = True
+            if v == self.ko:
+                p = 3
+            INPUT_BOARD[0, 0, i, j] = self.board[v] * self.next + 2
+            INPUT_BOARD[0, 1, i, j] = p
+
     def resonable(self, v):
         if v == 0:
             return True
