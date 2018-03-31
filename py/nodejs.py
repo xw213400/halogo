@@ -4,6 +4,7 @@ import sys
 import gtp
 from gtp_wrapper import make_gtp_instance
 import resnet
+import torch
 import os.path
 
 def main():
