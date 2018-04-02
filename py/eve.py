@@ -16,11 +16,11 @@ def main(size, n):
         resnet.halo_resnet.load_state_dict(torch.load('../data/resnet_pars.pkl'))
     print('ready!')
     i = 0
-    record = ''
+    records = ''
     while i < n:
-        go.POSITION.copy_board(go.EMPTY_BOARD)
-        go.POSITION.next = go.BLACK
-        go.POSITION.ko = 0
+        record = ''
+        go.clear()
+        engine.clear()
         pass_num = 0
         while pass_num < 2:
             move = engine.suggest_move()
@@ -39,12 +39,13 @@ def main(size, n):
             print(record)
         i+=1
         print(i)
+        records += record
         torch.save(resnet.halo_resnet.state_dict(), '../data/resnet_pars.pkl')
 
     daytime = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
     filename = '../data/%d_%d_%s' % (size, n, daytime)
     f = open(filename, 'w')
-    f.write(record)
+    f.write(records)
     f.close()
 
     

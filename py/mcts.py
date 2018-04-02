@@ -117,6 +117,11 @@ class MCTSPlayerMixin:
         self.best_node = None
         super().__init__()
 
+    def clear(self):
+        if self.best_node is not None:
+            self.best_node.release()
+            self.best_node = None
+
     def suggest_move(self):
         root_node = None
         # print("==============================")
@@ -172,7 +177,7 @@ class MCTSPlayerMixin:
         self.debug_info += 'MOVE:%d; SIM_COUNT:%d; POOL_LEFT:%d\n' % (self.best_node.position.vertex, sim_count, len(go.POSITION_POOL))
         # root_node.release()
 
-        resnet.train(go.POSITION, self.best_node.position.vertex)
+        # resnet.train(go.POSITION, self.best_node.position.vertex)
 
         return self.best_node.position.vertex
 

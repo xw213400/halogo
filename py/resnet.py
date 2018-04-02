@@ -7,6 +7,9 @@ from torch.autograd import Variable
 import torch.optim as optim
 
 
+WORST_SCORE = -1000000
+
+
 def conv5x5(in_channel, out_channel):
     return nn.Conv2d(in_channel, out_channel, 5, stride=1, padding=2, bias=False)
 
@@ -115,7 +118,7 @@ def get(position):
 
     pos = go.POSITION_POOL.pop()
     position.move2(pos, 0)
-    pos.prior = -1000000 #y[0, go.LN]
+    pos.prior = WORST_SCORE #y[0, go.LN]
     positions.append(pos)
 
     i = 0
@@ -137,7 +140,9 @@ def sim():
     go.SIM_POS.input_board()
 
     best_move = 0
-    best_score = -1000000
+    best_score = WORST_SCORE
+    best_hit_move = 0
+    best_hit_score = WORST_SCORE
 
     # if has_resonable:
     x = None
@@ -154,15 +159,18 @@ def sim():
         v = go.COORDS[i]
         if go.FLAG_BOARD[v]:
             score = y[0, i]
-            if score > best_score and not go.HASH_BOARD[v]:
-                best_score = score
-                best_move = v
+            if go.HASH_BOARD[v]:
+                if score > best_hit_score:
+                    best_hit_score = score
+                    best_hit_move = v
+            else:
+                if score > best_score:
+                    best_score = score
+                    best_move = v
         i += 1
 
-    # score = y[0, go.LN]
-    # if score > best_score:
-    #     best_score = score
-    #     best_move = 0
+    # if best_score == WORST_SCORE and best_hit_score != WORST_SCORE:
+    #     best_move = best_hit_move
 
     go.SIM_POS.move2(go.SIM_POS, best_move)
     go.HASH_SIM[go.SIM_POS.hash_code] = 0

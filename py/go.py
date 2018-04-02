@@ -44,7 +44,7 @@ CODE_SWAP = random.getrandbits(64)
 
 INPUT_BOARD = None
 FLAG_BOARD = None #用于标记是否resonable
-HASH_BOARD = None #标记该位置是否为下过的局面
+HASH_BOARD = None #标记该位置是否为下过的局面,用于避免循环局面，模拟开始时记录局面估值
 
 
 class Position:
@@ -464,6 +464,15 @@ def init(n):
         i += 1
 
 init(7)
+
+def clear():
+    POSITION.copy_board(EMPTY_BOARD)
+    POSITION.next = BLACK
+    POSITION.ko = 0
+    SIM_POS.copy(POSITION)
+    MOVE_POS.copy(POSITION)
+    HASH_SIM = {}
+
 
 def toXY(vertex):
     j = vertex % M
