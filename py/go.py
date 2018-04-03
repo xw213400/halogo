@@ -1,6 +1,7 @@
 
 import torch
 import random
+import json
 # Represent a board as a numpy array, with 0 empty, 1 is black, -1 is white.
 # This means that swapping colors is as simple as multiplying array by -1.
 WHITE, EMPTY, BLACK, WALL = range(-1, 3)
@@ -172,6 +173,18 @@ class Position:
         self.hash_code = pos.hash_code
         self.vertex = pos.vertex
         self.copy_board(pos.board)
+
+    def toJSON(self):
+        JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'hash':self.hash_code, 'vertex':self.vertex}
+        return json.dumps(JSON)
+
+    def fromJSON(self, JSON_str):
+        JSON = json.loads(JSON_str)
+        self.board.copy_board(JSON.board)
+        self.next = JSON.next
+        self.ko = JSON.ko
+        self.hash_code = JSON.hash
+        self.vertex = JSON.vertex
 
     def move2(self, pos, v):
         global KO, NEXT

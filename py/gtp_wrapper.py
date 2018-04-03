@@ -41,6 +41,12 @@ class GtpInterface(object):
     def get_score(self):
         return go.POSITION.result()
 
+    def save(self):
+        return go.POSITION.toJSON()
+
+    def load(self, str):
+        go.POSITION.fromJSON(str)
+
     def suggest_move(self, position):
         raise NotImplementedError
 

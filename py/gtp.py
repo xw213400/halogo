@@ -238,6 +238,12 @@ class Engine(object):
         score = self._game.get_score()
         return score
 
+    def cmd_save(self, arguments):
+        return self._game.save()
+
+    def cmd_load(self, arguments):
+        self._game.load(arguments)
+
 
 class MinimalGame(object):
 
