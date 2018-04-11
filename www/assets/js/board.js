@@ -76,6 +76,45 @@ Object.assign(Board.prototype, {
         }
     },
 
+    add: function (i, j, c) {
+        var wt_stone = c === 'b' ? Halo.Config.createWidget('black') : Halo.Config.createWidget('white');
+
+        this.stones[i + '_' + j] = wt_stone;
+
+        var size = this.size;
+
+        wt_stone.setAnchorType(Halo.ANCHOR_LEFT, Halo.ANCHOR_BOTTOM);
+
+        wt_stone.formulaSizeXFunc = function (w, h) {
+            return w / size * 0.9;
+        };
+        wt_stone.formulaSizeYFunc = function (w, h) {
+            return w / size * 0.9;
+        };
+        wt_stone.formulaOffsetXFunc = function (w, h) {
+            return w / size * (i + 0.05);
+        };
+        wt_stone.formulaOffsetYFunc = function (w, h) {
+            return w / size * (j + 0.05);
+        };
+
+        this.uiBoard.add(wt_stone);
+
+        return wt_stone;
+    },
+
+    setBoard: function (bb) {
+        for (var i = 0; i !== this.size; ++i) {
+            for (var j = 0; j !== this.size; ++j) {
+                this.remove(i, j);
+                var c = bb[i * this.size + j];
+                if (c !== 0) {
+                    this.add(i, j, c === 1 ? 'b' : 'w');
+                }
+            }
+        }
+    },
+
     execute: function (cmd) {
         var scope = this;
 
@@ -189,23 +228,9 @@ Object.assign(Board.prototype, {
         if (this.uiLastStone) {
             this.uiLastStone.alpha = 1;
         }
-        var size = this.size;
-        this.uiLastStone = this.next === 'b' ? Halo.Config.createWidget('black') : Halo.Config.createWidget('white');
-        this.uiLastStone.setAnchorType(Halo.ANCHOR_LEFT, Halo.ANCHOR_BOTTOM);
-        this.uiLastStone.formulaSizeXFunc = function (w, h) {
-            return w / size * 0.9;
-        };
-        this.uiLastStone.formulaSizeYFunc = function (w, h) {
-            return w / size * 0.9;
-        };
-        this.uiLastStone.formulaOffsetXFunc = function (w, h) {
-            return w / size * (i + 0.05);
-        };
-        this.uiLastStone.formulaOffsetYFunc = function (w, h) {
-            return w / size * (j + 0.05);
-        };
+
+        this.uiLastStone = add(i, j, this.next);
         this.uiLastStone.alpha = 0.5;
-        this.uiBoard.add(this.uiLastStone);
 
         this.stones[i + '_' + j] = this.uiLastStone;
 

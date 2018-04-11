@@ -11,17 +11,22 @@
       "md5": "b050b72e6b9124063d00a6394d4d1b7e"
     }, 
     "widget.json": {
-      "size": 4992, 
-      "version": 7, 
-      "md5": "3ea3d9edc545824594d5db781eaa65ec"
+      "size": 5969, 
+      "version": 8, 
+      "md5": "e5f54cda21cd9f7199ce7bc80b06c58f"
     }, 
     "config.json": {
-      "size": 669, 
-      "version": 8, 
-      "md5": "1076add5bed860fbdab62dd7a99fd466"
+      "size": 779, 
+      "version": 11, 
+      "md5": "cec57730193c0be07dc0e39793ec782c"
     }
   }, 
   "scn": {
+    "debug": {
+      "size": 279, 
+      "version": 3, 
+      "md5": "99dc495013ae4f0a7d3c4947dcd0f262"
+    }, 
     "main": {
       "size": 267, 
       "version": 6, 
@@ -45,15 +50,20 @@
   }, 
   "ani": {}, 
   "js": {
+    "debug.js": {
+      "size": 1761, 
+      "version": 6, 
+      "md5": "2795f4f79b91e3130db3ccf58fd89ab5"
+    }, 
     "signals.js": {
       "size": 11654, 
       "version": 1, 
       "md5": "d5816bafc6267671655fb0051ca567d9"
     }, 
     "board.js": {
-      "size": 7411, 
-      "version": 3, 
-      "md5": "d56cf4426a91a4eefdd68d728f618476"
+      "size": 7865, 
+      "version": 6, 
+      "md5": "caee53d963c96c4d9c88b5a109f12a14"
     }, 
     "main.js": {
       "size": 3671, 

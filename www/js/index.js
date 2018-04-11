@@ -88,7 +88,7 @@ function mainloop() {
     requestAnimationFrame(mainloop);
 }
 
-// Halo.Config.bDebug = true;
+Halo.Config.bDebug = true;
 var entryScene;
 
 function init() {

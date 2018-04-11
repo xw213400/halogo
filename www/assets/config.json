@@ -28,15 +28,23 @@
 				},
 				{
 					"path": "js",
+					"name": "board.js"
+				},
+				{
+					"path": "js",
 					"name": "main.js"
 				},
 				{
 					"path": "js",
-					"name": "board.js"
+					"name": "debug.js"
 				},
 				{
 					"path": "scn",
 					"name": "main"
+				},
+				{
+					"path": "scn",
+					"name": "debug"
 				}]
 		}
 	},
