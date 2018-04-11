@@ -28,13 +28,15 @@ def main(size):
         else:
             pass_num = 0
 
+        record = go.POSITION.toJSON()
         records += '  '
-        records += go.POSITION.toJSON()
+        records += record
+        print(record)
 
         if pass_num < 2:
             records += ',\n'
         else:
-            records += ']\n'
+            records += '\n]'
         
     f = open('../data/record.json', 'w')
     f.write(records)

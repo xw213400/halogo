@@ -89,6 +89,7 @@ function mainloop() {
 }
 
 // Halo.Config.bDebug = true;
+var entryScene;
 
 function init() {
     Halo.init('HaloGO', './assets/', null, function (res) {
@@ -105,7 +106,7 @@ function init() {
             document.addEventListener('touchmove', onTouchMove, false);
 
             Halo.Config.start(document.body);
-            Halo.Config.play();
+            Halo.Config.play(entryScene);
 
             onResizeWindow();
             mainloop();

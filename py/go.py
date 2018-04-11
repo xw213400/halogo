@@ -175,7 +175,7 @@ class Position:
         self.copy_board(pos.board)
 
     def toJSON(self):
-        JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'hash':self.hash_code, 'vertex':self.vertex}
+        JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex}
         return json.dumps(JSON)
 
     def fromJSON(self, JSON_str):
@@ -183,8 +183,16 @@ class Position:
         self.board.copy_board(JSON.board)
         self.next = JSON.next
         self.ko = JSON.ko
-        self.hash_code = JSON.hash
         self.vertex = JSON.vertex
+        self.hash_code = 0
+        if self.next == WHITE:
+            self.hash_code = self.hash_code ^ CODE_SWAP
+        self.hash_code ^= CODE_KO[self.ko]
+        for v in COORDS:
+            if self.board[v] == BLACK:
+                self.hash_code ^= CODE_BLACK[v]
+            elif self.board[v] == WHITE:
+                self.hash_code ^= CODE_WHITE[v]
 
     def move2(self, pos, v):
         global KO, NEXT
