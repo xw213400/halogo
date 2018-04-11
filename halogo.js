@@ -3,7 +3,7 @@ const spawn = require('child_process').spawn;
 const path = require('path');
 
 var Halogo = function () {
-    var py = spawn('python', [path.join(__dirname, 'py/nodejs.py')]);
+    var py = spawn('python', [path.join(__dirname, 'py/xnodejs.py')]);
     var onsuccess = null;
     var onerror = null;
 
