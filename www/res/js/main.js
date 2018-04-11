@@ -5,7 +5,7 @@ var Signals = {
 };
 
 var scene = null;
-var root = null;
+var ui = null;
 var uiMain = null;
 var btnAddBoardSize = null;
 var txtBoardSize = null;
@@ -85,7 +85,7 @@ function eve() {
 
 function initBoard() {
     scene = Halo.Config.scene();
-    root = scene.getWidgetRoot();
+    ui = scene.getWidgetRoot();
     uiMain = Halo.Config.createWidget('main');
     btnAddBoardSize = uiMain.getChild('btn_add_board_size');
     txtBoardSize = uiMain.getChild('txt_board_size');
@@ -97,19 +97,19 @@ function initBoard() {
     board = new Board();
 
     txtInfo.visible = false;
-    root.add(uiMain);
-    root.add(board.uiBoard);
-    root.add(txtInfo);
-    root.relayout();
+    ui.add(uiMain);
+    ui.add(board.uiBoard);
+    ui.add(txtInfo);
+    ui.relayout();
     board.clear();
 
     Signals.start.add(function () {
-        root.remove(uiMain);
-        root.add(btnPass);
+        ui.remove(uiMain);
+        ui.add(btnPass);
     });
 
     Signals.finish.add(function (score) {
-        root.remove(btnPass);
+        ui.remove(btnPass);
         txtInfo.text = score;
         txtInfo.visible = true;
         txtInfo.refresh();

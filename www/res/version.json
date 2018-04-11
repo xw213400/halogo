@@ -1,5 +1,10 @@
 {
   "": {
+    "audio.json": {
+      "size": 2, 
+      "version": 1, 
+      "md5": "99914b932bd37a50b983c5e7c90ae93b"
+    }, 
     "effect.json": {
       "size": 23, 
       "version": 1, 
@@ -10,22 +15,17 @@
       "version": 7, 
       "md5": "3ea3d9edc545824594d5db781eaa65ec"
     }, 
-    "version.json": {
-      "size": 1084, 
-      "version": 13, 
-      "md5": "85814b7e7d1bb0dd9403871f24837988"
-    }, 
     "config.json": {
-      "size": 651, 
-      "version": 7, 
-      "md5": "de61a30b2383bc54d14e0347e860c456"
+      "size": 669, 
+      "version": 8, 
+      "md5": "1076add5bed860fbdab62dd7a99fd466"
     }
   }, 
   "scn": {
     "main": {
-      "size": 332, 
-      "version": 4, 
-      "md5": "e9385f1113c65456a5ffc1674fb856dd"
+      "size": 267, 
+      "version": 6, 
+      "md5": "ac85c487dee18dd8fb630c2ae6679f73"
     }
   }, 
   "img": {
@@ -51,14 +51,14 @@
       "md5": "d5816bafc6267671655fb0051ca567d9"
     }, 
     "board.js": {
-      "size": 6668, 
-      "version": 2, 
-      "md5": "6664184cf64e9899f853b6a1f2ad330d"
+      "size": 7411, 
+      "version": 3, 
+      "md5": "d56cf4426a91a4eefdd68d728f618476"
     }, 
     "main.js": {
-      "size": 4536, 
-      "version": 2, 
-      "md5": "f831d5bff62c2d4e9cb6de662593052b"
+      "size": 3671, 
+      "version": 4, 
+      "md5": "63097aaa6a8dffbe52105a29d23ce19c"
     }
   }, 
   "geo": {}, 

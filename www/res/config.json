@@ -1,6 +1,6 @@
 {
 	"alpha": false,
-	"antialias": true,
+	"antialias": false,
 	"simple_atlas": [
 		{
 			"img": "go_map.png",
@@ -22,7 +22,7 @@
 			"atlas": [],
 			"dragonbones": [],
 			"resources": [
-                {
+				{
 					"path": "js",
 					"name": "signals.js"
 				},
@@ -37,8 +37,9 @@
 				{
 					"path": "scn",
 					"name": "main"
-                }
-            ]
+				}]
 		}
-	}
+	},
+	"preserveDrawingBuffer": false,
+	"shadowMapType": 1
 }

@@ -88,8 +88,10 @@ function mainloop() {
     requestAnimationFrame(mainloop);
 }
 
+// Halo.Config.bDebug = true;
+
 function init() {
-    Halo.init('gomcts', 'res/', null, (res) => {
+    Halo.init('HaloGO', './assets/', null, function (res) {
         if (res === null) {
             window.addEventListener('resize', onResizeWindow, false);
             window.addEventListener('keydown', onKeyDown, false);
@@ -111,8 +113,20 @@ function init() {
     });
 }
 
-document.onreadystatechange = function () {
-    if (document.readyState === "complete") {
+function isWeixinBrowser(){
+    var ua = navigator.userAgent.toLowerCase();
+    return (/micromessenger/.test(ua)) ? true : false ;
+}
+
+if (isWeixinBrowser()) {
+    document.addEventListener("WeixinJSBridgeReady", function () {
         init();
+    }, false);
+
+} else {
+    document.onreadystatechange = function () {
+        if (document.readyState === "complete") {
+            init();
+        }
     }
 }
