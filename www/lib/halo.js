@@ -41914,7 +41914,9 @@ var ResourceManager = function () {
                 }
             } else if (path === 'js') {
                 res.obj = res.unzip;
-                document.head.appendChild(res.obj);
+                if (Config.bDebug) {
+                    document.head.appendChild(res.obj);
+                }
             } else {
                 res.obj = JSON.parse(res.unzip);
             }
