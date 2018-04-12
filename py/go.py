@@ -178,12 +178,11 @@ class Position:
         JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex}
         return json.dumps(JSON)
 
-    def fromJSON(self, JSON_str):
-        JSON = json.loads(JSON_str)
-        self.board.copy_board(JSON.board)
-        self.next = JSON.next
-        self.ko = JSON.ko
-        self.vertex = JSON.vertex
+    def fromJSON(self, JSON):
+        self.copy_board(JSON['board'])
+        self.next = JSON['next']
+        self.ko = JSON['ko']
+        self.vertex = JSON['vertex']
         self.hash_code = 0
         if self.next == WHITE:
             self.hash_code = self.hash_code ^ CODE_SWAP

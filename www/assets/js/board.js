@@ -134,6 +134,9 @@ Object.assign(Board.prototype, {
                 console.log(request.response);
                 if (request.status === 200) {
                     var msg = JSON.parse(request.response);
+                    if (msg[0] !== '=') {
+                        return;
+                    }
                     switch (cmd[0]) {
                         case 'boardsize':
                             board.execute(["komi", this.komi]);
