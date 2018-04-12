@@ -91,6 +91,10 @@ function mainloop() {
 Halo.Config.bDebug = true;
 var entryScene;
 
+var ua = navigator.userAgent.toLowerCase();
+var isAndroid = ua.indexOf('android') > -1 || ua.indexOf('adr') > -1;
+var isWeixinBrowser = /micromessenger/.test(ua);
+
 function init() {
     Halo.init('HaloGO', './assets/', null, function (res) {
         if (res === null) {
@@ -98,9 +102,11 @@ function init() {
             window.addEventListener('keydown', onKeyDown, false);
             document.addEventListener('contextmenu', onContextMenu, false);
             document.addEventListener('wheel', onMouseWheel, false);
-            document.addEventListener('mousedown', onMouseDown, false);
-            document.addEventListener('mouseup', onMouseUp, false);
-            document.addEventListener('mousemove', onMouseMove, false);
+            if (!isAndroid) {
+                document.addEventListener('mousedown', onMouseDown, false);
+                document.addEventListener('mouseup', onMouseUp, false);
+                document.addEventListener('mousemove', onMouseMove, false);
+            }
             document.addEventListener('touchstart', onTouchStart, false);
             document.addEventListener('touchend', onTouchEnd, false);
             document.addEventListener('touchmove', onTouchMove, false);
@@ -119,7 +125,7 @@ function isWeixinBrowser(){
     return (/micromessenger/.test(ua)) ? true : false ;
 }
 
-if (isWeixinBrowser()) {
+if (isWeixinBrowser) {
     document.addEventListener("WeixinJSBridgeReady", function () {
         init();
     }, false);
