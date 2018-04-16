@@ -53,11 +53,11 @@ class MCTSNode():
             go.HASH_SIM[go.SIM_POS.hash_code] = score
             return score
         
-        codes = []
+        go.BRANCH_SIM.clear()
         go.SIM_POS.copy(pos)
         i = 0
         while pass_num < 2:
-            codes.append(resnet.sim())
+            go.BRANCH_SIM.add(resnet.sim())
             if go.SIM_POS.vertex == 0:
                 pass_num += 1
             else:
@@ -65,13 +65,10 @@ class MCTSNode():
 
             i += 1
             if i > go.LN * 10 and i < go.LN * 10 + 10:
-                print(i, go.toXY(go.SIM_POS.vertex), go.SIM_POS.hash_code, go.SIM_POS.hash_code in go.HASH_SIM)
+                print(i, go.toXY(go.SIM_POS.vertex), go.SIM_POS.hash_code)
                 print(go.SIM_POS.text())
 
         score = go.SIM_POS.score()
-
-        for hc in codes:
-            go.HASH_SIM[hc] = score
 
         return score
         

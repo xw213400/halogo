@@ -136,13 +136,11 @@ def get(position):
     return positions
 
 
-def sim():
+def sim(codes):
     go.SIM_POS.input_board()
 
     best_move = 0
     best_score = WORST_SCORE
-    best_hit_move = 0
-    best_hit_score = WORST_SCORE
 
     # if has_resonable:
     x = None
@@ -159,21 +157,12 @@ def sim():
         v = go.COORDS[i]
         if go.FLAG_BOARD[v]:
             score = y[0, i]
-            if go.HASH_BOARD[v]:
-                if score > best_hit_score:
-                    best_hit_score = score
-                    best_hit_move = v
-            else:
-                if score > best_score:
-                    best_score = score
-                    best_move = v
+            if not go.HASH_BOARD[v] and score > best_score:
+                best_score = score
+                best_move = v
         i += 1
 
-    # if best_score == WORST_SCORE and best_hit_score != WORST_SCORE:
-    #     best_move = best_hit_move
-
     go.SIM_POS.move2(go.SIM_POS, best_move)
-    go.HASH_SIM[go.SIM_POS.hash_code] = 0
 
     return go.SIM_POS.hash_code
 

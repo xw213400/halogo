@@ -37,7 +37,8 @@ SIM_POS = None
 MOVE_POS = None
 POSITION_POOL = None
 
-HASH_SIM = None
+BRANCH_SIM = None # only this simulation branch positions
+HASH_SIM = None # only history expanded node positions
 CODE_WHITE = None
 CODE_BLACK = None
 CODE_KO = None
@@ -72,10 +73,22 @@ class Position:
                 FLAG_BOARD[v] = True
             if v == self.ko:
                 p = 3
-            if MOVE_POS.hash_code in HASH_SIM:
+            if MOVE_POS.hash_code in BRANCH_SIM:
                 HASH_BOARD[v] = True
             INPUT_BOARD[0, 0, i, j] = self.board[v] * self.next + 2
             INPUT_BOARD[0, 1, i, j] = p
+
+    def init_hash_code(self):
+        self.hash_code = 0
+        if self.next == WHITE:
+            self.hash_code = self.hash_code ^ CODE_SWAP
+        self.hash_code ^= CODE_KO[self.ko]
+        for v in COORDS:
+            if self.board[v] == BLACK:
+                self.hash_code ^= CODE_BLACK[v]
+            elif self.board[v] == WHITE:
+                self.hash_code ^= CODE_WHITE[v]
+
 
     def resonable(self, v):
         if v == 0:
@@ -183,15 +196,7 @@ class Position:
         self.next = JSON['next']
         self.ko = JSON['ko']
         self.vertex = JSON['vertex']
-        self.hash_code = 0
-        if self.next == WHITE:
-            self.hash_code = self.hash_code ^ CODE_SWAP
-        self.hash_code ^= CODE_KO[self.ko]
-        for v in COORDS:
-            if self.board[v] == BLACK:
-                self.hash_code ^= CODE_BLACK[v]
-            elif self.board[v] == WHITE:
-                self.hash_code ^= CODE_WHITE[v]
+        self.init_hash_code()
 
     def move2(self, pos, v):
         global KO, NEXT
@@ -431,7 +436,7 @@ class Position:
 
 def init(n):
     global N, M, LM, UP, DOWN, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN, FLAGS, EMPTY_BOARD, COORDS, FRONTIER, FLAG
-    global POSITION, POSITION_POOL, SIM_POS, MOVE_POS, HASH_SIM, CODE_WHITE, CODE_BLACK, CODE_KO
+    global POSITION, POSITION_POOL, SIM_POS, MOVE_POS, BRANCH_SIM, HASH_SIM, CODE_WHITE, CODE_BLACK, CODE_KO
     global INPUT_BOARD, FLAG_BOARD, HASH_BOARD
     N = n
     M = N + 1
@@ -456,6 +461,7 @@ def init(n):
         EMPTY_BOARD[(i + 1) * M] = WALL
 
     HASH_SIM = {}
+    BRANCH_SIM = set()
     vlen = M * M
     CODE_WHITE = [0] * vlen
     CODE_BLACK = [0] * vlen
@@ -492,6 +498,7 @@ def clear():
     SIM_POS.copy(POSITION)
     MOVE_POS.copy(POSITION)
     HASH_SIM = {}
+    BRANCH_SIM.clear()
 
 
 def toXY(vertex):
