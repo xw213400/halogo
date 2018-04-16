@@ -39735,8 +39735,8 @@ var Config = function () {
             _loadBatch(name, callback);
         },
 
-        loadAllBatch: function loadAllBatch(callback) {
-            var allbatch = { simple_atlas: [], atlas: [], dragonbones: [] };
+        loadAllBatch: function loadAllBatch(callback, bRes) {
+            var allbatch = { simple_atlas: [], atlas: [], dragonbones: [], resources: [] };
 
             for (var name in _cfg.batches) {
                 var batch = _cfg.batches[name];
@@ -39757,6 +39757,12 @@ var Config = function () {
                         allbatch.dragonbones.push(batch.dragonbones[i]);
                     }
                 }
+
+                if (bRes) {
+                    for (var i = 0; i !== batch.resources.length; ++i) {
+                        allbatch.resources.push(batch.resources[i]);
+                    }
+                }
             }
 
             _initPreload(allbatch, function (res) {
@@ -39764,7 +39770,13 @@ var Config = function () {
                     _parseSimpleAtlas(allbatch);
                     _parseAtlas(allbatch);
                     _parseDragonBones(allbatch);
-                    callback && callback();
+                    if (bRes) {
+                        _initResource(allbatch, function (res) {
+                            callback && callback(res);
+                        });
+                    } else {
+                        callback && callback(res);
+                    }
                 }
             });
         },
@@ -40712,7 +40724,6 @@ var ResourceParser = function () {
     Object3D.prototype.encode = function () {
         var data = {
             type: this.type,
-            uuid: this.uuid,
             matrix: this.matrix.toArray()
         };
 
@@ -40723,7 +40734,7 @@ var ResourceParser = function () {
         if (this.fn_init) data.func_init = this.fn_init.name;
         if (this.fn_update) data.func_update = this.fn_update.name;
         if (this.fn_dispose) data.func_dispose = this.fn_dispose.name;
-        if (this.userData) data.userData = JSON.stringify(this.userData);
+        if (this.userData) data.userData = this.userData;
 
         if (this.children) {
             data.children = [];
@@ -40775,7 +40786,6 @@ var ResourceParser = function () {
                 object = new Object3D();
             }
 
-            object.uuid = data.uuid;
             object.matrix.fromArray(data.matrix);
             object.matrix.decompose(object.position, object.quaternion, object.scale);
             object.name = data.name;
@@ -41804,7 +41814,7 @@ var ResourceManager = function () {
     // cfg	    string      string	    string	    Json
     // img  	base64      base64	    <image>	    Texture
     // aud	    arraybuffer base64	    audiobuffer	[Audio]
-    // 3d	    uint8array  base64	    Json	    3d
+    // 3d	    uint8array  string	    Json	    3d
     // js       string      string      <script>    <script>
     var _DataLoader = function _DataLoader(path, name, callback) {
         var res = _createRes(path, name);
@@ -41820,10 +41830,15 @@ var ResourceManager = function () {
                         } else if (path === 'img') {
                             res.raw = data;
                             var img = new Image();
-                            img.crossOrigin = "Anonymous";
+                            if (Config.get().crossOrigin) {
+                                img.crossOrigin = "Anonymous";
+                            }
                             img.onload = function () {
                                 res.unzip = img;
                                 _listen(res);
+                            };
+                            img.onerror = function (e) {
+                                alert(name + ":" + JSON.stringify(e));
                             };
                             img.src = data;
                         } else if (path === 'js') {
@@ -41914,7 +41929,7 @@ var ResourceManager = function () {
                 }
             } else if (path === 'js') {
                 res.obj = res.unzip;
-                if (Config.bDebug) {
+                if (Config.bDebug && res.obj) {
                     document.head.appendChild(res.obj);
                 }
             } else {
@@ -42152,6 +42167,17 @@ function arrayBufferToBase64(buffer) {
     return window.btoa(binary);
 }
 
+function base64ToUint8Array(string_base64) {
+    var binary_string = window.atob(string_base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+        var ascii = binary_string.charCodeAt(i);
+        bytes[i] = ascii;
+    }
+    return bytes;
+}
+
 var storageLoader = function storageLoader(path, name, callback) {
     var url = ResourceManager.getUrl(path, name);
     Storage.get(url, function (res) {
@@ -42174,7 +42200,7 @@ var storageLoader = function storageLoader(path, name, callback) {
             return;
         }
 
-        if (res === undefined || ver.version !== res.version) {
+        if (Config.bDebug || res === undefined || ver.version !== res.version) {
             var type = path === 'cfg' || path === 'js' || path === '' ? 'text' : 'arraybuffer';
             httpRequest(url, type).then(function (data) {
                 if (path === 'img') {
@@ -42231,17 +42257,17 @@ function init(storageName, baseUrl, fileLoader, callback) {
 
 function encodeProject() {
     var allRes = [];
-    var pathes = ['cfg', 'img', 'aud', 'geo', 'ani', 'mat', 'mdl', 'scn'];
+    var pathes = ['js', 'cfg', 'img', 'aud', 'geo', 'ani', 'mat', 'mdl', 'scn'];
 
     for (var i = 0; i != pathes.length; ++i) {
         var path = pathes[i];
-        var resList = ResourceManager.getResType(path);
+        var resList = ResourceManager.getResources(path);
         for (var name in resList) {
             allRes.push({ path: path, name: name, raw: resList[name].raw });
         }
     }
 
-    return { cfg: Config.get(), wgt: Config.widgets(), eff: Config.effects(), res: allRes };
+    return { cfg: Config.get(), wgt: Config.widgets(), eff: Config.effects(), aud: Config.audios(), res: allRes };
 }
 
 function parseProject(meta) {
@@ -42814,6 +42840,7 @@ exports.BasicDepthPacking = BasicDepthPacking;
 exports.RGBADepthPacking = RGBADepthPacking;
 exports.httpRequest = httpRequest;
 exports.arrayBufferToBase64 = arrayBufferToBase64;
+exports.base64ToUint8Array = base64ToUint8Array;
 exports.init = init;
 exports.encodeProject = encodeProject;
 exports.parseProject = parseProject;
