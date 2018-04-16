@@ -36495,7 +36495,6 @@ var Storage = function () {
 		},
 
 		set: function set(url, data, version) {
-			var start = performance.now();
 			var transaction = _database.transaction([_store], 'readwrite');
 			var objectStore = transaction.objectStore(_store);
 			var request = objectStore.put({ 'url': url, 'data': data, 'version': version });
@@ -39704,7 +39703,7 @@ var Config = function () {
             });
         },
 
-        initProject: function initProject(cfg, wgt, eff) {
+        initProject: function initProject(cfg, wgt, eff, aud) {
             try {
                 _dragonbones = dragonBones.XFactory.factory;
             } catch (e) {
@@ -39713,7 +39712,6 @@ var Config = function () {
 
             _cfg = cfg;
             _effects = {};
-            _widgets = {};
 
             for (var key in eff) {
                 var effTemp = eff[key];
@@ -39725,6 +39723,7 @@ var Config = function () {
             }
 
             _widgets = wgt;
+            _audios = aud;
 
             _parseSimpleAtlas(_cfg);
             _parseAtlas(_cfg);
@@ -41786,7 +41785,6 @@ var ResourceManager = function () {
                 name: name,
                 path: path,
                 unzip: null,
-                raw: null,
                 obj: null
             };
             if (resPath !== undefined) {
@@ -41828,11 +41826,8 @@ var ResourceManager = function () {
                             res.unzip = _unzip(data);
                             _listen(res);
                         } else if (path === 'img') {
-                            res.raw = data;
                             var img = new Image();
-                            if (Config.get().crossOrigin) {
-                                img.crossOrigin = "Anonymous";
-                            }
+                            // img.crossOrigin = "Anonymous";
                             img.onload = function () {
                                 res.unzip = img;
                                 _listen(res);
@@ -41847,7 +41842,6 @@ var ResourceManager = function () {
                                 script.type = "text/javascript";
                                 script.innerHTML = data;
                                 document.head.appendChild(script);
-                                res.raw = data;
                                 res.unzip = script;
                             } else {
                                 res.unzip = data;
@@ -41860,7 +41854,7 @@ var ResourceManager = function () {
                                 _listen(res);
                             });
                         } else {
-                            res.raw = res.unzip = data;
+                            res.unzip = data;
                             _listen(res);
                         }
                     }
@@ -42013,6 +42007,10 @@ var ResourceManager = function () {
             return _getUrl(path, name);
         },
 
+        parseRes: function parseRes(path, name) {
+            return _parseRes(_resources[path][name]);
+        },
+
         unzip: function unzip(data) {
             return _unzip(data);
         },
@@ -42098,21 +42096,33 @@ var ResourceManager = function () {
             return null;
         },
 
-        addResource: function addResource(path, name, raw, unzip, obj) {
+        playAudio: function playAudio(name) {
+            var res = _resources['aud'][name];
+            var audios = res.obj;
+            for (var i = 0; i !== audios.length; ++i) {
+                var audio = audios[i];
+                if (!audio.isPlaying) {
+                    //TODO: read config
+                    audio.play();
+                    return true;
+                }
+            }
+            return false;
+        },
+
+        addResource: function addResource(path, name, unzip, obj) {
             var res = _resources[path][name];
             if (res === undefined) {
                 res = {
                     name: name,
                     path: path,
                     unzip: null,
-                    raw: null,
                     obj: null
                 };
                 _resources[path][name] = res;
             }
 
             res.obj = obj || null;
-            res.raw = raw || null;
             res.unzip = unzip || null;
 
             return res;
@@ -42176,6 +42186,11 @@ function base64ToUint8Array(string_base64) {
         bytes[i] = ascii;
     }
     return bytes;
+}
+
+function base64ToArrayBuffer(string_base64) {
+    var array = base64ToUint8Array(string_base64);
+    return array.buffer;
 }
 
 var storageLoader = function storageLoader(path, name, callback) {
@@ -42255,7 +42270,7 @@ function init(storageName, baseUrl, fileLoader, callback) {
     }
 }
 
-function encodeProject() {
+function encodeProject(getData) {
     var allRes = [];
     var pathes = ['js', 'cfg', 'img', 'aud', 'geo', 'ani', 'mat', 'mdl', 'scn'];
 
@@ -42263,47 +42278,81 @@ function encodeProject() {
         var path = pathes[i];
         var resList = ResourceManager.getResources(path);
         for (var name in resList) {
-            allRes.push({ path: path, name: name, raw: resList[name].raw });
+            var res = resList[name];
+            var data;
+            if (path === 'scn' || path === 'mdl' || path === 'geo' || path === 'mat' || path === 'ani') {
+                data = res.obj.encode();
+            } else if (path === 'img') {
+                data = ResourceParser.getDataURL(res.unzip, name);
+            } else if (path === 'js') {
+                data = res.unzip.innerHTML || getData(path, name);
+            } else if (path === 'aud') {
+                data = res.data || getData(path, name);
+            } else {
+                data = res.unzip;
+            }
+            allRes.push({ path: path, name: name, data: data });
         }
     }
 
     return { cfg: Config.get(), wgt: Config.widgets(), eff: Config.effects(), aud: Config.audios(), res: allRes };
 }
 
-function parseProject(meta) {
-    for (var i = 0; i !== meta.res.length; ++i) {
-        var path = meta.res[i].path;
-        var name = meta.res[i].name;
-        var raw = meta.res[i].raw;
+function parseProject(meta, callback) {
+    var count = 0;
 
-        if (path === 'scn' || path === 'mdl' || path === 'geo' || path === 'mat' || path === 'ani') {
-            var unzip = ResourceManager.unzip(raw);
-            ResourceManager.addResource(path, name, raw, unzip);
-        } else if (path === 'img') {
-            var img = document.createElement('img');
-            img.src = raw;
-            ResourceManager.addResource(path, name, raw, img);
-        } else if (path === 'aud') {
-            var aud = document.createElement('audio');
-            aud.src = raw;
-            ResourceManager.addResource(path, name, raw, aud);
-        } else if (path === 'js') {
-            var script = document.createElement('script');
-            script.type = "text/javascript";
-            script.innerHTML = raw;
-            document.head.appendChild(script);
-            ResourceManager.addResource(path, name, raw, script);
-        } else {
-            ResourceManager.addResource(path, name, raw, raw);
+    function checkState(res) {
+        callback && callback(res);
+        if (meta.res.length === ++count) {
+            for (var i = 0; i !== meta.res.length; ++i) {
+                var res = meta.res[i];
+                ResourceManager.parseRes(res.path, res.name);
+            }
+            callback && callback(null);
+            Config.initProject(meta.cfg, meta.wgt, meta.eff, meta.aud);
         }
     }
 
-    for (var i = 0; i !== meta.res.length; ++i) {
-        var dep = meta.res[i];
-        ResourceManager.parseRes(dep.path, dep.name);
+    function ImageParser(path, name, data) {
+        var img = document.createElement('img');
+        img.onload = function () {
+            var res = ResourceManager.addResource(path, name, img);
+            checkState(res);
+        };
+        img.src = data;
     }
 
-    Config.initProject(meta.cfg, meta.wgt, meta.eff);
+    function AudioParser(path, name, data) {
+        var context = AudioContext.getContext();
+        context.decodeAudioData(base64ToArrayBuffer(data), function (audiobuffer) {
+            var res = ResourceManager.addResource(path, name, audiobuffer);
+            res.data = data;
+            checkState(res);
+        });
+    }
+
+    for (var i = 0; i !== meta.res.length; ++i) {
+        var res = meta.res[i];
+        var path = res.path;
+        var name = res.name;
+        var data = res.data;
+
+        if (path === 'img') {
+            new ImageParser(path, name, data);
+        } else if (path === 'aud') {
+            new AudioParser(path, name, data);
+        } else if (path === 'js') {
+            var script = document.createElement('script');
+            script.type = "text/javascript";
+            script.innerHTML = data;
+            document.head.appendChild(script);
+            var res = ResourceManager.addResource(path, name, script);
+            checkState(res);
+        } else {
+            var res = ResourceManager.addResource(path, name, data);
+            checkState(res);
+        }
+    }
 }
 
 function Atlas(imageName, frame, orig, trim, rotate) {
@@ -42841,6 +42890,7 @@ exports.RGBADepthPacking = RGBADepthPacking;
 exports.httpRequest = httpRequest;
 exports.arrayBufferToBase64 = arrayBufferToBase64;
 exports.base64ToUint8Array = base64ToUint8Array;
+exports.base64ToArrayBuffer = base64ToArrayBuffer;
 exports.init = init;
 exports.encodeProject = encodeProject;
 exports.parseProject = parseProject;
