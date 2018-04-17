@@ -136,7 +136,7 @@ def get(position):
     return positions
 
 
-def sim(codes):
+def sim():
     go.SIM_POS.input_board()
 
     best_move = 0
