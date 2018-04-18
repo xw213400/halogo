@@ -36,12 +36,12 @@ def main(size, n):
                 record += '%d,' % move
             else:
                 record += '0\n'
-            print(record)
+            # print(record)
         i+=1
         print(i)
         records += record
-        torch.save(resnet.halo_resnet.state_dict(), '../data/resnet_pars.pkl')
-
+    
+    torch.save(resnet.halo_resnet.state_dict(), '../data/resnet_pars.pkl')
     daytime = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
     filename = '../data/%d_%d_%s' % (size, n, daytime)
     f = open(filename, 'w')

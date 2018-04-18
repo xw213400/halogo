@@ -157,7 +157,7 @@ class MCTSPlayerMixin:
             # self.debug_info += 'MOVE:%d; SIM_COUNT:%d; POOL_LEFT:%d\n' % (self.best_node.position.vertex, sim_count, len(go.POSITION_POOL))
             # root_node.release()
 
-            # resnet.train(go.POSITION, self.best_node.position.vertex)
+            resnet.train(go.POSITION, self.best_node.position.vertex)
 
             return self.best_node.position.vertex
         else:

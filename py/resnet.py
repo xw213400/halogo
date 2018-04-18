@@ -173,7 +173,7 @@ if torch.cuda.is_available():
     criterion = nn.MSELoss().cuda()
 else:
     criterion = nn.MSELoss()
-optimizer = optim.SGD(halo_resnet.parameters(), lr=0.000001)
+optimizer = optim.SGD(halo_resnet.parameters(), lr=0.001)
 
 
 def train(position, best_move):
