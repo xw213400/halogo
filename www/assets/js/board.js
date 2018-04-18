@@ -104,10 +104,10 @@ Object.assign(Board.prototype, {
     },
 
     setBoard: function (bb) {
-        for (var i = 0; i !== this.size; ++i) {
-            for (var j = 0; j !== this.size; ++j) {
+        for (var j = 0; j !== this.size; ++j) {
+            for (var i = 0; i !== this.size; ++i) {
                 this.remove(i, j);
-                var c = bb[i * this.size + j];
+                var c = bb[j * this.size + i];
                 if (c !== 0) {
                     this.add(i, j, c === 1 ? 'b' : 'w');
                 }
@@ -232,7 +232,7 @@ Object.assign(Board.prototype, {
             this.uiLastStone.alpha = 1;
         }
 
-        this.uiLastStone = add(i, j, this.next);
+        this.uiLastStone = this.add(i, j, this.next);
         this.uiLastStone.alpha = 0.5;
 
         this.stones[i + '_' + j] = this.uiLastStone;

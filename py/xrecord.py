@@ -17,10 +17,17 @@ def main(size):
     print('ready!')
     records = '[\n'
     pass_num = 0
+    i = 0
     while pass_num < 2:
         move = engine.suggest_move()
-        go.SIM_POS.copy(go.POSITION)
-        legal = go.SIM_POS.move2(go.POSITION, move)
+        i += 1
+        # print(i, '###########')
+        # print(engine.debug_info)
+        print(i, "AAA:", go.POSITION.vertex, go.POSITION.ko, move)
+        go.MOVE_POS.copy(go.POSITION)
+        # print("BBB:", go.POSITION.vertex, go.POSITION.ko, move)
+        legal = go.MOVE_POS.move2(go.POSITION, move)
+        # print("CCC:", go.POSITION.vertex, go.POSITION.ko, move)
         if not legal:
             print('Illegal move!')
         if move == 0:
@@ -31,7 +38,7 @@ def main(size):
         record = go.POSITION.toJSON()
         records += '  '
         records += record
-        print(record)
+        # print(record)
 
         if pass_num < 2:
             records += ',\n'

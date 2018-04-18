@@ -3,15 +3,15 @@ import math
 import resnet
 import go
 
-c_PUCT = 15
-
+c_PUCT = go.N
 
 class MCTSNode():
     def __init__(self, parent, position):
         self.parent = parent # pointer to another MCTSNode
         self.position = position # the move that led to this node
 
-        self.positions = resnet.get(position) # list of Move resonable, sort by prior, PASS is always first
+        self.positions = resnet.get(position) # list of Move resonable, sort by prior, PASS is always at first
+
         self.children = [] # map of moves to resulting MCTSNode
 
         self.Q = 0 if parent is None else parent.Q # average of all outcomes involving this node
@@ -20,61 +20,41 @@ class MCTSNode():
         self.action_score = 0
 
     def select(self):
-        if len(self.positions) > 0:
+        if len(self.positions) > 0 or len(self.children) == 0:
             return None
         else:
-            best_node = max(self.children, key=lambda node:node.action_score)
-            return best_node
+            return max(self.children, key=lambda node:node.action_score)
 
     def expand(self):
-        pos = self.positions.pop()
-        node = MCTSNode(self, pos)
-        self.children.append(node)
-        return node
+        if len(self.positions) > 0:
+            pos = self.positions.pop()
+            node = MCTSNode(self, pos)
+            self.children.append(node)
+            return node
+        else:
+            return self
 
     def simulate(self):
-        pass_num = 0
-
-        if self.position.vertex == 0:
-            pass_num += 1
-
-        pos = self.positions[-1]
+        pos = self.position
+        if len(self.positions) > 0:
+            pos = self.positions[-1] #last node is best node, PASS is always at first
 
         if pos.hash_code in go.HASH_SIM:
             return go.HASH_SIM[pos.hash_code]
-
-        if pos.vertex == 0:
-            pass_num += 1
-        else:
-            pass_num = 0
-
-        if pass_num >= 2:
-            score = pos.score()
-            go.HASH_SIM[go.SIM_POS.hash_code] = score
-            return score
         
         go.BRANCH_SIM.clear()
         go.SIM_POS.copy(pos)
-        i = 0
-        while pass_num < 2:
+        while go.SIM_POS.pass_num < 2:
             go.BRANCH_SIM.add(resnet.sim())
-            if go.SIM_POS.vertex == 0:
-                pass_num += 1
-            else:
-                pass_num = 0
-
-            i += 1
-            if i > go.LN * 10 and i < go.LN * 10 + 10:
-                print(i, go.toXY(go.SIM_POS.vertex), go.SIM_POS.hash_code)
-                print(go.SIM_POS.text())
 
         score = go.SIM_POS.score()
+        go.HASH_SIM[go.SIM_POS.hash_code] = score
 
         return score
         
     def backpropagation(self, value):
         score = value
-        # must invert, because alternate layers have opposite desires
+        # must invert, because alternate layers have opposite desires        
         if self.position.next == go.BLACK:
             score = -value
 
@@ -161,20 +141,25 @@ class MCTSPlayerMixin:
                 current_node = current_node.parent
 
         self.debug_info = ""
-        self.best_node = max(root_node.children, key=lambda node:node.N)
+        if len(root_node.children) > 0:
+            self.best_node = max(root_node.children, key=lambda node:node.N)
 
-        sim_count = 0
-        for node in root_node.children:
-            sim_count += node.N
-            if node != self.best_node:
-                node.release()
-            # j, i = go.toXY(node.position.vertex)
+            sim_count = 0
+            for node in root_node.children:
+                sim_count += node.N
+                # self.debug_info += 'V:%d; N:%d; SCORE:%f\n' % (node.position.vertex, node.N, node.action_score)
+                self.debug_info += '[%d:%d],' % (node.position.vertex, node.N)
+                if node != self.best_node:
+                    node.release()
+                # j, i = go.toXY(node.position.vertex)
 
-        root_node.release(False)
-        self.debug_info += 'MOVE:%d; SIM_COUNT:%d; POOL_LEFT:%d\n' % (self.best_node.position.vertex, sim_count, len(go.POSITION_POOL))
-        # root_node.release()
+            root_node.release(False)
+            # self.debug_info += 'MOVE:%d; SIM_COUNT:%d; POOL_LEFT:%d\n' % (self.best_node.position.vertex, sim_count, len(go.POSITION_POOL))
+            # root_node.release()
 
-        # resnet.train(go.POSITION, self.best_node.position.vertex)
+            # resnet.train(go.POSITION, self.best_node.position.vertex)
 
-        return self.best_node.position.vertex
+            return self.best_node.position.vertex
+        else:
+            return 0
 

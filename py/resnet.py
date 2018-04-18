@@ -119,7 +119,8 @@ def get(position):
     pos = go.POSITION_POOL.pop()
     position.move2(pos, 0)
     pos.prior = WORST_SCORE #y[0, go.LN]
-    positions.append(pos)
+    if pos.pass_num < 2:
+        positions.append(pos)
 
     i = 0
     while i < go.LN:

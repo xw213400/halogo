@@ -57,7 +57,9 @@ class Position:
         self.prior = 0
         self.vertex = 0
         self.hash_code = 0
+        self.pass_num = 0
 
+    # prepare input plane for resnet
     # INPUT_BOARD[0]: enemy:1, empty:2, self:3
     # INPUT_BOARD[1]: unresonable:1, resonable:2, ko:3
     def input_board(self):
@@ -185,10 +187,11 @@ class Position:
         self.ko = pos.ko
         self.hash_code = pos.hash_code
         self.vertex = pos.vertex
+        self.pass_num = pos.pass_num
         self.copy_board(pos.board)
 
     def toJSON(self):
-        JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex}
+        JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex, 'pass_num':self.pass_num}
         return json.dumps(JSON)
 
     def fromJSON(self, JSON):
@@ -196,6 +199,7 @@ class Position:
         self.next = JSON['next']
         self.ko = JSON['ko']
         self.vertex = JSON['vertex']
+        self.pass_num = JSON['pass_num']
         self.init_hash_code()
 
     def move2(self, pos, v):
@@ -206,6 +210,7 @@ class Position:
             pos.next = -self.next
             pos.vertex = v
             pos.hash_code = self.hash_code ^ CODE_KO[self.ko] ^ CODE_SWAP
+            pos.pass_num = self.pass_num + 1
             if pos is not self:
                 pos.copy_board(self.board)
             return True
@@ -270,6 +275,7 @@ class Position:
         pos.hash_code ^= CODE_KO[pos.ko]
         pos.hash_code ^= CODE_SWAP
         pos.vertex = v
+        pos.pass_num = 0
 
         return True
 
@@ -526,3 +532,28 @@ def get_captures(last_pos, next_pos):
         if c1 != EMPTY and c2 == EMPTY:
             captures.append(v)
     return captures
+
+
+def text_flag_board():
+    i = N
+    s = "\n"
+    while i > 0:
+        s += str(i).zfill(2) + " "
+        i -= 1
+        j = 0
+        while j < N:
+            if FLAG_BOARD[COORDS[i*N+j]]:
+                s += "O "
+            else:
+                s += ". "
+            j += 1
+        s += "\n"
+
+    s += "   "
+    while i < N:
+        s += "{} ".format("ABCDEFGHJKLMNOPQRSTYVWYZ"[i])
+        i += 1
+        
+    s += "\n"
+    
+    return s
