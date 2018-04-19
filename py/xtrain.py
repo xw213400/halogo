@@ -11,7 +11,7 @@ import os.path
 def main(size, n):
     sys.setrecursionlimit(500000)
     go.init(size)
-    engine = mcts.MCTSPlayerMixin(10)
+    engine = mcts.MCTSPlayerMixin(5)
     if os.path.isfile('../data/resnet_pars.pkl'):
         resnet.halo_resnet.load_state_dict(torch.load('../data/resnet_pars.pkl'))
     print('ready!')
@@ -21,6 +21,7 @@ def main(size, n):
         record = ''
         go.clear()
         engine.clear()
+        print(i, len(go.POSITION_POOL))
         pass_num = 0
         while pass_num < 2:
             move = engine.suggest_move()
@@ -38,10 +39,9 @@ def main(size, n):
                 record += '0\n'
             # print(record)
         i+=1
-        print(i)
         records += record
+        torch.save(resnet.halo_resnet.state_dict(), '../data/resnet_pars.pkl')
     
-    torch.save(resnet.halo_resnet.state_dict(), '../data/resnet_pars.pkl')
     daytime = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
     filename = '../data/%d_%d_%s' % (size, n, daytime)
     f = open(filename, 'w')

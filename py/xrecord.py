@@ -21,9 +21,9 @@ def main(size):
     while pass_num < 2:
         move = engine.suggest_move()
         i += 1
-        # print(i, '###########')
-        # print(engine.debug_info)
-        print(i, "AAA:", go.POSITION.vertex, go.POSITION.ko, move)
+        print(i, '###########')
+        print(engine.debug_info)
+        # print(i, "AAA:", go.POSITION.vertex, go.POSITION.ko, move)
         go.MOVE_POS.copy(go.POSITION)
         # print("BBB:", go.POSITION.vertex, go.POSITION.ko, move)
         legal = go.MOVE_POS.move2(go.POSITION, move)

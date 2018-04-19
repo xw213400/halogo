@@ -101,10 +101,6 @@ def print_input():
 def get(position):
     position.input_board()
 
-    # print("=====================")
-    # print(position.text())
-    # print_input()
-
     x = None
     y = None
     if torch.cuda.is_available():
@@ -116,10 +112,10 @@ def get(position):
 
     positions = []
 
-    pos = go.POSITION_POOL.pop()
-    position.move2(pos, 0)
-    pos.prior = WORST_SCORE #y[0, go.LN]
-    if pos.pass_num < 2:
+    if position.pass_num == 0:
+        pos = go.POSITION_POOL.pop()
+        position.move2(pos, 0)
+        pos.prior = y[0, go.LN]
         positions.append(pos)
 
     i = 0
@@ -143,7 +139,6 @@ def sim():
     best_move = 0
     best_score = WORST_SCORE
 
-    # if has_resonable:
     x = None
     y = None
     if torch.cuda.is_available():
@@ -162,6 +157,8 @@ def sim():
                 best_score = score
                 best_move = v
         i += 1
+
+    #TODO: add y[0, go.LN] as PASS score if pass_num == 1 ?
 
     go.SIM_POS.move2(go.SIM_POS, best_move)
 

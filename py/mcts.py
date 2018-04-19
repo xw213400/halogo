@@ -148,7 +148,7 @@ class MCTSPlayerMixin:
             for node in root_node.children:
                 sim_count += node.N
                 # self.debug_info += 'V:%d; N:%d; SCORE:%f\n' % (node.position.vertex, node.N, node.action_score)
-                self.debug_info += '[%d:%d],' % (node.position.vertex, node.N)
+                # self.debug_info += '[%d:%d],' % (node.position.vertex, node.N)
                 if node != self.best_node:
                     node.release()
                 # j, i = go.toXY(node.position.vertex)
@@ -161,5 +161,6 @@ class MCTSPlayerMixin:
 
             return self.best_node.position.vertex
         else:
+            root_node.release()
             return 0
 
