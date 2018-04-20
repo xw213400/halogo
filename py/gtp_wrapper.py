@@ -1,15 +1,18 @@
 import gtp
 
 import go
+import resnet
 import random
 from mcts import MCTSPlayerMixin
 
 class GtpInterface(object):
     def __init__(self):
         go.init(7)
+        resnet.init()
 
     def set_size(self, n):
         go.init(n)
+        resnet.init()
         
     def set_komi(self, komi):
         go.KOMI = komi
@@ -55,6 +58,6 @@ class MCTSPlayer(MCTSPlayerMixin, GtpInterface): pass
 
 def make_gtp_instance():
     # instance = RandomPlayer()
-    instance = MCTSPlayer(10)
+    instance = MCTSPlayer(30)
     gtp_engine = gtp.Engine(instance)
     return gtp_engine

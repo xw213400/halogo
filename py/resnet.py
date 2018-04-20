@@ -8,6 +8,9 @@ import torch.optim as optim
 
 
 WORST_SCORE = -1000000
+HALO_RESNET = None
+CRITERION = None
+OPTIMIZER = None
 
 
 def conv5x5(in_channel, out_channel):
@@ -56,9 +59,19 @@ class Resnet(nn.Module):
         return out
 
 
-halo_resnet = Resnet(30)
-if torch.cuda.is_available():
-    halo_resnet.cuda()
+def init():
+    global HALO_RESNET, CRITERION, OPTIMIZER
+
+    HALO_RESNET = Resnet(30)
+    if torch.cuda.is_available():
+        HALO_RESNET.cuda()
+
+    CRITERION = None
+    if torch.cuda.is_available():
+        CRITERION = nn.MSELoss().cuda()
+    else:
+        CRITERION = nn.MSELoss()
+    OPTIMIZER = optim.SGD(HALO_RESNET.parameters(), lr=0.001)
 
 
 def print_input():
@@ -105,10 +118,10 @@ def get(position):
     y = None
     if torch.cuda.is_available():
         x = Variable(go.INPUT_BOARD).cuda()
-        y = halo_resnet(x).data.cpu().numpy()
+        y = HALO_RESNET(x).data.cpu().numpy()
     else:
         x = Variable(go.INPUT_BOARD)
-        y = halo_resnet(x).data.numpy()
+        y = HALO_RESNET(x).data.numpy()
 
     positions = []
 
@@ -142,10 +155,10 @@ def sim():
     y = None
     if torch.cuda.is_available():
         x = Variable(go.INPUT_BOARD).cuda()
-        y = halo_resnet(x).data.cpu().numpy()
+        y = HALO_RESNET(x).data.cpu().numpy()
     else:
         x = Variable(go.INPUT_BOARD)
-        y = halo_resnet(x).data.numpy()
+        y = HALO_RESNET(x).data.numpy()
 
     i = 0
     while i < go.LN:
@@ -163,15 +176,6 @@ def sim():
 
     return go.SIM_POS.hash_code
 
-
-criterion = None
-if torch.cuda.is_available():
-    criterion = nn.MSELoss().cuda()
-else:
-    criterion = nn.MSELoss()
-optimizer = optim.SGD(halo_resnet.parameters(), lr=0.001)
-
-
 def train(position, best_move):
     position.input_board()
 
@@ -185,7 +189,7 @@ def train(position, best_move):
         v = i * go.N + j
         target_data[0, v] = 1
 
-    optimizer.zero_grad()
+    OPTIMIZER.zero_grad()
 
     x = None
     y = None
@@ -197,8 +201,8 @@ def train(position, best_move):
         x = Variable(go.INPUT_BOARD)
         target = Variable(target_data)
 
-    y = halo_resnet(x)
+    y = HALO_RESNET(x)
 
-    loss = criterion(y, target)
+    loss = CRITERION(y, target)
     loss.backward()
-    optimizer.step()
+    OPTIMIZER.step()
