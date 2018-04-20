@@ -3,14 +3,22 @@ import math
 import resnet
 import go
 
-c_PUCT = go.N
+c_PUCT = 1
 
 class MCTSNode():
     def __init__(self, parent, position):
         self.parent = parent # pointer to another MCTSNode
         self.position = position # the move that led to this node
 
-        self.positions = resnet.get(position) # list of Move resonable, sort by prior, PASS is always at first
+        if position.pass_num == 2:
+            self.positions = []
+        else:
+            self.positions = resnet.get(position) # list of Move resonable, sort by prior, PASS is always at first
+
+        self.leaves = len(self.positions)
+
+        if self.parent is not None:
+            self.parent.add_leaf(self.leaves) 
 
         self.children = [] # map of moves to resulting MCTSNode
 
@@ -19,23 +27,47 @@ class MCTSNode():
         self.N = 0 # number of times node was visited
         self.action_score = 0
 
+    def add_leaf(self, leaves):
+        self.leaves += leaves
+        if self.parent is not None:
+            self.parent.add_leaf(leaves)
+
+    def sub_leaf(self):
+        self.leaves -= 1
+        if self.parent is not None:
+            self.parent.sub_leaf()
+
     def select(self):
-        if len(self.positions) > 0 or len(self.children) == 0:
-            return None
+        if len(self.positions) > 0:
+            return self
         else:
-            return max(self.children, key=lambda node:node.action_score)
+            n = len(self.children)
+            i = 0
+            best_score = resnet.WORST_SCORE
+            best_node = None
+            while i < n:
+                node = self.children[i]
+                i += 1
+                if node.leaves > 0 and node.action_score > best_score:
+                    best_score = node.action_score
+                    best_node = node
+
+            if best_node is None:
+                return None
+            else:
+                return best_node.select()
 
     def expand(self):
-        if len(self.positions) > 0:
-            pos = self.positions.pop()
-            node = MCTSNode(self, pos)
-            self.children.append(node)
-            return node
-        else:
-            return self
+        pos = self.positions.pop()
+        node = MCTSNode(self, pos)
+        self.children.append(node)
+        self.sub_leaf()
+
+        return node
 
     def simulate(self):
         pos = self.position
+
         if len(self.positions) > 0:
             pos = self.positions[-1] #last node is best node, PASS is always at first
 
@@ -101,16 +133,22 @@ class MCTSPlayerMixin:
 
     def suggest_move(self):
         root_node = None
+        self.debug_info = ""
         # print("==============================")
         if self.best_node is not None:
-            for node in self.best_node.children:
-                if node.position.vertex == go.POSITION.vertex:
-                    root_node = node
-                    # print("V:", go.POSITION.vertex, node.position.vertex)
-                else:
-                    node.release()
-            self.best_node.release(False)
-            self.best_node = None
+            if self.best_node.position.next == go.POSITION.next:
+                if self.best_node.position.vertex == go.POSITION.vertex:
+                    root_node = self.best_node
+                    self.best_node = None
+            else:
+                for node in self.best_node.children:
+                    if node.position.vertex == go.POSITION.vertex:
+                        root_node = node
+                        # print("V:", go.POSITION.vertex, node.position.vertex)
+                    else:
+                        node.release()
+                self.best_node.release(False)
+                self.best_node = None
 
         if root_node is None:
             pos = go.POSITION_POOL.pop()
@@ -118,29 +156,27 @@ class MCTSPlayerMixin:
             root_node = MCTSNode(None, pos)
 
         # print(root_node.position.text())
+        self.debug_info += 'ROOT_LEAF:%d; ' % (root_node.leaves)
 
         start = time.time()
         while time.time() - start < self.seconds_per_move:
-            last_node = None
-            current_node = root_node
             #selection
-            while current_node is not None:
-                last_node = current_node
-                current_node = current_node.select()
+            current_node = root_node.select()
+
+            if current_node is None:
+                break
             
             #expand
-            last_node = last_node.expand()
+            current_node = current_node.expand()
 
             #simulate
-            R = last_node.simulate()
+            R = current_node.simulate()
 
             #backpropagate
-            current_node = last_node
             while current_node is not None:
                 current_node.backpropagation(R)
                 current_node = current_node.parent
 
-        self.debug_info = ""
         if len(root_node.children) > 0:
             self.best_node = max(root_node.children, key=lambda node:node.N)
 
@@ -148,16 +184,15 @@ class MCTSPlayerMixin:
             for node in root_node.children:
                 sim_count += node.N
                 # self.debug_info += 'V:%d; N:%d; SCORE:%f\n' % (node.position.vertex, node.N, node.action_score)
-                # self.debug_info += '[%d:%d],' % (node.position.vertex, node.N)
+                # self.debug_info += '[%d:%d:%d],' % (node.position.vertex, node.N, node.leaves)
                 if node != self.best_node:
                     node.release()
                 # j, i = go.toXY(node.position.vertex)
 
             root_node.release(False)
-            # self.debug_info += 'MOVE:%d; SIM_COUNT:%d; POOL_LEFT:%d\n' % (self.best_node.position.vertex, sim_count, len(go.POSITION_POOL))
-            # root_node.release()
+            self.debug_info += 'MOVE:%d; BEST_LEAF:%d; SIM_COUNT:%d\n' % (self.best_node.position.vertex, self.best_node.leaves, sim_count)
 
-            resnet.train(go.POSITION, self.best_node.position.vertex)
+            # resnet.train(go.POSITION, self.best_node.position.vertex)
 
             return self.best_node.position.vertex
         else:

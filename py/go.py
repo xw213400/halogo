@@ -491,7 +491,7 @@ def init(n):
     MOVE_POS = Position()
     POSITION_POOL = []
     i = 0
-    while i < 500000:
+    while i < 100000:
         POSITION_POOL.append(Position())
         i += 1
 

@@ -112,11 +112,10 @@ def get(position):
 
     positions = []
 
-    if position.pass_num == 0:
-        pos = go.POSITION_POOL.pop()
-        position.move2(pos, 0)
-        pos.prior = y[0, go.LN]
-        positions.append(pos)
+    pos = go.POSITION_POOL.pop()
+    position.move2(pos, 0)
+    pos.prior = y[0, go.LN]
+    positions.append(pos)
 
     i = 0
     while i < go.LN:

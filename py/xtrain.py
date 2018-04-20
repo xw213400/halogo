@@ -11,7 +11,7 @@ import os.path
 def main(size, n):
     sys.setrecursionlimit(500000)
     go.init(size)
-    engine = mcts.MCTSPlayerMixin(5)
+    engine = mcts.MCTSPlayerMixin(10)
     if os.path.isfile('../data/resnet_pars.pkl'):
         resnet.halo_resnet.load_state_dict(torch.load('../data/resnet_pars.pkl'))
     print('ready!')
@@ -21,7 +21,7 @@ def main(size, n):
         record = ''
         go.clear()
         engine.clear()
-        print(i, len(go.POSITION_POOL))
+        print(i)
         pass_num = 0
         while pass_num < 2:
             move = engine.suggest_move()
