@@ -163,7 +163,9 @@ class MCTSPlayerMixin:
             #selection
             current_node = root_node.select()
 
+            #if every child node is exploid, find the best directly
             if current_node is None:
+                print("WARNING! ROOT has no leaves!")
                 break
             
             #expand
