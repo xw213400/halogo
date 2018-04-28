@@ -2,16 +2,13 @@
 
 import sys
 import gtp
-from gtp_wrapper import make_gtp_instance
+from engine import Engine
 import resnet
 import torch
-import os.path
 
 def main():
     sys.setrecursionlimit(500000)
-    engine = make_gtp_instance()
-    if os.path.isfile('../data/resnet_pars.pkl'):
-        resnet.halo_resnet.load_state_dict(torch.load('../data/resnet_pars.pkl'))
+    engine = gtp.Engine(Engine(5, 'resnet', '../data/resnet_pars.pkl'))
     while True:
         cmd = sys.stdin.readline()
         if cmd:

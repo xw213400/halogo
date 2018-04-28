@@ -4,6 +4,7 @@ import resnet
 import go
 
 c_PUCT = 1
+POLICY = None
 
 class MCTSNode():
     def __init__(self, parent, position):
@@ -13,7 +14,7 @@ class MCTSNode():
         if position.pass_num == 2:
             self.positions = []
         else:
-            self.positions = resnet.get(position) # list of Move resonable, sort by prior, PASS is always at first
+            self.positions = POLICY.get(position) # list of Move resonable, sort by prior, PASS is always at first
 
         self.leaves = len(self.positions)
 
@@ -43,7 +44,7 @@ class MCTSNode():
         else:
             n = len(self.children)
             i = 0
-            best_score = resnet.WORST_SCORE
+            best_score = go.WORST_SCORE
             best_node = None
             while i < n:
                 node = self.children[i]
@@ -77,7 +78,7 @@ class MCTSNode():
         go.BRANCH_SIM.clear()
         go.SIM_POS.copy(pos)
         while go.SIM_POS.pass_num < 2:
-            go.BRANCH_SIM.add(resnet.sim())
+            go.BRANCH_SIM.add(POLICY.sim())
 
         score = go.SIM_POS.score()
         go.HASH_SIM[go.SIM_POS.hash_code] = score
@@ -119,12 +120,21 @@ class MCTSNode():
                 child.release()
 
 
-class MCTSPlayerMixin:
-    def __init__(self, seconds_per_move=5):
+class MCTSPlayer():
+    def __init__(self, seconds_per_move=5, policy='resnet', pars=None):
         self.seconds_per_move = seconds_per_move
+        self.policy_type = policy
+        self.pars = pars
         self.debug_info = ""
         self.best_node = None
-        super().__init__()
+        go.init(7)
+        if self.policy_type == 'resnet':
+            self.policy = resnet.Policy(self.pars)
+
+    def set_size(self, n):
+        go.init(n)
+        if self.policy_type == 'resnet':
+            self.policy = resnet.Policy(self.pars)
 
     def clear(self):
         if self.best_node is not None:
@@ -132,6 +142,8 @@ class MCTSPlayerMixin:
             self.best_node = None
 
     def suggest_move(self):
+        global POLICY
+        POLICY = self.policy
         root_node = None
         self.debug_info = ""
         # print("==============================")
@@ -194,7 +206,7 @@ class MCTSPlayerMixin:
             root_node.release(False)
             self.debug_info += 'MOVE:%d; BEST_LEAF:%d; SIM_COUNT:%d\n' % (self.best_node.position.vertex, self.best_node.leaves, sim_count)
 
-            # resnet.train(go.POSITION, self.best_node.position.vertex)
+            # self.policy.train(go.POSITION, self.best_node.position.vertex)
 
             return self.best_node.position.vertex
         else:

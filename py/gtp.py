@@ -231,9 +231,6 @@ class Engine(object):
         else:
             raise ValueError("unknown player: {}".format(arguments))
 
-    def cmd_debug(self, arguments):
-        return self._game.debug()
-
     def cmd_score(self, arguments):
         score = self._game.get_score()
         return score

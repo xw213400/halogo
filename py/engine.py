@@ -1,21 +1,15 @@
-import gtp
-
 import go
-import resnet
-import random
-from mcts import MCTSPlayerMixin
+from mcts import MCTSPlayer
 
-class GtpInterface(object):
-    def __init__(self):
-        go.init(7)
-        resnet.init()
-
-    def set_size(self, n):
-        go.init(n)
-        resnet.init()
+class Engine():
+    def __init__(self, time, policy, pars):
+        self.player = MCTSPlayer(time, policy, pars)
         
     def set_komi(self, komi):
         go.KOMI = komi
+
+    def set_size(self, n):
+        self.player.set_size(n)
 
     def clear(self):
         go.init(go.N)
@@ -25,7 +19,6 @@ class GtpInterface(object):
         go.MOVE_POS.copy(go.POSITION)
         legal = go.MOVE_POS.play(j, i)
         if legal:
-            # print("MAKE_MOVE:", i, j)
             captures = go.get_captures(go.POSITION, go.MOVE_POS)
             go.POSITION.copy(go.MOVE_POS)
             return True, {go.toXY(v) for v in captures }
@@ -33,12 +26,12 @@ class GtpInterface(object):
             return False, {}
 
     def debug(self):
-        info = self.debug_info
+        info = self.player.debug_info
         info += go.POSITION.text()
         return info
 
     def get_move(self, color):
-        move = self.suggest_move()
+        move = self.player.suggest_move()
         return go.toXY(move)
 
     def get_score(self):
@@ -50,14 +43,3 @@ class GtpInterface(object):
     def load(self, str):
         go.POSITION.fromJSON(str)
 
-    def suggest_move(self, position):
-        raise NotImplementedError
-
-# class RandomPlayer(RandomPlayerMixin, GtpInterface): pass
-class MCTSPlayer(MCTSPlayerMixin, GtpInterface): pass
-
-def make_gtp_instance():
-    # instance = RandomPlayer()
-    instance = MCTSPlayer(30)
-    gtp_engine = gtp.Engine(instance)
-    return gtp_engine

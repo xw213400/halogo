@@ -8,6 +8,8 @@ WHITE, EMPTY, BLACK, WALL = range(-1, 3)
 LEFT = -1
 RIGHT = 1
 
+WORST_SCORE = -1000000000
+
 # # # # #
 # + + +
 # + + +
@@ -557,3 +559,39 @@ def text_flag_board():
     s += "\n"
     
     return s
+
+def print_input(self):
+    i = N
+    s = "\n"
+    while i > 0:
+        s += str(i).zfill(2) + " "
+        i -= 1
+        j = 0
+        while j < N:
+            s += str(int(INPUT_BOARD[0, 0, i, j])) + " "
+            j += 1
+        s += "\n"
+
+    s += "   "
+    while i < N:
+        s += "{} ".format("ABCDEFGHJKLMNOPQRSTYVWYZ"[i])
+        i += 1
+
+    i = N
+    s += "\n"
+    while i > 0:
+        s += str(i).zfill(2) + " "
+        i -= 1
+        j = 0
+        while j < N:
+            s += str(int(INPUT_BOARD[0, 1, i, j])) + " "
+            j += 1
+        s += "\n"
+
+    s += "   "
+    while i < N:
+        s += "{} ".format("ABCDEFGHJKLMNOPQRSTYVWYZ"[i])
+        i += 1
+
+    s += "\n"
+    print(s)
