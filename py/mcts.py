@@ -1,6 +1,7 @@
 import time
 import math
 import resnet
+import randmove
 import go
 
 c_PUCT = 1
@@ -130,11 +131,15 @@ class MCTSPlayer():
         go.init(7)
         if self.policy_type == 'resnet':
             self.policy = resnet.Policy(self.pars)
+        elif self.policy_type == 'randmove':
+            self.policy = randmove.Policy()
 
     def set_size(self, n):
         go.init(n)
         if self.policy_type == 'resnet':
             self.policy = resnet.Policy(self.pars)
+        elif self.policy_type == 'randmove':
+            self.policy = randmove.Policy()
 
     def clear(self):
         if self.best_node is not None:
@@ -144,6 +149,7 @@ class MCTSPlayer():
     def suggest_move(self):
         global POLICY
         POLICY = self.policy
+        
         root_node = None
         self.debug_info = ""
         # print("==============================")
