@@ -8,7 +8,7 @@ import torch
 
 def main():
     sys.setrecursionlimit(500000)
-    engine = gtp.Engine(Engine(5, 'resnet', '../data/resnet_pars.pkl'))
+    engine = gtp.Engine(Engine(30, 'randmove', '../data/resnet_pars.pkl'))
     while True:
         cmd = sys.stdin.readline()
         if cmd:

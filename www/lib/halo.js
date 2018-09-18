@@ -14398,14 +14398,21 @@ function painterSortStable(a, b) {
 function reversePainterSortStable(a, b) {
 
 	if (a.renderOrder !== b.renderOrder) {
-
 		return a.renderOrder - b.renderOrder;
-	}if (a.z !== b.z) {
-
+	} else if (a.z !== b.z) {
 		return b.z - a.z;
-	} else {
-
+	} else if (a.id !== b.id) {
 		return a.id - b.id;
+	} else if (a.geometry === b.geometry) {
+		if (a.group && b.group) {
+			var oa = a.group.order || 0;
+			var ob = b.group.order || 0;
+			return oa - ob;
+		} else {
+			return 0;
+		}
+	} else {
+		return 0;
 	}
 }
 
@@ -36508,92 +36515,6 @@ var Storage = function () {
 	};
 }();
 
-var Math2 = function () {
-    var _TWO_PI = 2 * Math.PI;
-    var _HALF_PI = 0.5 * Math.PI;
-    var _rands = [];
-    for (var i = 0; i !== 4096; ++i) {
-        _rands.push(Math.random());
-    }
-    var seed = 0;
-
-    var _sin = [];
-
-    for (var _i = 0; _i !== 360; ++_i) {
-        _sin.push(Math.sin(_i * _Math.DEG2RAD));
-    }
-
-    var _cos = [];
-    for (var _i2 = 0; _i2 !== 360; ++_i2) {
-        _cos.push(Math.cos(_i2 * _Math.DEG2RAD));
-    }
-
-    var _chars = '0123456789abcdefghijklmnopqrstuvwxyz';
-    var _genName = function _genName(len) {
-        len = len || 12;
-        var R = '';
-        for (var i = 0; i < len; i++) {
-            R += _chars[Math.floor(Math.random() * _chars.length)];
-        }
-        return R;
-    };
-
-    return {
-        TWO_PI: _TWO_PI,
-        HALF_PI: _HALF_PI,
-
-        rand: function rand() {
-            if (4095 === seed++) {
-                seed = 0;
-            }
-            return _rands[seed];
-        },
-
-        randFloat: function randFloat(low, high) {
-            return low + Math2.rand() * (high - low);
-        },
-
-        randInt: function randInt(low, high) {
-            return low + Math.floor(Math2.rand() * (high - low));
-        },
-
-        sin: function sin(angle) {
-            var degree = Math.floor(angle * _Math.RAD2DEG % 360);
-            if (degree < 0) {
-                degree += 360;
-            }
-            return _sin[degree];
-        },
-
-        cos: function cos(angle) {
-            var degree = Math.floor(angle * _Math.RAD2DEG % 360);
-            if (degree < 0) {
-                degree += 360;
-            }
-            return _cos[degree];
-        },
-
-        sincos: function sincos(angle) {
-            var degree = Math.floor(angle * _Math.RAD2DEG % 360);
-            if (degree < 0) {
-                degree += 360;
-            }
-            return { sin: _sin[degree], cos: _cos[degree] };
-        },
-
-        hashCode: function hashCode(s) {
-            return s.split("").reduce(function (a, b) {
-                a = (a << 5) - a + b.charCodeAt(0);
-                return a & a;
-            }, 0);
-        },
-
-        genName: function genName(len) {
-            return _genName(len);
-        }
-    };
-}();
-
 function InitAbsScale(t) {
     if (t) {
         Object.assign(this, t);
@@ -36605,7 +36526,7 @@ function InitAbsScale(t) {
 
 Object.assign(InitAbsScale.prototype, {
     init: function init(p) {
-        p.birthScale.multiplyScalar(Math2.randFloat(this.min, this.max));
+        p.birthScale.multiplyScalar(_Math.randFloatRange(this.min, this.max));
         p.scale.copy(p.birthScale);
     }
 });
@@ -36621,11 +36542,11 @@ function InitAngleSpeed(t) {
 
 Object.assign(InitAngleSpeed.prototype, {
   init: function init(p) {
-    var t = Math2.randFloat(0, Math2.TWO_PI);
-    var r = Math2.randFloat(this.rMin, this.rMax);
-    var x = r * Math2.sin(t);
-    var z = r * Math2.cos(t);
-    var y = Math2.randFloat(this.yMin, this.yMax);
+    var t = _Math.randFloatRange(0, _Math.TWO_PI);
+    var r = _Math.randFloatRange(this.rMin, this.rMax);
+    var x = r * _Math.sin(t);
+    var z = r * _Math.cos(t);
+    var y = _Math.randFloatRange(this.yMin, this.yMax);
 
     p.velocity.set(x, y, z);
   }
@@ -36642,9 +36563,9 @@ function InitBox(t) {
 
 Object.assign(InitBox.prototype, {
   init: function init(p) {
-    p.position.x = Math2.randFloat(this.min_x, this.max_x);
-    p.position.y = Math2.randFloat(this.min_y, this.max_y);
-    p.position.z = Math2.randFloat(this.min_z, this.max_z);
+    p.position.x = _Math.randFloatRange(this.min_x, this.max_x);
+    p.position.y = _Math.randFloatRange(this.min_y, this.max_y);
+    p.position.z = _Math.randFloatRange(this.min_z, this.max_z);
   }
 });
 
@@ -36659,10 +36580,10 @@ function InitColorRange(t) {
 
 Object.assign(InitColorRange.prototype, {
     init: function init(p) {
-        p.color.r = Math2.randFloat(this.min_r, this.max_r);
-        p.color.g = Math2.randFloat(this.min_g, this.max_g);
-        p.color.b = Math2.randFloat(this.min_g, this.max_b);
-        p.alpha = Math2.randFloat(this.min_a, this.max_a);
+        p.color.r = _Math.randFloatRange(this.min_r, this.max_r);
+        p.color.g = _Math.randFloatRange(this.min_g, this.max_g);
+        p.color.b = _Math.randFloatRange(this.min_g, this.max_b);
+        p.alpha = _Math.randFloatRange(this.min_a, this.max_a);
     }
 });
 
@@ -36680,10 +36601,10 @@ function InitRing(t) {
 
 Object.assign(InitRing.prototype, {
     init: function init(p) {
-        var r = Math2.randFloat(this.min_r, this.max_r);
-        var phi = Math2.randFloat(0, Math2.TWO_PI);
-        var h = Math2.randFloat(this.min_h, this.max_h);
-        var sincos = Math2.sincos(phi);
+        var r = _Math.randFloatRange(this.min_r, this.max_r);
+        var phi = _Math.randFloatRange(0, _Math.TWO_PI);
+        var h = _Math.randFloatRange(this.min_h, this.max_h);
+        var sincos = _Math.sincos(phi);
         p.position.set(r * sincos.sin, h, r * sincos.cos);
     }
 });
@@ -36705,13 +36626,13 @@ Object.assign(InitRingSpeed.prototype, {
     if (sqLen > 0) {
       var invLen = 1 / Math.sqrt(sqLen);
 
-      var rs = Math2.randFloat(this.min_rs, this.max_rs) * invLen;
-      var ts = Math2.randFloat(this.min_ts, this.max_ts) * invLen;
+      var rs = _Math.randFloatRange(this.min_rs, this.max_rs) * invLen;
+      var ts = _Math.randFloatRange(this.min_ts, this.max_ts) * invLen;
 
       p.velocity.x = x * rs - z * ts;
       p.velocity.z = z * rs + x * ts;
 
-      p.velocity.y = Math2.randFloat(this.min_ys, this.max_ys);
+      p.velocity.y = _Math.randFloatRange(this.min_ys, this.max_ys);
     }
   }
 });
@@ -36727,8 +36648,8 @@ function InitRotation(t) {
 
 Object.assign(InitRotation.prototype, {
   init: function init(p) {
-    p.rotation = Math2.randFloat(this.min_rot, this.max_rot);
-    p.spin = Math2.randFloat(this.min_spin, this.max_spin);
+    p.rotation = _Math.randFloatRange(this.min_rot, this.max_rot);
+    p.spin = _Math.randFloatRange(this.min_spin, this.max_spin);
   }
 });
 
@@ -36743,8 +36664,8 @@ function InitScaleXY(t) {
 
 Object.assign(InitScaleXY.prototype, {
   init: function init(p) {
-    p.scale.x = p.birthScale.x * Math2.randFloat(this.min_x, this.max_x);
-    p.scale.y = p.birthScale.y * Math2.randFloat(this.min_y, this.max_y);
+    p.scale.x = p.birthScale.x * _Math.randFloatRange(this.min_x, this.max_x);
+    p.scale.y = p.birthScale.y * _Math.randFloatRange(this.min_y, this.max_y);
   }
 });
 
@@ -36775,10 +36696,10 @@ Object.assign(AffAccelRing.prototype, {
       p.velocity.x += norm_x * rad - norm_z * tan;
       p.velocity.z += norm_z * rad + norm_x * tan;
     } else {
-      var angle = Math2.randFloat(0, Math2.TWO_PI);
+      var angle = Math.randFloat(0, Math.TWO_PI);
 
-      p.velocity.x += Math2.cos(angle) * this.rad * dt;
-      p.velocity.z += Math2.sin(angle) * this.rad * dt;
+      p.velocity.x += Math.cos(angle) * this.rad * dt;
+      p.velocity.z += Math.sin(angle) * this.rad * dt;
     }
   }
 });
@@ -36995,7 +36916,7 @@ Object.assign(ParticleTemplate.prototype, {
 
     init: function init(p) {
         p.setActive(true);
-        p.life = Math2.randFloat(this.lifeMin, this.lifeMax);
+        p.life = _Math.randFloatRange(this.lifeMin, this.lifeMax);
         p.scale.fromArray(this.absScale);
         p.birthScale.fromArray(this.absScale);
 
@@ -37029,6 +36950,420 @@ Object.assign(ParticleTemplate.prototype, {
     }
 });
 
+/**
+ * | a | b | tx|
+ * | c | d | ty|
+ * | 0 | 0 | 1 |
+ */
+function Matrix(a, b, c, d, tx, ty) {
+    this.a = a || 1;
+    this.b = b || 0;
+    this.c = c || 0;
+    this.d = d || 1;
+    this.tx = tx || 0;
+    this.ty = ty || 0;
+}
+
+Object.assign(Matrix.prototype, {
+    set: function set(a, b, c, d, tx, ty) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.d = d;
+        this.tx = tx;
+        this.ty = ty;
+
+        return this;
+    },
+
+    apply: function apply(pos, newPos) {
+        newPos = newPos || new Vector2();
+
+        var x = pos.x;
+        var y = pos.y;
+
+        newPos.x = this.a * x + this.c * y + this.tx;
+        newPos.y = this.b * x + this.d * y + this.ty;
+
+        return newPos;
+    },
+
+    applyInverse: function applyInverse(pos, newPos) {
+        newPos = newPos || new Vector2();
+
+        var id = 1 / (this.a * this.d + this.c * -this.b);
+
+        var x = pos.x;
+        var y = pos.y;
+
+        newPos.x = this.d * id * x + -this.c * id * y + (this.ty * this.c - this.tx * this.d) * id;
+        newPos.y = this.a * id * y + -this.b * id * x + (-this.ty * this.a + this.tx * this.b) * id;
+
+        return newPos;
+    },
+
+    translate: function translate(x, y) {
+        this.tx += x;
+        this.ty += y;
+
+        return this;
+    },
+
+    scale: function scale(x, y) {
+        this.a *= x;
+        this.d *= y;
+        this.c *= x;
+        this.b *= y;
+        this.tx *= x;
+        this.ty *= y;
+
+        return this;
+    },
+
+    rotate: function rotate(angle) {
+        var cos = Math.cos(angle);
+        var sin = Math.sin(angle);
+
+        var a1 = this.a;
+        var c1 = this.c;
+        var tx1 = this.tx;
+
+        this.a = a1 * cos - this.b * sin;
+        this.b = a1 * sin + this.b * cos;
+        this.c = c1 * cos - this.d * sin;
+        this.d = c1 * sin + this.d * cos;
+        this.tx = tx1 * cos - this.ty * sin;
+        this.ty = tx1 * sin + this.ty * cos;
+
+        return this;
+    },
+
+    append: function append(matrix) {
+        var a1 = this.a;
+        var b1 = this.b;
+        var c1 = this.c;
+        var d1 = this.d;
+
+        this.a = matrix.a * a1 + matrix.b * c1;
+        this.b = matrix.a * b1 + matrix.b * d1;
+        this.c = matrix.c * a1 + matrix.d * c1;
+        this.d = matrix.c * b1 + matrix.d * d1;
+
+        this.tx = matrix.tx * a1 + matrix.ty * c1 + this.tx;
+        this.ty = matrix.tx * b1 + matrix.ty * d1 + this.ty;
+
+        return this;
+    },
+
+    setTransform: function setTransform(x, y, pivotX, pivotY, scaleX, scaleY, rotation, skewX, skewY) {
+        var sr = Math.sin(rotation);
+        var cr = Math.cos(rotation);
+        var cy = Math.cos(skewY);
+        var sy = Math.sin(skewY);
+        var nsx = -Math.sin(skewX);
+        var cx = Math.cos(skewX);
+
+        var a = cr * scaleX;
+        var b = sr * scaleX;
+        var c = -sr * scaleY;
+        var d = cr * scaleY;
+
+        this.a = cy * a + sy * c;
+        this.b = cy * b + sy * d;
+        this.c = nsx * a + cx * c;
+        this.d = nsx * b + cx * d;
+
+        this.tx = x + (pivotX * a + pivotY * c);
+        this.ty = y + (pivotX * b + pivotY * d);
+
+        return this;
+    },
+
+    prepend: function prepend(matrix) {
+        var tx1 = this.tx;
+
+        if (matrix.a !== 1 || matrix.b !== 0 || matrix.c !== 0 || matrix.d !== 1) {
+            var a1 = this.a;
+            var c1 = this.c;
+
+            this.a = a1 * matrix.a + this.b * matrix.c;
+            this.b = a1 * matrix.b + this.b * matrix.d;
+            this.c = c1 * matrix.a + this.d * matrix.c;
+            this.d = c1 * matrix.b + this.d * matrix.d;
+        }
+
+        this.tx = tx1 * matrix.a + this.ty * matrix.c + matrix.tx;
+        this.ty = tx1 * matrix.b + this.ty * matrix.d + matrix.ty;
+
+        return this;
+    },
+
+    decompose: function decompose(transform) {
+        // sort out rotation / skew..
+        var a = this.a;
+        var b = this.b;
+        var c = this.c;
+        var d = this.d;
+
+        var skewX = -Math.atan2(-c, d);
+        var skewY = Math.atan2(b, a);
+
+        var delta = Math.abs(skewX + skewY);
+
+        if (delta < 0.00001) {
+            transform.rotation = skewY;
+
+            if (a < 0 && d >= 0) {
+                transform.rotation += transform.rotation <= 0 ? Math.PI : -Math.PI;
+            }
+
+            transform.skew.x = transform.skew.y = 0;
+        } else {
+            transform.skew.x = skewX;
+            transform.skew.y = skewY;
+        }
+
+        // next set scale
+        transform.scale.x = Math.sqrt(a * a + b * b);
+        transform.scale.y = Math.sqrt(c * c + d * d);
+
+        // next set position
+        transform.position.x = this.tx;
+        transform.position.y = this.ty;
+
+        return transform;
+    },
+
+    invert: function invert() {
+        var a1 = this.a;
+        var b1 = this.b;
+        var c1 = this.c;
+        var d1 = this.d;
+        var tx1 = this.tx;
+        var n = a1 * d1 - b1 * c1;
+
+        this.a = d1 / n;
+        this.b = -b1 / n;
+        this.c = -c1 / n;
+        this.d = a1 / n;
+        this.tx = (c1 * this.ty - d1 * tx1) / n;
+        this.ty = -(a1 * this.ty - b1 * tx1) / n;
+
+        return this;
+    },
+
+    identity: function identity() {
+        this.a = 1;
+        this.b = 0;
+        this.c = 0;
+        this.d = 1;
+        this.tx = 0;
+        this.ty = 0;
+
+        return this;
+    },
+
+    clone: function clone() {
+        var matrix = new Matrix();
+
+        matrix.a = this.a;
+        matrix.b = this.b;
+        matrix.c = this.c;
+        matrix.d = this.d;
+        matrix.tx = this.tx;
+        matrix.ty = this.ty;
+
+        return matrix;
+    },
+
+    copy: function copy(matrix) {
+        this.a = matrix.a;
+        this.b = matrix.b;
+        this.c = matrix.c;
+        this.d = matrix.d;
+        this.tx = matrix.tx;
+        this.ty = matrix.ty;
+
+        return this;
+    }
+});
+
+Object.assign(Matrix, {
+    IDENTITY: new Matrix()
+});
+
+function Transform() {
+    this.worldTransform = new Matrix();
+    this.localTransform = new Matrix();
+    this._worldID = 0;
+    this._parentID = 0;
+    this.position = new Vector2(0, 0);
+    this.scale = new Vector2(1, 1);
+    this.skew = new Vector2(0, 0);
+    this.pivot = new Vector2(0, 0);
+    this._rotation = 0;
+    this._cx = 1;
+    this._sx = 0;
+    this._cy = 0;
+    this._sy = 1;
+}
+
+Object.assign(Transform.prototype, {
+    updateSkew: function updateSkew() {
+        this._cx = Math.cos(this._rotation + this.skew.y);
+        this._sx = Math.sin(this._rotation + this.skew.y);
+        this._cy = -Math.sin(this._rotation - this.skew.x); // cos, added PI/2
+        this._sy = Math.cos(this._rotation - this.skew.x); // sin, added PI/2
+    },
+
+    updateLocalTransform: function updateLocalTransform() {
+        var lt = this.localTransform;
+
+        lt.a = this._cx * this.scale.x;
+        lt.b = this._sx * this.scale.x;
+        lt.c = this._cy * this.scale.y;
+        lt.d = this._sy * this.scale.y;
+
+        lt.tx = this.position.x - (this.pivot.x * lt.a + this.pivot.y * lt.c);
+        lt.ty = this.position.y - (this.pivot.x * lt.b + this.pivot.y * lt.d);
+    },
+
+    updateTransform: function updateTransform(parentTransform) {
+        var lt = this.localTransform;
+
+        lt.a = this._cx * this.scale.x;
+        lt.b = this._sx * this.scale.x;
+        lt.c = this._cy * this.scale.y;
+        lt.d = this._sy * this.scale.y;
+
+        lt.tx = this.position.x - (this.pivot.x * lt.a + this.pivot.y * lt.c);
+        lt.ty = this.position.y - (this.pivot.x * lt.b + this.pivot.y * lt.d);
+
+        // concat the parent matrix with the objects transform.
+        var pt = parentTransform.worldTransform;
+        var wt = this.worldTransform;
+
+        wt.a = lt.a * pt.a + lt.b * pt.c;
+        wt.b = lt.a * pt.b + lt.b * pt.d;
+        wt.c = lt.c * pt.a + lt.d * pt.c;
+        wt.d = lt.c * pt.b + lt.d * pt.d;
+        wt.tx = lt.tx * pt.a + lt.ty * pt.c + pt.tx;
+        wt.ty = lt.tx * pt.b + lt.ty * pt.d + pt.ty;
+
+        this._worldID++;
+    },
+
+    setFromMatrix: function setFromMatrix(matrix) {
+        matrix.decompose(this);
+    }
+});
+
+Object.defineProperty(Transform.prototype, "rotation", {
+    get: function get() {
+        return this._rotation;
+    },
+    set: function set(value) {
+        this._rotation = value;
+        this.updateSkew();
+    },
+    enumerable: true,
+    configurable: true
+});
+
+Object.assign(Transform, {
+    IDENTITY: new Transform()
+});
+
+function Object2D() {
+    this.transform = new Transform();
+    this.alpha = 1;
+    this.worldAlpha = 1;
+    this.visible = true;
+
+    this.parent = null;
+    this.children = [];
+    this.z = 0;
+}
+
+Object.assign(Object2D.prototype, {
+    isObject2D: true,
+
+    updateTransform: function updateTransform() {
+        if (this.parent) {
+            this.transform.updateTransform(this.parent.transform);
+            this.worldAlpha = this.alpha * this.parent.worldAlpha;
+        } else {
+            this.transform.updateLocalTransform();
+            this.worldAlpha = this.alpha;
+        }
+
+        for (var i = 0, j = this.children.length; i < j; ++i) {
+            var child = this.children[i];
+
+            if (child.visible) {
+                child.updateTransform();
+            }
+        }
+    },
+
+    setTransform: function setTransform(x, y, scaleX, scaleY, rotation, skewX, skewY, pivotX, pivotY) {
+        this.transform.position.x = x;
+        this.transform.position.y = y;
+        this.transform.scale.x = !scaleX ? 1 : scaleX;
+        this.transform.scale.y = !scaleY ? 1 : scaleY;
+        this.transform.rotation = rotation;
+        this.transform.skew.x = skewX;
+        this.transform.skew.y = skewY;
+        this.transform.pivot.x = pivotX;
+        this.transform.pivot.y = pivotY;
+
+        return this;
+    },
+
+    add: function add(object) {
+        if (object === this) {
+            console.error("Halo.Object2D.add: object can't be added as a child of itself.", object);
+            return this;
+        }
+
+        if (object && object.isObject2D) {
+            if (object.parent !== null) {
+                object.parent.remove(object);
+            }
+
+            object.parent = this;
+            this.children.push(object);
+        } else {
+            console.error("Halo.Object2D.add: object not an instance of Halo.Object2D.", object);
+        }
+    },
+
+    remove: function remove(object) {
+        var index = this.children.indexOf(object);
+        if (index !== -1) {
+            object.parent = null;
+            this.children.splice(index, 1);
+        }
+    },
+
+    traverse: function traverse(callback) {
+        if (this.visible) {
+            callback(this);
+            for (var i = 0, l = this.children.length; i < l; i++) {
+                this.children[i].traverse(callback);
+            }
+        }
+    },
+
+    render: function render(queue) {
+        if (this.visible) {
+            for (var i = 0, l = this.children.length; i < l; i++) {
+                this.children[i].render(queue);
+            }
+        }
+    }
+});
+
 var ANCHOR_LEFT = 1;
 var ANCHOR_CENTER = 2;
 var ANCHOR_RIGHT = 3;
@@ -37045,6 +37380,224 @@ var FIT_MAX = 2;
 var FIT_WIDTH = 3;
 var FIT_HEIGHT = 4;
 
+function State(name, object) {
+    this.name = name;
+    this.logics = [];
+    this.timer = 0;
+    this.active = false;
+    this.object = object;
+    this.frame = 0;
+    this.restart = false;
+}
+
+Object.assign(State.prototype, {
+    enter: function enter() {
+        for (var name in this.object.states) {
+            var state = this.object.states[name];
+            if (state.mutexID !== undefined && state.mutexID === this.mutexID && state.active) {
+                this.object.exit(name, this.flag);
+            }
+        }
+
+        if (this.restart) {
+            this.exit();
+            this.timer = 0;
+        }
+
+        if (!this.active) {
+            this.timer = 0;
+            this.active = true;
+        }
+    },
+
+    exit: function exit() {
+        this.timer = Infinity;
+        for (var i = 0, n = this.logics.length; i !== n; ++i) {
+            var logic = this.logics[i];
+            if (logic.active) {
+                logic.stop();
+            }
+        }
+    },
+
+    update: function update(dt) {
+        this.frame = Config.frame;
+
+        var active = false;
+        var timer_next = this.timer + dt;
+
+        for (var i = 0, n = this.logics.length; i !== n; ++i) {
+            var logic = this.logics[i];
+            var t1 = this.timer - logic.start;
+            var t2 = timer_next - logic.start;
+            var t = dt;
+
+            if (!logic.active || logic.replay) {
+                if (t1 <= 0 && 0 < t2) {
+                    t = t2;
+                    logic.play();
+                } else if (0 >= t2) {
+                    active = true;
+                }
+            }
+
+            if (logic.active) {
+                if (t1 <= logic.duration && logic.duration < t2) {
+                    t = logic.duration - t1;
+                    logic.update(t);
+                    logic.stop();
+                }
+                if (logic.active) {
+                    logic.update(t);
+                }
+            }
+
+            active = active || logic.active;
+        }
+
+        this.timer = timer_next;
+        this.active = active;
+    },
+
+    encode: function encode() {
+        var data = {
+            name: this.name,
+            restart: this.restart === true,
+            logics: []
+        };
+
+        if (this.mutexID !== undefined) {
+            data.mutexID = this.mutexID;
+        }
+
+        for (var i = 0, n = this.logics.length; i !== n; ++i) {
+            data.logics.push(this.logics[i].encode());
+        }
+
+        return data;
+    },
+
+    clone: function clone(object) {
+        var state = new State(this.name, object);
+
+        state.mutexID = this.mutexID;
+        state.restart = this.restart;
+
+        for (var i = 0, n = this.logics.length; i !== n; ++i) {
+            var logic = Logic.create(this.logics[i].encode(), state);
+            if (logic) {
+                state.logics.push(logic);
+            }
+        }
+
+        return state;
+    }
+});
+
+Object.assign(State, {
+    decode: function decode(data, object) {
+        var state = new State(data.name, object);
+
+        if (data.mutexID !== undefined) {
+            state.mutexID = data.mutexID;
+        }
+
+        state.restart = data.restart === true;
+
+        for (var i = 0; i !== data.logics.length; ++i) {
+            var logic = Logic.create(data.logics[i], state);
+            if (logic) {
+                state.logics.push(logic);
+            }
+        }
+        return state;
+    }
+});
+
+// Logic (for Object3D Material Object2D Widget, logics)
+function Logic(parent) {
+    this.start = 0;
+    this.duration = Infinity;
+    this.reset = true;
+    this.replay = false;
+
+    this.parent = parent;
+    this.object = parent.object;
+    this.active = false;
+
+    this.fn_play = null;
+    this.fn_update = null;
+    this.fn_stop = null;
+}
+
+Object.assign(Logic.prototype, {
+    play: function play() {
+        this.active = true;
+        this.fn_play && this.fn_play();
+    },
+
+    stop: function stop() {
+        this.active = false;
+        this.fn_stop && this.fn_stop();
+    },
+
+    update: function update(dt) {
+        this.fn_update && this.fn_update(dt);
+    },
+
+    setJS: function setJS(js) {
+        this.js = js || undefined;
+        this.fn_play = js ? ResourceManager.getFunc(js.replace('.js', '_play')) : null;
+        this.fn_update = js ? ResourceManager.getFunc(js.replace('.js', '_update')) : null;
+        this.fn_stop = js ? ResourceManager.getFunc(js.replace('.js', '_stop')) : null;
+    },
+
+    encode: function encode() {
+        var data = {
+            start: this.start,
+            duration: this.duration === Infinity ? -1 : this.duration,
+            reset: this.reset === true,
+            replay: this.replay === true
+        };
+
+        if (this.js !== undefined) {
+            data.js = this.js;
+        } else {
+            if (this.fn_play) data.fn_play = this.fn_play.name;
+            if (this.fn_stop) data.fn_stop = this.fn_stop.name;
+            if (this.fn_update) data.fn_update = this.fn_update.name;
+        }
+
+        if (this.params) data.params = this.params;
+
+        return data;
+    }
+});
+
+Object.assign(Logic, {
+    create: function create(data, state) {
+        var logic = new Logic(state);
+
+        logic.start = data.start === undefined ? 0 : data.start;
+        logic.duration = data.duration === -1 ? Infinity : data.duration;
+        logic.reset = data.reset === true;
+        logic.replay = data.replay === true;
+
+        if (data.js !== undefined) {
+            logic.setJS(data.js);
+        } else {
+            if (data.fn_play !== undefined) logic.fn_play = ResourceManager.getFunc(data.fn_play);
+            if (data.fn_stop !== undefined) logic.fn_stop = ResourceManager.getFunc(data.fn_stop);
+            if (data.fn_update !== undefined) logic.fn_update = ResourceManager.getFunc(data.fn_update);
+        }
+
+        if (data.params !== undefined) logic.params = data.params;
+        logic.decode && logic.decode(data);
+
+        return logic;
+    }
+});
+
 function Widget() {
     this.enable = true;
     this.visible = true;
@@ -37060,18 +37613,15 @@ function Widget() {
     this._dirty = true;
     this.alpha = 1;
     this.worldAlpha = 1;
-    this.scale = 1;
+    this.scale = new Vector2(1, 1);
+    this.position = new Vector2(0, 0);
     this.scissorID = -1;
 
-    this._formulaOffsetX = '0';
-    this._formulaOffsetY = '0';
-    this.formulaOffsetXFunc = new Function('w', 'h', 'return 0;');
-    this.formulaOffsetYFunc = new Function('w', 'h', 'return 0;');
+    this._formulaOffsetX = new Function('w', 'h', 'return 0;');
+    this._formulaOffsetY = new Function('w', 'h', 'return 0;');
 
-    this._formulaSizeX = '100';
-    this._formulaSizeY = '100';
-    this.formulaSizeXFunc = new Function('w', 'h', 'return 100;');
-    this.formulaSizeYFunc = new Function('w', 'h', 'return 100;');
+    this._formulaSizeX = new Function('w', 'h', 'return 100;');
+    this._formulaSizeY = new Function('w', 'h', 'return 100;');
 
     this.size = new Vector2(100, 100);
     this.offset = new Vector2(0, 0);
@@ -37109,25 +37659,17 @@ Object.assign(Widget.prototype, EventDispatcher.prototype, {
         return true;
     },
 
-    captureEvent: function captureEvent(evt) {
+    // propogate from leaf node
+    captureEvent: function captureEvent(evt, leaves) {
         if (this.enable && this.visible) {
-            var capture = false;
             if (this.children.length > 0) {
                 for (var i = this.children.length - 1; i >= 0; --i) {
-                    var child = this.children[i];
-                    var caped = child.captureEvent(evt);
-                    capture = capture || caped;
+                    this.children[i].captureEvent(evt, leaves);
                 }
+            } else {
+                leaves.push(this);
             }
-
-            if (!capture) {
-                this.propogateEvent(evt);
-            }
-
-            return true;
         }
-
-        return false;
     },
 
     setAnchorType: function setAnchorType(h, v) {
@@ -37137,42 +37679,42 @@ Object.assign(Widget.prototype, EventDispatcher.prototype, {
     },
 
     setFormulaOffsetX: function setFormulaOffsetX(formula) {
-        this._formulaOffsetX = formula;
         try {
-            this.formulaOffsetXFunc = new Function('w', 'h', 'return ' + formula + ';');
+            this._formulaOffsetX = new Function('w', 'h', 'return ' + formula + ';');
             this._dirty = true;
+            return true;
         } catch (e) {
-            alert(e);
+            return false;
         }
     },
 
     setFormulaOffsetY: function setFormulaOffsetY(formula) {
-        this._formulaOffsetY = formula;
         try {
-            this.formulaOffsetYFunc = new Function('w', 'h', 'return ' + formula + ';');
+            this._formulaOffsetY = new Function('w', 'h', 'return ' + formula + ';');
             this._dirty = true;
+            return true;
         } catch (e) {
-            alert(e);
+            return false;
         }
     },
 
     setFormulaSizeX: function setFormulaSizeX(formula) {
-        this._formulaSizeX = formula;
         try {
-            this.formulaSizeXFunc = new Function('w', 'h', 'return ' + formula + ';');
+            this._formulaSizeX = new Function('w', 'h', 'return ' + formula + ';');
             this._dirty = true;
+            return true;
         } catch (e) {
-            alert(e);
+            return false;
         }
     },
 
     setFormulaSizeY: function setFormulaSizeY(formula) {
-        this._formulaSizeY = formula;
         try {
-            this.formulaSizeYFunc = new Function('w', 'h', 'return ' + formula + ';');
+            this._formulaSizeY = new Function('w', 'h', 'return ' + formula + ';');
             this._dirty = true;
+            return true;
         } catch (e) {
-            alert(e);
+            return false;
         }
     },
 
@@ -37186,7 +37728,7 @@ Object.assign(Widget.prototype, EventDispatcher.prototype, {
         this.setFormulaSizeY(y);
     },
 
-    add: function add(widget) {
+    add: function add(widget, pos) {
         if (widget === this) {
             console.error("Halo.Widget.add: widget can't be added as a child of itself.", widget);
             return this;
@@ -37198,7 +37740,11 @@ Object.assign(Widget.prototype, EventDispatcher.prototype, {
             }
 
             widget.parent = this;
-            this.children.push(widget);
+            if (pos === undefined) {
+                this.children.push(widget);
+            } else {
+                this.children.splice(pos, 0, widget);
+            }
             this._dirty = true;
         } else {
             console.error("Halo.Widget.add: widget not an instance of Halo.Object2D.", widget);
@@ -37255,11 +37801,12 @@ Object.assign(Widget.prototype, EventDispatcher.prototype, {
         }
     },
 
-    setScale: function setScale(scale) {
-        this.scale = scale;
+    setScale: function setScale(x, y) {
+        this.scale.x = x;
+        this.scale.y = y;
         for (var i = 0; i !== this.children.length; ++i) {
             var child = this.children[i];
-            child.setScale(scale);
+            child.setScale(x, y);
         }
     },
 
@@ -37272,10 +37819,10 @@ Object.assign(Widget.prototype, EventDispatcher.prototype, {
         }
 
         try {
-            this.offset.x = this.formulaOffsetXFunc(w, h);
-            this.offset.y = this.formulaOffsetYFunc(w, h);
-            this.size.x = this.formulaSizeXFunc(w, h);
-            this.size.y = this.formulaSizeYFunc(w, h);
+            this.offset.x = this._formulaOffsetX(w, h);
+            this.offset.y = this._formulaOffsetY(w, h);
+            this.size.x = this._formulaSizeX(w, h);
+            this.size.y = this._formulaSizeY(w, h);
         } catch (e) {
             console.error('Formula error:', this._formulaOffsetX, this._formulaOffsetY, this._formulaSizeX, this._formulaSizeY);
             this.offset.x = this.offset.y = 0;
@@ -37314,6 +37861,9 @@ Object.assign(Widget.prototype, EventDispatcher.prototype, {
             this.dimension.max.set(this.offset.x + this.size.x, this.offset.y + this.size.y);
         }
 
+        this.dimension.min.add(this.position);
+        this.dimension.max.add(this.position);
+
         this._dirty = false;
     },
 
@@ -37336,28 +37886,31 @@ Object.assign(Widget.prototype, EventDispatcher.prototype, {
         }
     },
 
-    update: function update(dt) {
-        !Config.bEditor && this.fn_update && this.fn_update(this, dt);
+    enter: function enter(name, flag) {
+        var sIDs = [];
+        this.traverse(function (child) {
+            if (child.sID) {
+                sIDs.push(child.sID);
+            }
+            return true;
+        });
 
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            this.children[i].update(dt);
+        for (var i = 0; i !== sIDs.length; ++i) {
+            Config.enter(sIDs[i], name, flag);
         }
     },
 
-    init: function init() {
-        !Config.bEditor && this.fn_init && this.fn_init(this);
+    exit: function exit(name, flag) {
+        var sIDs = [];
+        this.traverse(function (child) {
+            if (child.sID) {
+                sIDs.push(child.sID);
+            }
+            return true;
+        });
 
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            this.children[i].init();
-        }
-    },
-
-    dispose: function dispose() {
-        !Config.bEditor && this.fn_dispose && this.fn_dispose(this);
-
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            var fn_dispose = this.children[i].fn_dispose;
-            fn_dispose && fn_dispose();
+        for (var i = 0; i !== sIDs.length; ++i) {
+            Config.exit(sIDs[i], name, flag);
         }
     },
 
@@ -37384,19 +37937,19 @@ Object.assign(Widget.prototype, EventDispatcher.prototype, {
         }
 
         if (this._formulaOffsetX) {
-            template.offsetX = this._formulaOffsetX;
+            template.offsetX = this._formulaOffsetX.toString().replace(/^[\s\S]*return\s*|;[^;]*\}$/g, '');
         }
 
         if (this._formulaOffsetY) {
-            template.offsetY = this._formulaOffsetY;
+            template.offsetY = this._formulaOffsetY.toString().replace(/^[\s\S]*return\s*|;[^;]*\}$/g, '');
         }
 
         if (this._formulaSizeX) {
-            template.sizeX = this._formulaSizeX;
+            template.sizeX = this._formulaSizeX.toString().replace(/^[\s\S]*return\s*|;[^;]*\}$/g, '');
         }
 
         if (this._formulaSizeY) {
-            template.sizeY = this._formulaSizeY;
+            template.sizeY = this._formulaSizeY.toString().replace(/^[\s\S]*return\s*|;[^;]*\}$/g, '');
         }
 
         if (!this.enable) {
@@ -37407,20 +37960,15 @@ Object.assign(Widget.prototype, EventDispatcher.prototype, {
             template.visible = false;
         }
 
-        if (this.fn_init) {
-            template.func_init = this.fn_init.name;
-        }
-
-        if (this.fn_update) {
-            template.func_update = this.fn_update.name;
-        }
-
-        if (this.fn_dispose) {
-            template.func_dispose = this.fn_dispose.name;
-        }
-
         for (var i = 0; i !== this.children.length; ++i) {
             template.children.push(this.children[i].encode());
+        }
+
+        if (this.states) {
+            template.states = {};
+            for (var name in this.states) {
+                template.states[name] = this.states[name].encode();
+            }
         }
 
         return template;
@@ -37470,21 +38018,18 @@ Object.assign(Widget, {
             widget.visible = template.visible;
         }
 
-        if (template.func_update !== undefined) {
-            widget.fn_update = ResourceManager.getFunc(template.func_update);
-        }
-
-        if (template.func_init !== undefined) {
-            widget.fn_init = ResourceManager.getFunc(template.func_init);
-        }
-
-        if (template.func_dispose !== undefined) {
-            widget.fn_dispose = ResourceManager.getFunc(template.func_dispose);
-        }
-
         var children = template.children;
         for (var i = 0; i !== children.length; ++i) {
-            widget.add(Config.wtFactory(children[i]));
+            var child = children[i];
+            widget.add(Halo[child.class].decode(child));
+        }
+
+        if (template.states !== undefined) {
+            widget.states = {};
+            for (var name in template.states) {
+                widget.states[name] = State.decode(template.states[name], widget);
+            }
+            Config.addStates(widget);
         }
 
         return widget;
@@ -37502,6 +38047,3943 @@ Object.assign(Widget, {
         Widget.scissors.push(box2);
         return n;
     }
+});
+
+function HaloScene() {
+    Scene.call(this);
+
+    this._ratio = 1;
+    this._invRatio = 1;
+    this._spriteRoot = new Object2D();
+    this._widgetRoot = new Widget();
+    this._widgetRoot.setSize(1920, 1080);
+    this._widgets = [];
+    this._halo2d = null;
+    this.fit_type = FIT_MIN;
+    this.camera = null;
+    this.fn_event = null;
+
+    var _vertex_count = 0;
+    var _index_count = 0;
+
+    function createGeometry(vnum, inum) {
+        _vertex_count = vnum;
+        _index_count = inum;
+
+        var geo = new BufferGeometry();
+
+        var attrPos = new BufferAttribute(new Float32Array(3 * vnum), 3).setDynamic(true);
+        var attrColor = new BufferAttribute(new Uint8Array(4 * vnum), 4).setDynamic(true);
+        var attrUV = new BufferAttribute(new Uint16Array(2 * vnum), 2).setDynamic(true);
+        var attrIndex = new BufferAttribute(new Uint16Array(inum), 1).setDynamic(true);
+
+        attrColor.normalized = true;
+        attrUV.normalized = true;
+
+        geo.addAttribute('position', attrPos);
+        geo.addAttribute('color', attrColor);
+        geo.addAttribute('uv', attrUV);
+        geo.setIndex(attrIndex);
+
+        return geo;
+    }
+
+    var geo = createGeometry(2, 4);
+
+    function genMatKey(cfg) {
+        var id = (cfg.texture.id << 16) + (cfg.srcFactor << 4) + cfg.dstFactor - 3400;
+
+        if (cfg.enable) {
+            id += 256;
+        }
+
+        if (cfg.scissorID >= 0) {
+            id += cfg.scissorID + 1 << 9;
+        }
+
+        return id;
+    }
+
+    function genMaterial(matCfg) {
+        var material = new ShaderMaterial({
+            transparent: true,
+            depthWrite: false,
+            blending: CustomBlending,
+            blendEquation: AddEquation,
+            blendSrc: matCfg.srcFactor,
+            blendDst: matCfg.dstFactor,
+            vertexShader: HaloScene.SHADER_2D.vertex,
+            fragmentShader: matCfg.enable ? HaloScene.SHADER_2D.fragment : HaloScene.SHADER_2D.disabale,
+            uniforms: {
+                tSprite: { value: matCfg.texture },
+                uPMVMatrix: { value: HaloScene.PMV_MATRIX }
+            }
+        });
+
+        if (matCfg.blendSrcAlpha !== undefined) {
+            material.blendSrcAlpha = matCfg.blendSrcAlpha;
+        }
+
+        if (matCfg.blendDstAlpha !== undefined) {
+            material.blendDstAlpha = matCfg.blendDstAlpha;
+        }
+
+        material.scissorID = matCfg.scissorID;
+        material.needsUpdate = true;
+
+        return material;
+    }
+
+    this._genRenderMesh = function () {
+        var renderList = [];
+
+        this._spriteRoot.render(renderList);
+        this._widgetRoot.render(renderList);
+
+        // renderList.sort(function zorder(a, b) {
+        //     return a.z - b.z;
+        // });
+
+        var vc = 0;
+        var ic = 0;
+        for (var i = 0, l = renderList.length; i !== l; ++i) {
+            var obj = renderList[i];
+            vc += obj.getVertexCount();
+            ic += obj.getIndexCount();
+        }
+
+        if (vc > _vertex_count || ic > _index_count) {
+            while (_vertex_count < vc) {
+                _vertex_count *= 2;
+            }
+            while (_index_count < ic) {
+                _index_count *= 2;
+            }
+            geo = createGeometry(_vertex_count, _index_count);
+        }
+
+        var pos = geo.getAttribute('position');
+        var color = geo.getAttribute('color');
+        var uv = geo.getAttribute('uv');
+
+        geo.clearGroups();
+        var voffset = 0;
+        var ioffset = 0;
+        var group = null;
+        for (var i = 0, l = renderList.length; i !== l; ++i) {
+            var obj = renderList[i];
+            var matCfg = obj.getMatCfg();
+            var matKey = genMatKey(matCfg);
+
+            var material = HaloScene.materials[matKey];
+            if (!material) {
+                material = genMaterial(matCfg);
+                HaloScene.materials[matKey] = material;
+                HaloScene.matqueue.push(material);
+            }
+            var matIndex = HaloScene.matqueue.indexOf(material);
+
+            if (group === null) {
+                geo.addGroup(0, 0, matIndex);
+                group = geo.groups[0];
+                group.order = geo.groups.length;
+            } else if (group.materialIndex !== matIndex) {
+                geo.addGroup(ioffset, 0, matIndex);
+                group = geo.groups[geo.groups.length - 1];
+                group.order = geo.groups.length;
+            }
+
+            obj.updatePosition(pos, voffset);
+            obj.updateColor(color, voffset);
+            obj.updateUV(uv, voffset);
+            obj.updateIndex(geo.index, ioffset, voffset);
+
+            voffset += obj.getVertexCount();
+            ioffset += obj.getIndexCount();
+            group.count = ioffset - group.start;
+        }
+
+        if (voffset > 0 || ioffset > 0) {
+            pos.updateRange.offset = color.updateRange.offset = uv.updateRange.offset = geo.index.updateRange.offset = 0;
+            pos.updateRange.count = voffset * 3;
+            color.updateRange.count = voffset * 4;
+            uv.updateRange.count = voffset * 2;
+            geo.index.updateRange.count = ioffset;
+            pos.needsUpdate = color.needsUpdate = uv.needsUpdate = geo.index.needsUpdate = true;
+        }
+
+        if (this._halo2d === null) {
+            this._halo2d = new Mesh(geo, HaloScene.matqueue);
+            this._halo2d.name = 'HALO2D';
+            this._halo2d.renderOrder = 1000;
+            this._halo2d.frustumCulled = false;
+            this.add(this._halo2d);
+
+            this._halo2d.onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
+                if (material.scissorID >= 0) {
+                    var ratio = renderer.getPixelRatio() * scene._invRatio;
+                    var box2 = Widget.scissors[material.scissorID];
+                    var x = box2.min.x * ratio;
+                    var y = box2.min.y * ratio;
+                    var w = box2.max.x * ratio - x;
+                    var h = box2.max.y * ratio - y;
+                    renderer.setScissor(x, y, w, h);
+                    renderer.setScissorTest(true);
+                } else {
+                    renderer.setScissorTest(false);
+                }
+            };
+
+            this._halo2d.onAfterRender = function (renderer, scene, camera, geometry, material, group) {
+                renderer.setScissorTest(false);
+            };
+        } else {
+            this._halo2d.geometry = geo;
+            this._halo2d.material = HaloScene.matqueue;
+        }
+    };
+
+    // pick logics
+    this._picks = [];
+    this.intersects = null;
+
+    var scope = this;
+    function pick(evt) {
+        if (!scope.camera) {
+            return;
+        }
+
+        var objects = [];
+        var logics = [];
+        for (var i = 0; i !== scope._picks.length; ++i) {
+            var logic = scope._picks[i];
+            if (logic.active && logic.event === evt.type) {
+                objects.push(logic.object);
+                logics.push(logic);
+            }
+        }
+
+        if (objects.length > 0) {
+            HaloScene.mouse.x = evt.x / scope._widgetRoot.size.x * 2 - 1;
+            HaloScene.mouse.y = evt.y / scope._widgetRoot.size.y * 2 - 1;
+            HaloScene.raycaster.setFromCamera(HaloScene.mouse, scope.camera);
+            scope.intersects = HaloScene.raycaster.intersectObjects(objects);
+            if (scope.intersects.length > 0) {
+                var object = scope.intersects[0].object;
+                var index = objects.indexOf(object);
+                if (index !== -1) {
+                    var logic = logics[index];
+                    if (logic.group) {
+                        while (object.type !== 'Group') {
+                            if (object.parent) {
+                                object = object.parent;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                    Config.enter(object.sID, 'pick');
+                }
+            }
+        }
+    }
+
+    this._widgetRoot.addEventListener(EVT_UI_DOWN, pick);
+    this._widgetRoot.addEventListener(EVT_UI_UP, pick);
+    this._widgetRoot.addEventListener(EVT_UI_MOVE, pick);
+}
+
+HaloScene.prototype = Object.assign(Object.create(Scene.prototype), {
+    constructor: HaloScene,
+
+    enter: function enter(name, flag) {
+        Object3D.prototype.enter.call(this, name, flag);
+        this._widgetRoot.enter(name, flag);
+    },
+
+    getWidgetRoot: function getWidgetRoot() {
+        return this._widgetRoot;
+    },
+
+    getSpriteRoot: function getSpriteRoot() {
+        return this._spriteRoot;
+    },
+
+    update: function update(dt) {
+        this._spriteRoot.updateTransform();
+        this._widgetRoot.relayout();
+
+        this._genRenderMesh();
+    },
+
+    onResizeWindow: function onResizeWindow(w, h) {
+        this.windowSize = { w: w, h: h };
+
+        if (this.camera) {
+            this.camera.aspect = w / h;
+            this.camera.updateProjectionMatrix();
+        }
+
+        var cfg = Config.get();
+
+        if (!cfg || !cfg.design_size) {
+            return;
+        }
+
+        var dw = cfg.design_size.x;
+        var dh = cfg.design_size.y;
+
+        this._widgetRoot.setSize(dw, dh);
+
+        var ratioW = w / dw;
+        var ratioH = h / dh;
+
+        var logicW = dw;
+        var logicH = dh;
+
+        if (this.fit_type === FIT_MIN) {
+            this._invRatio = Math.min(ratioW, ratioH);
+            this._ratio = 1 / this._invRatio;
+
+            logicW = ratioW < ratioH ? dw : dh * (w / h);
+            logicH = ratioW > ratioH ? dh : dw * (h / w);
+        } else if (this.fit_type === FIT_MAX) {
+            this._invRatio = Math.max(ratioW, ratioH);
+            this._ratio = 1 / this._invRatio;
+
+            logicW = ratioW > ratioH ? dw : dh * (w / h);
+            logicH = ratioW < ratioH ? dh : dw * (h / w);
+        } else if (this.fit_type === FIT_WIDTH) {
+            this._invRatio = ratioW;
+            this._ratio = 1 / this._invRatio;
+
+            logicW = dw;
+            logicH = dw * (h / w);
+        } else if (this.fit_type === FIT_HEIGHT) {
+            this._invRatio = ratioH;
+            this._ratio = 1 / this._invRatio;
+
+            logicW = dh * (w / h);
+            logicH = dh;
+        }
+
+        HaloScene.PMV_MATRIX.set(2 / logicW, 2 / logicH, 0, 1);
+
+        this._widgetRoot.setOffset(0, 0);
+        this._widgetRoot.setSize(logicW, logicH);
+    },
+
+    handleEvent: function handleEvent(evt, type, x, y) {
+        this.fn_event && this.fn_event(evt);
+        var event = type ? { type: type, x: x * this._ratio, y: y * this._ratio } : null;
+        if (event) {
+            var leaves = [];
+            this._widgetRoot.captureEvent(event, leaves);
+            for (var i = 0, n = leaves.length; i !== n; ++i) {
+                leaves[i].propogateEvent(event);
+            }
+        }
+    },
+
+    clone: function clone() {
+        if (this._halo2d) this.remove(this._halo2d);
+        var scene = Object3D.prototype.clone.call(this, true);
+        scene._widgets = this._widgets.slice(0);
+        for (var i = 0; i !== scene._widgets.length; ++i) {
+            scene._widgetRoot.add(Config.createWidget(scene._widgets[i]));
+        }
+        if (this._halo2d) this.add(this._halo2d);
+        return scene;
+    },
+
+    getDeps: function getDeps(meta) {
+        if (this._halo2d) this.remove(this._halo2d);
+        var deps = Object3D.prototype.getDeps.call(this, meta);
+        if (this._halo2d) this.add(this._halo2d);
+        return deps;
+    },
+
+    encode: function encode() {
+        if (this._halo2d) this.remove(this._halo2d);
+
+        var data = Object3D.prototype.encode.call(this);
+
+        if (this.background !== null) {
+            data.background = this.background.toJSON();
+        }
+        if (this.fog !== null) {
+            data.fog = this.fog.toJSON();
+        }
+
+        if (this._widgets !== null && this._widgets.length > 0) {
+            data.widgets = this._widgets;
+        }
+
+        if (this.fit_type !== FIT_MIN) {
+            data.fit_type = this.fit_type;
+        }
+
+        data.deps = this.getDeps();
+        ResourceParser.uniqueDeps(data.deps);
+
+        if (this._halo2d) this.add(this._halo2d);
+
+        return data;
+    }
+});
+
+Object.assign(HaloScene, {
+    decode: function decode(data, scene) {
+        if (scene === undefined) {
+            scene = new HaloScene();
+        }
+
+        scene.deps = data.deps;
+        Object3D.decode(data, scene);
+
+        if (data.background !== undefined) {
+            if (Number.isInteger(data.background)) {
+                scene.background = new Color(data.background);
+            }
+        }
+
+        if (data.fog !== undefined) {
+            if (data.fog.type === 'Fog') {
+                scene.fog = new Fog(data.fog.color, data.fog.near, data.fog.far);
+            } else if (data.fog.type === 'FogExp2') {
+                scene.fog = new FogExp2(data.fog.color, data.fog.density);
+            }
+        }
+
+        if (data.widgets !== undefined) {
+            scene._widgets = data.widgets;
+            for (var i = 0; i !== data.widgets.length; ++i) {
+                scene._widgetRoot.add(Config.createWidget(data.widgets[i]));
+            }
+        }
+
+        scene.fit_type = data.fit_type || FIT_MIN;
+
+        return scene;
+    },
+
+    PMV_MATRIX: new Vector4(),
+
+    raycaster: new Raycaster(),
+
+    mouse: new Vector2(),
+
+    materials: {},
+
+    matqueue: [],
+
+    SHADER_2D: {
+        vertex: ['attribute vec4 color;', 'uniform vec4 uPMVMatrix;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', '    vColor = color;', '    vUV = uv;', '    vec4 pos = uPMVMatrix * vec4(position, 1.0);', '    gl_Position = vec4(pos.x - 1.0, pos.y - 1.0, 0.0, 1.0);', '}'].join('\n'),
+
+        fragment: ['varying vec4 vColor;', 'varying vec2 vUV;', 'uniform sampler2D tSprite;', 'void main() {', '    gl_FragColor = texture2D(tSprite, vUV) * vColor;', '}'].join('\n'),
+
+        disabale: ['varying vec4 vColor;', 'varying vec2 vUV;', 'uniform sampler2D tSprite;', 'void main() {', '    vec4 color = texture2D(tSprite, vUV) * vColor;', '    float gray = dot(color.rgb, vec3(0.3, 0.59, 0.11));', '    gl_FragColor = vec4(gray, gray, gray, color.a);', '}'].join('\n')
+    }
+});
+
+var Config = function () {
+    var _cfg = null;
+    var _scene = null;
+    var _renderer = null;
+    var _states = {};
+    var _dragonbones = null;
+    var _audioListener = null;
+    var _frame = 0;
+    var _sID = 1;
+    var _activeStates = [];
+    var _audios = {};
+
+    var _initEffects = function _initEffects() {
+        for (var key in _cfg.effects) {
+            var effTemp = _cfg.effects[key];
+            var ptxTemps = [];
+            for (var i = 0, n = effTemp.length; i != n; ++i) {
+                ptxTemps.push(new ParticleTemplate(effTemp[i]));
+            }
+            _cfg.effects[key] = ptxTemps;
+        }
+    };
+
+    return {
+        bEditor: false,
+
+        bDebug: false,
+
+        get dargonbones() {
+            return _dragonbones;
+        },
+
+        get audioListener() {
+            return _audioListener;
+        },
+
+        init: function init(cfg) {
+            try {
+                _dragonbones = dragonBones.XFactory.factory;
+            } catch (e) {
+                
+            }
+
+            try {
+                _audioListener = new AudioListener();
+            } catch (e) {
+                if (Config.bDebug) {
+                    alert(e);
+                }
+            }
+
+            if (!cfg) {
+                return;
+            }
+
+            _cfg = cfg;
+            _initEffects();
+        },
+
+        loadBatch: function loadBatch(name, callback) {
+            var batch = _cfg.batches ? _cfg.batches[name] : [];
+            if (batch && batch.length > 0) {
+                ResourceManager.loadList(batch, function (res) {
+                    callback(res);
+                });
+            } else {
+                callback && callback(null);
+            }
+        },
+
+        play: function play(scn) {
+            if (_scene) {
+                _scene.dispose();
+            }
+
+            _scene = ResourceManager.getObj('scn', scn || _cfg.entry_scene);
+            if (!_scene) {
+                _scene = new HaloScene();
+            }
+
+            _scene.enter('main');
+
+            if (!_scene.camera) {
+                _scene.camera = new PerspectiveCamera(45, 1, 1, 1000);
+                _scene.camera.position.set(0, 50, 50);
+                _scene.camera.lookAt(0, 0, 0);
+            }
+
+            return _scene;
+        },
+
+        onResizeWindow: function onResizeWindow(w, h) {
+            if (_renderer) {
+                _renderer.setSize(w, h);
+            }
+            if (_scene) {
+                _scene.onResizeWindow(w, h);
+            }
+        },
+
+        renderer: function renderer() {
+            return _renderer;
+        },
+
+        scene: function scene() {
+            return _scene;
+        },
+
+        setScene: function setScene(scene) {
+            _scene = scene;
+        },
+
+        update: function update(dt) {
+            _frame++;
+            _renderer.clear();
+
+            for (var id in _states) {
+                var states = _states[id];
+                for (var name in states) {
+                    var state = states[name];
+                    if (state.active && state.frame < _frame) {
+                        _activeStates.push(state);
+                    }
+                }
+            }
+
+            while (_activeStates.length > 0) {
+                var state = _activeStates.pop();
+                if (state.frame < _frame) {
+                    state.update(dt);
+                }
+            }
+
+            if (_scene) {
+                _dragonbones && _dragonbones.tick(dt);
+                _scene.update(dt);
+                _renderer.render(_scene, _scene.camera);
+            }
+        },
+
+        addStates: function addStates(object) {
+            if (object.states !== undefined) {
+                if (!object.sID) {
+                    object.sID = _sID++;
+                }
+                _states[object.sID] = object.states;
+            }
+        },
+
+        getStates: function getStates(object) {
+            return _states[object.sID];
+        },
+
+        removeStates: function removeStates(object) {
+            delete _states[object.sID];
+        },
+
+        enter: function enter(sID, name, flag) {
+            var states = _states[sID];
+            if (states !== undefined) {
+                var state = states[name];
+                if (state) {
+                    state.flag = flag;
+                    state.enter();
+                    _activeStates.push(state);
+                }
+            }
+        },
+
+        exit: function exit(sID, name, flag) {
+            var states = _states[sID];
+            if (states !== undefined) {
+                var state = states[name];
+                if (state && state.active) {
+                    state.flag = flag;
+                    state.exit();
+                }
+            }
+        },
+
+        start: function start(dom) {
+            _renderer = new WebGLRenderer({ alpha: _cfg.alpha, antialias: _cfg.antialias, preserveDrawingBuffer: _cfg.preserveDrawingBuffer });
+            _renderer.localClippingEnabled = _cfg.localClippingEnabled === true;
+            _renderer.autoClear = false;
+            _renderer.autoUpdateScene = false;
+            _renderer.shadowMap.enabled = true;
+            _renderer.shadowMap.type = _cfg.shadowMapType || PCFShadowMap;
+            _renderer.setPixelRatio(window.devicePixelRatio);
+            _renderer.setClearColor(_cfg.clear_color || 0xaaaaaa, _cfg.alpha ? 0 : 1);
+            if (_cfg.alpha) {
+                _renderer.domElement.style.background = "transparent";
+            }
+            dom.appendChild(_renderer.domElement);
+        },
+
+        get frame() {
+            return _frame;
+        },
+
+        set frame(v) {
+            _frame = v;
+        },
+
+        get: function get() {
+            if (!_cfg) {
+                _cfg = {};
+            }
+            return _cfg;
+        },
+
+        getEffect: function getEffect(name) {
+            return _cfg.effects[name];
+        },
+
+        getWidget: function getWidget(name) {
+            return _cfg.widgets[name];
+        },
+
+        getTexture: function getTexture(name) {
+            return _cfg.textures[name];
+        },
+
+        createWidget: function createWidget(name) {
+            var template = _cfg.widgets[name];
+            if (template === undefined) {
+                return null;
+            }
+
+            return Halo[template.class].decode(template);
+        },
+
+        getAudio: function getAudio(name, b3D, count) {
+            var buffer = ResourceManager.getObj('aud', name);
+
+            if (!buffer) {
+                return null;
+            }
+
+            var audios = _audios[name];
+
+            if (audios === undefined) {
+                audios = _audios[name] = [];
+            }
+
+            count = count || 1;
+            for (var i = audios.length; i < count; ++i) {
+                var audio = b3D ? new PositionalAudio(_audioListener) : new Audio(_audioListener);
+                audio.setBuffer(buffer);
+                audios.push(audio);
+            }
+
+            for (var i = 0; i !== audios.length; ++i) {
+                var audio = audios[i];
+                if (!audio.isPlaying) {
+                    return audio;
+                }
+            }
+
+            return null;
+        }
+    };
+}();
+
+function Particle(i) {
+  this.index = i || 0, this.position = new Vector3(), this.velocity = new Vector3(), this.birthScale = new Vector2(1, 1), this.scale = new Vector2(1, 1), this.color = new Color(1, 1, 1), this.alpha = 1, this.rotation = 0, this.spin = 0, this.timer = 0, this.ratio = 0, this.life = 0, this.frameIdx = 0, this.setActive = function (active) {
+    if (active) {
+      this.spin = this.rotation = this.ratio = this.timer = 0;
+      this.scale.set(1, 1);
+      this.birthScale.set(1, 1);
+      this.color.setRGB(1, 1, 1);
+      this.alpha = 1;
+      this.position.set(0, 0, 0);
+      this.velocity.set(0, 0, 0);
+    } else {
+      this.scale.set(0, 0);
+      this.alpha = 0;
+    }
+  };
+}
+
+function RendererBillboard(global, rt) {
+    BufferGeometry.call(this);
+
+    this.template = rt;
+    var count = rt.count;
+
+    this.attrPosition = new BufferAttribute(new Float32Array(count * 12), 3).setDynamic(true);
+    this.attrRotation = new BufferAttribute(new Float32Array(count * 4), 1).setDynamic(true);
+    this.attrColor = new BufferAttribute(new Uint8Array(count * 16), 4).setDynamic(true);
+    this.attrScale = new BufferAttribute(new Float32Array(count * 8), 2).setDynamic(true);
+    this.attrUV = new BufferAttribute(new Uint16Array(count * 8), 2).setDynamic(true);
+
+    this.attrColor.normalized = true;
+    this.attrUV.normalized = true;
+
+    this.addAttribute('position', this.attrPosition);
+    this.addAttribute('rotation', this.attrRotation);
+    this.addAttribute('color', this.attrColor);
+    this.addAttribute('scale', this.attrScale);
+    this.addAttribute('uv', this.attrUV);
+
+    var indices = [];
+    for (var i = 0; i != count; ++i) {
+        var offset = i * 4;
+        indices.push(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
+    }
+    this.setIndex(indices);
+
+    this.sprites = [];
+    if (rt.image && rt.sprites && rt.sprites.length > 0) {
+        for (var _i = 0, n = rt.sprites.length; _i !== n; ++_i) {
+            this.sprites.push(ResourceManager.getSimpleSprite(rt.image, rt.sprites[_i]));
+        }
+    } else {
+        this.sprites.push(ResourceManager.defaultSimpleSprite);
+    }
+
+    this.blend = ParticleSystem.BLENDS[rt.blend];
+
+    var shader = global ? rt.z_up ? 'z_up_global' : 'global' : rt.z_up ? 'z_up_local' : 'local';
+    this.shaderIdx = ParticleSystem.shaders.indexOf(shader);
+    if (this.shaderIdx < 0) {
+        this.shaderIdx = 255;
+    }
+}
+
+RendererBillboard.prototype = Object.assign(Object.create(BufferGeometry.prototype), {
+    constructor: RendererBillboard,
+
+    getMatCfg: function getMatCfg() {
+        return {
+            shaderIdx: this.shaderIdx,
+            texture: this.sprites[0].texture,
+            srcFactor: this.blend.src,
+            dstFactor: this.blend.dst
+        };
+    },
+
+    onUpdateBegin: function onUpdateBegin() {},
+
+    onParticleEmission: function onParticleEmission(p) {
+        if (this.template.random) {
+            p.frameIdx = _Math.randIntRange(0, this.sprites.length);
+        } else {
+            p.frameIdx = 0;
+        }
+
+        if (this.sprites.length > p.frameIdx) {
+            var s = this.sprites[p.frameIdx];
+            s.updateUV(this.attrUV, p.index * 4);
+        }
+    },
+
+    onParticleUpdate: function onParticleUpdate(p) {
+        var fcount = this.sprites.length;
+        if (fcount > 0 && !this.template.random) {
+            var frameIdx = Math.floor(p.timer / this.template.interval);
+            if (this.template.loop) {
+                frameIdx %= fcount;
+            } else if (frameIdx >= fcount) {
+                frameIdx = fcount - 1;
+            }
+            if (p.frameIdx !== frameIdx) {
+                p.frameIdx = frameIdx;
+                var s = this.sprites[p.frameIdx];
+                s.updateUV(this.attrUV, p.index * 4);
+            }
+        }
+
+        var array = this.attrPosition.array;
+        var index = p.index * 12;
+
+        p.position.toArray(array, index);
+        p.position.toArray(array, index + 3);
+        p.position.toArray(array, index + 6);
+        p.position.toArray(array, index + 9);
+
+        array = this.attrRotation.array;
+        index = p.index * 4;
+        array[index] = array[index + 1] = array[index + 2] = array[index + 3] = p.rotation;
+
+        array = this.attrColor.array;
+        index = p.index * 4;
+        var cr = p.color.r * 255;
+        var cg = p.color.g * 255;
+        var cb = p.color.b * 255;
+        var ca = p.alpha * 255;
+        this.attrColor.setXYZW(index, cr, cg, cb, ca);
+        this.attrColor.setXYZW(index + 1, cr, cg, cb, ca);
+        this.attrColor.setXYZW(index + 2, cr, cg, cb, ca);
+        this.attrColor.setXYZW(index + 3, cr, cg, cb, ca);
+
+        array = this.attrScale.array;
+        index = p.index * 8;
+        array[index + 0] = -p.scale.x;
+        array[index + 2] = +p.scale.x;
+        array[index + 4] = +p.scale.x;
+        array[index + 6] = -p.scale.x;
+
+        array[index + 1] = +p.scale.y;
+        array[index + 3] = +p.scale.y;
+        array[index + 5] = -p.scale.y;
+        array[index + 7] = -p.scale.y;
+    },
+
+    onParticleDeath: function onParticleDeath(p) {
+        // var array = this.attrColor.array;
+        // var index = p.index * 16;
+        // array[index + 3] = array[index + 7] = array[index + 11] = array[index + 15] = 0;
+        var array = this.attrScale.array;
+        var index = p.index * 8;
+        array[index] = array[index + 1] = array[index + 2] = array[index + 3] = array[index + 4] = array[index + 5] = array[index + 6] = array[index + 7] = 0;
+    },
+
+    onUpdateEnd: function onUpdateEnd() {
+        this.attrPosition.needsUpdate = true;
+        this.attrRotation.needsUpdate = true;
+        this.attrScale.needsUpdate = true;
+        this.attrColor.needsUpdate = true;
+        this.attrUV.needsUpdate = true;
+    }
+});
+
+function RendererBBArrow(global, rt) {
+    BufferGeometry.call(this);
+
+    this.template = rt;
+    var count = rt.count;
+
+    this.attrPosition = new BufferAttribute(new Float32Array(count * 12), 3).setDynamic(true);
+    this.attrVelocity = new BufferAttribute(new Float32Array(count * 12), 3).setDynamic(true);
+    this.attrColor = new BufferAttribute(new Uint8Array(count * 16), 4).setDynamic(true);
+    this.attrScale = new BufferAttribute(new Float32Array(count * 8), 2).setDynamic(true);
+    this.attrUV = new BufferAttribute(new Uint16Array(count * 8), 2).setDynamic(true);
+
+    this.attrColor.normalized = true;
+    this.attrUV.normalized = true;
+
+    this.addAttribute('position', this.attrPosition);
+    this.addAttribute('velocity', this.attrVelocity);
+    this.addAttribute('color', this.attrColor);
+    this.addAttribute('scale', this.attrScale);
+    this.addAttribute('uv', this.attrUV);
+
+    var indices = [];
+    for (var i = 0; i != count; ++i) {
+        var offset = i * 4;
+        indices.push(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
+    }
+    this.setIndex(indices);
+
+    this.sprites = [];
+    if (rt.image && rt.sprites && rt.sprites.length > 0) {
+        for (var _i = 0, n = rt.sprites.length; _i !== n; ++_i) {
+            this.sprites.push(ResourceManager.getSimpleSprite(rt.image, rt.sprites[_i]));
+        }
+    } else {
+        this.sprites.push(ResourceManager.defaultSimpleSprite);
+    }
+
+    this.blend = ParticleSystem.BLENDS[rt.blend];
+
+    var shader = global ? 'arrow_global' : 'arrow_local';
+    this.shaderIdx = ParticleSystem.shaders.indexOf(shader);
+    if (this.shaderIdx < 0) {
+        this.shaderIdx = 255;
+    }
+}
+
+RendererBBArrow.prototype = Object.assign(Object.create(BufferGeometry.prototype), {
+    constructor: RendererBBArrow,
+
+    getMatCfg: function getMatCfg() {
+        return {
+            shaderIdx: this.shaderIdx,
+            texture: this.sprites[0].texture,
+            srcFactor: this.blend.src,
+            dstFactor: this.blend.dst
+        };
+    },
+
+    onUpdateBegin: function onUpdateBegin() {},
+
+    onParticleEmission: function onParticleEmission(p) {
+        if (this.template.random) {
+            p.frameIdx = _Math.randIntRange(0, this.sprites.length);
+        } else {
+            p.frameIdx = 0;
+        }
+
+        if (this.sprites.length > p.frameIdx) {
+            var s = this.sprites[p.frameIdx];
+            s.updateUV(this.attrUV, p.index * 4);
+        }
+    },
+
+    onParticleUpdate: function onParticleUpdate(p) {
+        var fcount = this.sprites.length;
+        if (fcount > 0 && !this.template.random) {
+            var frameIdx = Math.floor(p.timer / this.template.interval);
+            if (this.template.loop) {
+                frameIdx %= fcount;
+            } else if (frameIdx >= fcount) {
+                frameIdx = fcount - 1;
+            }
+            if (p.frameIdx !== frameIdx) {
+                p.frameIdx = frameIdx;
+                var s = this.sprites[p.frameIdx];
+                s.updateUV(this.attrUV, p.index * 4);
+            }
+        }
+
+        var array = this.attrPosition.array;
+        var index = p.index * 12;
+
+        p.position.toArray(array, index);
+        p.position.toArray(array, index + 3);
+        p.position.toArray(array, index + 6);
+        p.position.toArray(array, index + 9);
+
+        array = this.attrVelocity.array;
+        index = p.index * 12;
+        p.velocity.toArray(array, index);
+        p.velocity.toArray(array, index + 3);
+        p.velocity.toArray(array, index + 6);
+        p.velocity.toArray(array, index + 9);
+
+        array = this.attrColor.array;
+        index = p.index * 4;
+        var cr = p.color.r * 255;
+        var cg = p.color.g * 255;
+        var cb = p.color.b * 255;
+        var ca = p.alpha * 255;
+        this.attrColor.setXYZW(index, cr, cg, cb, ca);
+        this.attrColor.setXYZW(index + 1, cr, cg, cb, ca);
+        this.attrColor.setXYZW(index + 2, cr, cg, cb, ca);
+        this.attrColor.setXYZW(index + 3, cr, cg, cb, ca);
+
+        array = this.attrScale.array;
+        index = p.index * 8;
+        array[index + 0] = -p.scale.x;
+        array[index + 2] = +p.scale.x;
+        array[index + 4] = +p.scale.x;
+        array[index + 6] = -p.scale.x;
+
+        array[index + 1] = +p.scale.y;
+        array[index + 3] = +p.scale.y;
+        array[index + 5] = -p.scale.y;
+        array[index + 7] = -p.scale.y;
+    },
+
+    onParticleDeath: function onParticleDeath(p) {
+        // var array = this.attrColor.array;
+        // var index = p.index * 16;
+        // array[index + 3] = array[index + 7] = array[index + 11] = array[index + 15] = 0;
+        var array = this.attrScale.array;
+        var index = p.index * 8;
+        array[index] = array[index + 1] = array[index + 2] = array[index + 3] = array[index + 4] = array[index + 5] = array[index + 6] = array[index + 7] = 0;
+    },
+
+    onUpdateEnd: function onUpdateEnd() {
+        this.attrPosition.needsUpdate = true;
+        this.attrVelocity.needsUpdate = true;
+        this.attrScale.needsUpdate = true;
+        this.attrColor.needsUpdate = true;
+        this.attrUV.needsUpdate = true;
+    }
+});
+
+function ParticleSystem(template) {
+    this.init(template);
+}
+
+ParticleSystem.prototype = Object.assign(Object.create(Mesh.prototype), {
+    constructor: ParticleSystem,
+
+    init: function init(template) {
+        var geometry = new ParticleSystem.RENDERERS[template.renderer.name](template.global, template.renderer);
+        var material = ParticleSystem.getMaterial(geometry.getMatCfg());
+
+        if (this.geometry === undefined || this.material === undefined) {
+            Mesh.call(this, geometry, material);
+        } else {
+            this.geometry = geometry;
+            this.material = material;
+        }
+
+        this.template = template;
+        this.type = 'ParticleSystem';
+        this.name = template.name;
+
+        this.timer = 0;
+        this.mark = 0;
+        this.emitting = false;
+        this.fractionEmitNum = 0;
+        this.particles = [];
+
+        for (var i = 0, n = this.template.renderer.count; i !== n; ++i) {
+            this.particles.push(new Particle(i));
+        }
+
+        this.position.fromArray(template.pos);
+        this.rotation.fromArray(template.rot);
+        this.scale.fromArray(template.sca);
+
+        this.drawMode = TrianglesDrawMode;
+    },
+
+    play: function play() {
+        this.mark = 0;
+        this.emitting = true;
+        this.fractionEmitNum = 0;
+        this.timer = 0;
+    },
+
+    stop: function stop() {
+        this.emitting = false;
+    },
+
+    update: function update(dt) {
+        if (!this.emitting && this.mark === 0) {
+            return true;
+        }
+
+        this.geometry.onUpdateBegin();
+
+        for (var i = 0; i < this.mark;) {
+            var p = this.particles[i];
+            p.timer += dt;
+            if (p.timer > p.life) {
+                p.setActive(false);
+                var tail = this.particles[--this.mark];
+                this.particles[i] = tail;
+                this.particles[this.mark] = p;
+                this.geometry.onParticleDeath(p);
+            } else {
+                var t = p.timer;
+                if (this.template.period > 0) {
+                    t = Math.euclideanModulo(t, this.template.peroid);
+                }
+                p.ratio = t / p.life;
+                if (this.template.affect(p, dt)) {}
+                if (!this.emitting && this.template.doFadeout(p, dt)) {
+                    p.life = 0;
+                }
+                ++i;
+            }
+        }
+
+        if (this.emitting && this.template.isEmissionOver(this.timer)) {
+            this.emitting = false;
+        }
+
+        if (this.emitting) {
+            var numObj = this.template.getEmitNum(this.timer, dt, this.template.renderer.count - this.mark, this.fractionEmitNum);
+            var num = numObj.num;
+            this.fractionEmitNum = numObj.fraction;
+            this.timer += dt;
+            for (var _i = 0; _i !== num; ++_i) {
+                var p = this.particles[this.mark++];
+                this.template.init(p);
+                if (this.template.global) {
+                    p.position.applyMatrix4(this.matrixWorld);
+                }
+                this.geometry.onParticleEmission(p);
+            }
+        }
+
+        for (var _i2 = 0; _i2 < this.mark; ++_i2) {
+            var p = this.particles[_i2];
+            this.geometry.onParticleUpdate(p);
+        }
+
+        this.geometry.onUpdateEnd();
+
+        return false;
+    },
+
+    getDeps: function getDeps(meta) {
+        var texture = this.geometry.getMatCfg().texture;
+        var json = Config.getTexture(texture.name).json;
+        var deps = [{ path: 'cfg', name: json }, { path: 'img', name: texture.name }];
+        if (meta) {
+            meta.push({ path: 'cfg', name: json, obj: ResourceManager.getObj('cfg', json) });
+            meta.push({ path: 'img', name: texture.name, obj: texture.image });
+        }
+        return deps;
+    }
+});
+
+Object.assign(ParticleSystem, {
+    shaders: ['local', 'global', 'z_up_local', 'z_up_global', 'arrow_local', 'arrow_global'],
+
+    VERTEX_SHADERS: {
+        local: ['attribute float rotation;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'vec4 viewPos = modelViewMatrix * vec4(position, 1.0);', 'float cosr = cos(rotation);', 'float sinr = sin(rotation);', 'float x = scale.x * cosr + scale.y * sinr;', 'float y = scale.y * cosr - scale.x * sinr;', 'viewPos.x = viewPos.x + x * 0.5;', 'viewPos.y = viewPos.y + y * 0.5;', 'gl_Position = projectionMatrix * viewPos;', '}'].join('\n'),
+
+        global: ['attribute float rotation;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'vec4 viewPos = viewMatrix * vec4(position, 1.0);', 'float cosr = cos(rotation);', 'float sinr = sin(rotation);', 'float x = scale.x * cosr + scale.y * sinr;', 'float y = scale.y * cosr - scale.x * sinr;', 'viewPos.x = viewPos.x + x * 0.5;', 'viewPos.y = viewPos.y + y * 0.5;', 'gl_Position = projectionMatrix * viewPos;', '}'].join('\n'),
+
+        z_up_local: ['attribute float rotation;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'float cosr = cos(rotation);', 'float sinr = sin(rotation);', 'float x = scale.x * cosr + scale.y * sinr;', 'float y = scale.y * cosr - scale.x * sinr;', 'vec3 pos = position + vec3(-x*0.5, 0.0, y*0.5);', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);', '}'].join('\n'),
+
+        z_up_global: ['attribute float rotation;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'float cosr = cos(rotation);', 'float sinr = sin(rotation);', 'float x = scale.x * cosr + scale.y * sinr;', 'float y = scale.y * cosr - scale.x * sinr;', 'vec3 pos = position + vec3(-x*0.5, 0.0, y*0.5);', 'gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);', '}'].join('\n'),
+
+        arrow_local: ['attribute vec3 velocity;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'vec4 viewPos = modelViewMatrix * vec4(position, 1.0);', 'vec4 viewVel = modelViewMatrix * vec4(velocity, 1.0);', 'vec4 viewOri = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);', 'vec3 yDir = normalize(viewVel.xyz - viewOri.xyz);', 'vec3 xDir = cross(yDir, vec3(0, 0, 1));', 'viewPos.xyz = viewPos.xyz + scale.x * 0.5 * xDir + scale.y * 0.5 * yDir;', 'gl_Position = projectionMatrix * viewPos;', '}'].join('\n'),
+
+        arrow_global: ['attribute vec3 velocity;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'vec4 viewPos = viewMatrix * vec4(position, 1.0);', 'vec4 viewVel = viewMatrix * vec4(velocity, 1.0);', 'vec4 viewOri = viewMatrix * vec4(0.0, 0.0, 0.0, 1.0);', 'vec3 yDir = normalize(viewVel.xyz - viewOri.xyz);', 'vec3 xDir = cross(yDir, vec3(0, 0, 1));', 'viewPos.xyz = viewPos.xyz + scale.x * 0.5 * xDir + scale.y * 0.5 * yDir;', 'gl_Position = projectionMatrix * viewPos;', '}'].join('\n')
+    },
+
+    FRAGMENT: ['varying vec4 vColor;', 'varying vec2 vUV;', 'uniform sampler2D tSprite;', 'void main() {', 'vec4 tex = texture2D(tSprite, vUV);', 'gl_FragColor = tex * vColor;', '}'].join('\n'),
+
+    RENDERERS: {
+        billboard: RendererBillboard,
+        bb_arrow: RendererBBArrow
+    },
+
+    BLENDS: {
+        add: {
+            src: SrcAlphaFactor,
+            dst: OneFactor
+        },
+
+        blend: {
+            src: SrcAlphaFactor,
+            dst: OneMinusSrcAlphaFactor
+        },
+
+        dark: {
+            src: DstColorFactor,
+            dst: OneMinusSrcAlphaFactor
+        },
+
+        light: {
+            src: SrcColorFactor,
+            dst: OneFactor
+        }
+    },
+
+    materials: {},
+
+    getMaterial: function getMaterial(cfg) {
+        var key = (cfg.texture.id << 16) + (cfg.shaderIdx << 8) + (cfg.srcFactor << 4) + cfg.dstFactor - 3400;
+        var material = ParticleSystem.materials[key];
+
+        if (material === undefined) {
+            var shader = ParticleSystem.shaders[cfg.shaderIdx];
+            material = new ShaderMaterial({
+                transparent: true,
+                depthWrite: false,
+                side: DoubleSide,
+                blending: CustomBlending,
+                blendEquation: AddEquation,
+                blendSrc: cfg.srcFactor,
+                blendDst: cfg.dstFactor,
+                vertexShader: ParticleSystem.VERTEX_SHADERS[shader],
+                fragmentShader: ParticleSystem.FRAGMENT,
+                uniforms: {
+                    tSprite: { value: cfg.texture }
+                }
+            });
+            material.needsUpdate = true;
+            ParticleSystem.materials[key] = material;
+        }
+
+        return material;
+    }
+});
+
+function Effect(name) {
+    Object3D.call(this);
+    this.type = 'Effect';
+    this.name = name;
+    this.timer = 0;
+    this.active = false;
+    this.template = Config.getEffect(name) || [];
+    this.maxDelay = 0;
+
+    for (var i = 0; i !== this.template.length; ++i) {
+        var ptxTmp = this.template[i];
+        var particle = new ParticleSystem(ptxTmp);
+        this.add(particle);
+        this.maxDelay = Math.max(this.maxDelay, ptxTmp.delay);
+    }
+}
+
+Effect.prototype = Object.assign(Object.create(Object3D.prototype), {
+    constructor: Effect,
+
+    play: function play() {
+        this.active = true;
+        this.timer = 0;
+    },
+
+    stop: function stop() {
+        for (var i = 0, n = this.children.length; i !== n; ++i) {
+            this.children[i].stop();
+        }
+    },
+
+    update: function update(dt) {
+        if (this.active) {
+            var activeNum = this.children.length;
+            for (var i = 0, n = this.children.length; i !== n; ++i) {
+                var ptx = this.children[i];
+                var delay = ptx.template.delay;
+                if (this.timer <= delay && delay < this.timer + dt) {
+                    ptx.visible = true;
+                    ptx.play();
+                }
+
+                if (this.timer >= delay && ptx.update(dt)) {
+                    ptx.visible = false;
+                    activeNum--;
+                }
+            }
+
+            if (activeNum === 0 && this.maxDelay < this.timer + dt) {
+                this.active = false;
+            }
+
+            this.timer += dt;
+        }
+    },
+
+    clone: function clone() {
+        var effect = new Effect(this.name);
+        effect.matrix.copy(this.matrix);
+        effect.matrix.decompose(effect.position, effect.quaternion, effect.scale);
+        return effect;
+    },
+
+    encode: function encode() {
+        var data = {
+            type: this.type,
+            name: this.name,
+            matrix: this.matrix.toArray()
+        };
+
+        return data;
+    },
+
+    decode: function decode(data) {
+        this.matrix.fromArray(data.matrix);
+        this.matrix.decompose(this.position, this.quaternion, this.scale);
+    }
+});
+
+var ResourceParser = function () {
+    var _skeletons = [];
+
+    var _uniqueDeps = function _uniqueDeps(deps) {
+        var depsmap = {};
+        for (var i = 0; i !== deps.length;) {
+            var dep = deps[i];
+            if (!dep) {
+                deps.splice(i, 1);
+                continue;
+            }
+            var key = dep.path + dep.name;
+            if (depsmap[key] === undefined) {
+                depsmap[key] = dep;
+                ++i;
+            } else {
+                deps.splice(i, 1);
+            }
+        }
+    };
+
+    var _encodeAnimations = function _encodeAnimations(animations) {
+        var data = {
+            type: 'Animation',
+            clips: [],
+            deps: []
+        };
+        for (var i = 0, n = animations.length; i !== n; ++i) {
+            var anim = animations[i];
+            data.clips.push(anim.encode());
+        }
+
+        return data;
+    };
+
+    var _getDataURL = function _getDataURL(image, name) {
+        if (/^data:.*;base64,/.test(image.src)) {
+            return image.src;
+        }
+
+        var canvas;
+        if (image.toDataURL !== undefined) {
+            canvas = image;
+        } else {
+            canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+            canvas.width = image.width;
+            canvas.height = image.height;
+            canvas.getContext('2d').drawImage(image, 0, 0, image.width, image.height);
+        }
+
+        var extension = name ? name.split('.').pop().toLowerCase() : 'png';
+        if (extension === 'png') {
+            return canvas.toDataURL('image/png');
+        } else {
+            return canvas.toDataURL('image/jpeg', 0.6);
+        }
+    };
+
+    var _getObject3DData = function _getObject3DData(object3d, ignoreStates) {
+        var data = {
+            type: object3d.type,
+            uuid: object3d.uuid,
+            matrix: object3d.matrix.toArray()
+        };
+
+        if (object3d.name !== '') data.name = object3d.name;
+        if (object3d.castShadow === true) data.castShadow = true;
+        if (object3d.receiveShadow === true) data.receiveShadow = true;
+        if (object3d.visible === false) data.visible = false;
+        if (ignoreStates !== true && object3d.states) {
+            data.states = {};
+            for (var name in object3d.states) {
+                data.states[name] = object3d.states[name].encode();
+            }
+        }
+
+        return data;
+    };
+
+    var _setObject3DData = function _setObject3DData(object3d, data) {
+        object3d.matrix.fromArray(data.matrix);
+        object3d.matrix.decompose(object3d.position, object3d.quaternion, object3d.scale);
+        object3d.name = data.name;
+
+        if (data.uuid !== undefined) object3d.uuid = data.uuid;
+        if (data.castShadow !== undefined) object3d.castShadow = data.castShadow;
+        if (data.receiveShadow !== undefined) object3d.receiveShadow = data.receiveShadow;
+        if (data.visible !== undefined) object3d.visible = data.visible;
+        if (data.states !== undefined) {
+            if (object3d.states === undefined) {
+                object3d.states = {};
+            }
+            for (var name in data.states) {
+                object3d.states[name] = State.decode(data.states[name], object3d);
+            }
+            Config.addStates(object3d);
+        }
+    };
+
+    var _parseMesh = function _parseMesh(data, mesh, MeshClass) {
+        var geometry = null;
+        var material = null;
+
+        if (typeof data.geometry === 'string') {
+            geometry = ResourceManager.getObj('geo', data.geometry);
+            if (!geometry) {
+                geometry = ResourceManager.defualtGeometry;
+            }
+        } else {
+            geometry = ResourceParser.decode(data.geometry);
+        }
+
+        if (Array.isArray(data.material)) {
+            material = [];
+            for (var i = 0, n = data.material.length; i !== n; ++i) {
+                var mat = ResourceManager.getObj('mat', data.material[i]);
+                material.push(data.bCloneMaterial ? mat.clone() : mat);
+            }
+        } else {
+            var mat = ResourceManager.getObj('mat', data.material);
+            material = data.bCloneMaterial ? mat.clone() : mat;
+        }
+
+        if (!material) {
+            console.log('Miss Material:', data.material);
+        }
+
+        material = material || ResourceManager.defaultMaterial;
+
+        if (mesh === undefined) {
+            mesh = new MeshClass(geometry, material);
+        } else {
+            mesh.material = material;
+            mesh.geometry = geometry;
+        }
+
+        mesh.bCloneMaterial = data.bCloneMaterial;
+
+        return mesh;
+    };
+
+    AnimationClip.prototype.encode = function () {
+        var tracks = [],
+            clipTracks = this.tracks;
+
+        var data = {
+            name: this.name,
+            duration: this.duration,
+            tracks: tracks,
+            type: 'AnimationClip'
+        };
+
+        for (var i = 0, n = clipTracks.length; i !== n; ++i) {
+            tracks.push(KeyframeTrack.toJSON(clipTracks[i]));
+        }
+
+        return data;
+    };
+
+    Light.prototype.encode = function () {
+        var data = Object3D.prototype.encode.call(this);
+
+        data.type = this.type;
+        data.color = this.color.getHex();
+        data.intensity = this.intensity;
+
+        if (this.groundColor !== undefined) data.groundColor = this.groundColor.getHex();
+
+        if (this.distance !== undefined) data.distance = this.distance;
+        if (this.angle !== undefined) data.angle = this.angle;
+        if (this.decay !== undefined) data.decay = this.decay;
+        if (this.penumbra !== undefined) data.penumbra = this.penumbra;
+        if (this.shadow !== undefined) data.shadow = this.shadow.toJSON();
+        if (this.target !== undefined) data.target = this.target.position.toArray();
+
+        return data;
+    };
+
+    Light.prototype.decode = function (data) {
+        Object3D.decode(data, this);
+
+        if (data.target) {
+            this.target.position.fromArray(data.target);
+            this.target.updateMatrixWorld();
+        }
+
+        if (data.shadow) {
+            this.shadow.bias = data.shadow.bias || 0;
+            this.shadow.radius = data.shadow.radius || 1;
+            this.shadow.mapSize.width = data.shadow.mapSize ? data.shadow.mapSize[0] : 512;
+            this.shadow.mapSize.height = data.shadow.mapSize ? data.shadow.mapSize[1] : 512;
+
+            this.shadow.camera.right = data.shadow.camera.right;
+            this.shadow.camera.left = data.shadow.camera.left;
+            this.shadow.camera.top = data.shadow.camera.top;
+            this.shadow.camera.bottom = data.shadow.camera.bottom;
+            this.shadow.camera.near = data.shadow.camera.near;
+            this.shadow.camera.far = data.shadow.camera.far;
+
+            this.shadow.camera.updateProjectionMatrix();
+        }
+
+        return this;
+    };
+
+    Camera.prototype.clone = function (recursive) {
+        var camera = new this.constructor().copy(this, recursive);
+
+        if (this.states) {
+            camera.states = {};
+            for (var name in this.states) {
+                camera.states[name] = State.decode(this.states[name].encode(), camera);
+            }
+            Config.addStates(camera);
+        }
+
+        return camera;
+    };
+
+    PerspectiveCamera.prototype.encode = function () {
+        var data = Object3D.prototype.encode.call(this);
+
+        data.fov = this.fov;
+        data.near = this.near;
+        data.far = this.far;
+
+        return data;
+    };
+
+    Object.assign(PerspectiveCamera, {
+        decode: function decode(data) {
+            var camera = new PerspectiveCamera();
+
+            Object3D.decode(data, camera);
+
+            camera.fov = data.fov || 50;
+            camera.near = data.near || 0.1;
+            camera.far = data.far || 2000;
+
+            return camera;
+        }
+    });
+
+    Texture.prototype.getDeps = function (meta) {
+        if (this.name && this.name !== '') {
+            var p = this.isVideoTexture ? 'vid' : 'img';
+            if (meta) {
+                var imgs = [];
+                for (var i = 0; i != meta.length; ++i) {
+                    if (meta[i].path === p) {
+                        imgs.push(meta[i].name);
+                    }
+                }
+                if (imgs.indexOf(this.name) === -1) {
+                    meta.push({ path: p, name: this.name, obj: this.image });
+                }
+            }
+            return {
+                path: p,
+                name: this.name
+            };
+        }
+    };
+
+    Texture.prototype.encode = function () {
+        var data = {
+            type: this.isVideoTexture ? "VideoTexture" : "Texture",
+            name: this.name
+        };
+
+        return data;
+    };
+
+    Object.assign(Texture, {
+        decode: function decode(data) {
+            var texture = ResourceManager.defaultTexture;
+            if (data.name) {
+                var tex = ResourceManager.getObj('img', data.name);
+                if (tex) {
+                    texture = tex;
+                }
+            }
+
+            return texture;
+        }
+    });
+
+    Object.assign(VideoTexture, {
+        decode: function decode(data) {
+            var texture = ResourceManager.defaultTexture;
+            if (data.name) {
+                var tex = ResourceManager.getObj('vid', data.name);
+                if (tex) {
+                    texture = tex;
+                }
+            }
+
+            return texture;
+        }
+    });
+
+    Object.assign(AnimationClip, {
+        decode: function decode(data) {
+            var tracks = [],
+                jsonTracks = data.tracks,
+                frameTime = 1.0 / (data.fps || 1.0);
+
+            for (var i = 0, n = jsonTracks.length; i !== n; ++i) {
+                tracks.push(KeyframeTrack.parse(jsonTracks[i]).scale(frameTime));
+            }
+
+            var clip = new AnimationClip(data.name, data.duration, tracks);
+
+            return clip;
+        }
+    });
+
+    Object3D.prototype.getDeps = function (meta) {
+        var deps = [];
+
+        for (var i = 0, n = this.children.length; i !== n; ++i) {
+            var child = this.children[i];
+            if (child.type === 'Group') {
+                deps.splice(0, 0, {
+                    path: 'mdl',
+                    name: child.asset || child.name
+                });
+                if (meta) {
+                    meta.push({ path: 'mdl', name: child.asset || child.name, obj: child });
+                    child.getDeps(meta);
+                }
+            } else {
+                deps = child.getDeps(meta).concat(deps);
+            }
+        }
+        return deps;
+    };
+
+    Object3D.prototype.encode = function () {
+        var data = _getObject3DData(this);
+
+        if (this.children) {
+            data.children = [];
+            for (var i = 0, n = this.children.length; i !== n; ++i) {
+                var child = this.children[i];
+                var child_data = null;
+
+                if (child.type === 'Group') {
+                    child_data = _getObject3DData(child, true);
+                    child_data.asset = child.asset || child.name;
+                } else if (child.type === 'Effect') {
+                    child_data = child.encode();
+                    child_data.asset = child.asset || child.name;
+                    if (child.visible === false) child_data.visible = false;
+                } else {
+                    child_data = child.encode();
+                }
+
+                data.children.push(child_data);
+            }
+        }
+
+        return data;
+    };
+
+    Object3D.prototype.clone = function (recursive) {
+        var obj = new this.constructor().copy(this, recursive);
+
+        obj.uuid = this.uuid;
+
+        if (this.asset) {
+            obj.asset = this.asset;
+        }
+
+        if (this.states) {
+            obj.states = {};
+            for (var name in this.states) {
+                obj.states[name] = State.decode(this.states[name].encode(), obj);
+            }
+            Config.addStates(obj);
+        }
+
+        return obj;
+    };
+
+    Object3D.prototype.enter = function (name, flag) {
+        var sIDs = [];
+        this.traverse(function (child) {
+            if (child.sID) {
+                sIDs.push(child.sID);
+            }
+            if (child.isMesh) {
+                var material = child.material;
+                if (material instanceof Array) {
+                    for (var i = 0; i !== material.length; ++i) {
+                        var mat = material[i];
+                        if (mat.sID) {
+                            sIDs.push(mat.sID);
+                        }
+                    }
+                } else {
+                    if (material.sID) {
+                        sIDs.push(material.sID);
+                    }
+                }
+            }
+        });
+
+        for (var i = 0; i !== sIDs.length; ++i) {
+            Config.enter(sIDs[i], name, flag);
+        }
+    };
+
+    Object3D.prototype.exit = function (name, flag) {
+        var sIDs = [];
+        this.traverse(function (child) {
+            if (child.sID) {
+                sIDs.push(child.sID);
+            }
+            if (child.isMesh) {
+                var material = child.material;
+                if (material instanceof Array) {
+                    for (var i = 0; i !== material.length; ++i) {
+                        var mat = material[i];
+                        if (mat.sID) {
+                            sIDs.push(mat.sID);
+                        }
+                    }
+                } else {
+                    if (material.sID) {
+                        sIDs.push(material.sID);
+                    }
+                }
+            }
+        });
+
+        for (var i = 0; i !== sIDs.length; ++i) {
+            Config.exit(sIDs[i], name, flag);
+        }
+    };
+
+    Object.assign(Object3D, {
+        decode: function decode(data, object) {
+            if (object === undefined) {
+                object = new Object3D();
+            }
+
+            _setObject3DData(object, data);
+
+            if (data.children) {
+                for (var i = 0, n = data.children.length; i !== n; ++i) {
+                    var child_data = data.children[i];
+                    var child = null;
+                    var asset = child_data.asset || child_data.name;
+                    if (child_data.type === 'Group') {
+                        child = ResourceManager.getObj('mdl', asset);
+                        if (child === null) {
+                            console.error('Missing Model:', child_data.asset);
+                            child = ResourceManager.defaultGroup.clone();
+                        } else {
+                            child = child.clone();
+                        }
+                        _setObject3DData(child, child_data);
+                        child.asset = asset;
+                    } else if (child_data.type === 'Effect') {
+                        child = new Effect(asset);
+                        child.decode(child_data);
+                        child.name = child_data.name;
+                        child.asset = asset;
+                        child.visible = child_data.visible === false;
+                    } else {
+                        child = ResourceParser.decode(child_data);
+                    }
+                    object.add(child);
+                }
+            }
+
+            return object;
+        }
+    });
+
+    Bone.prototype.encode = function () {
+        var data = {
+            type: this.type,
+            uuid: this.uuid,
+            name: this.name,
+            // pos: this.position,
+            // rotq: this.quaternion,
+            // scl: this.scale
+            matrix: this.matrix.toArray()
+        };
+
+        if (this.children) {
+            data.children = [];
+            for (var i = 0, n = this.children.length; i !== n; ++i) {
+                var child = this.children[i];
+                data.children.push(child.encode());
+            }
+        }
+
+        return data;
+    };
+
+    Object.assign(Bone, {
+        decode: function decode(data) {
+            var bone = new Bone();
+
+            bone.uuid = data.uuid;
+            bone.matrix.fromArray(data.matrix);
+            bone.matrix.decompose(bone.position, bone.quaternion, bone.scale);
+            // bone.position.fromArray(data.pos);
+            // bone.quaternion.fromArray(data.rotq);
+            // if (data.scl !== undefined) bone.scale.fromArray(data.scl);
+            bone.name = data.name;
+
+            if (data.children) {
+                for (var i = 0, n = data.children.length; i !== n; ++i) {
+                    bone.add(ResourceParser.decode(data.children[i]));
+                }
+            }
+
+            return bone;
+        }
+    });
+
+    Group.prototype.getDeps = function (meta) {
+        var deps = Object3D.prototype.getDeps.call(this, meta);
+        if (this.animations && this.animations.length !== 0 && typeof this.anim_name === 'string') {
+            deps.splice(0, 0, {
+                path: 'ani',
+                name: this.anim_name
+            });
+
+            if (meta) {
+                meta.push({ path: 'ani', name: this.anim_name, obj: this.animations });
+            }
+        }
+
+        if (meta) {
+            _uniqueDeps(meta);
+        }
+
+        _uniqueDeps(deps);
+
+        return deps;
+    };
+
+    Group.prototype.play = function (name, mode, repetitions) {
+        var action = this.actions[name];
+
+        action.reset();
+        action.setLoop(mode || LoopRepeat, repetitions || Infinity);
+        action.clampWhenFinished = mode === LoopOnce;
+        action.play();
+
+        return action;
+    };
+
+    Group.prototype.stop = function (name) {
+        if (name) {
+            var action = this.actions[name];
+            action.stop();
+        } else {
+            this.mixer.stopAllAction();
+        }
+    };
+
+    Group.prototype.update = function (dt) {
+        if (this.frame !== Config.frame) {
+            this.frame = Config.frame;
+            this.mixer && this.mixer.update(dt);
+        }
+    };
+
+    Group.prototype.encode = function () {
+        var data = Object3D.prototype.encode.call(this);
+
+        if (this.skeleton) {
+            data.bones = true;
+        }
+
+        if (this.animations && this.animations.length !== 0 && typeof this.anim_name === 'string') {
+            data.anim_name = this.anim_name;
+        }
+
+        data.deps = this.getDeps();
+
+        return data;
+    };
+
+    Group.prototype.clone = function () {
+        var group = Object3D.prototype.clone.call(this, true);
+
+        if (this.skeleton) {
+            group.skeleton = {
+                bones: []
+            };
+            group.traverse(function (child) {
+                if (group !== child) {
+                    group.skeleton.bones.push(child);
+                }
+            });
+
+            group.traverse(function (child) {
+                if (child.isSkinnedMesh) {
+                    var skt = Skeleton.decode(group, child.skeleton.encode());
+                    child.bind(skt, child.matrixWorld);
+                }
+            });
+        }
+
+        if (this.animations) {
+            group.mixer = new AnimationMixer(group);
+            group.anim_name = this.anim_name;
+            group.animations = this.animations;
+            group.actions = {};
+            for (var i = 0, n = group.animations.length; i !== n; ++i) {
+                var clip = group.animations[i];
+                group.actions[clip.name] = group.mixer.clipAction(clip);
+            }
+        }
+
+        return group;
+    };
+
+    Object.assign(Group, {
+        decode: function decode(data) {
+            var group = new Group();
+
+            Object3D.decode(data, group);
+
+            if (data.bones) {
+                group.skeleton = {
+                    bones: []
+                };
+                group.traverse(function (child) {
+                    if (group !== child) {
+                        group.skeleton.bones.push(child);
+                    }
+                });
+            }
+
+            for (var i = 0; i < _skeletons.length; ++i) {
+                var sdata = _skeletons[i];
+                var mesh = sdata.mesh;
+                var skeleton = sdata.skeleton;
+                var skt = Skeleton.decode(group, skeleton);
+
+                mesh.bind(skt, mesh.matrixWorld);
+            }
+
+            _skeletons = [];
+
+            if (data.anim_name) {
+                var animations = ResourceManager.getObj('ani', data.anim_name);
+                if (animations) {
+                    group.mixer = new AnimationMixer(group);
+                    group.anim_name = data.anim_name;
+                    group.animations = animations;
+                    group.actions = {};
+                    for (var _i = 0, n = group.animations.length; _i !== n; ++_i) {
+                        var clip = group.animations[_i];
+                        group.actions[clip.name] = group.mixer.clipAction(clip);
+                    }
+                }
+            }
+
+            return group;
+        }
+    });
+
+    Mesh.prototype.getDeps = function (meta) {
+        var deps = Object3D.prototype.getDeps.call(this, meta);
+
+        if (Array.isArray(this.material)) {
+            for (var i = 0, l = this.material.length; i < l; i++) {
+                var mat = this.material[i];
+                if (mat.name === 'DEFAULT') {
+                    continue;
+                }
+                deps.splice(0, 0, {
+                    path: 'mat',
+                    name: mat.name
+                });
+                if (meta) {
+                    meta.push({ path: 'mat', name: mat.name, obj: mat });
+                    mat.getDeps(meta);
+                }
+            }
+        } else if (this.material.name !== 'DEFAULT') {
+            deps.splice(0, 0, {
+                path: 'mat',
+                name: this.material.name
+            });
+            if (meta) {
+                meta.push({ path: 'mat', name: this.material.name, obj: this.material });
+                this.material.getDeps(meta);
+            }
+        }
+
+        if (this.geometry && this.geometry.isBufferGeometry) {
+            deps.splice(0, 0, {
+                path: 'geo',
+                name: this.geometry.name
+            });
+
+            if (meta) {
+                meta.push({ path: 'geo', name: this.geometry.name, obj: this.geometry });
+            }
+        }
+
+        return deps;
+    };
+
+    Mesh.prototype.encode = function () {
+        var data = Object3D.prototype.encode.call(this);
+
+        data.geometry = this.geometry.isBufferGeometry ? this.geometry.name : this.geometry.encode();
+
+        if (Array.isArray(this.material)) {
+            data.material = [];
+            for (var i = 0, l = this.material.length; i < l; i++) {
+                data.material.push(this.material[i].name);
+            }
+        } else {
+            data.material = this.material.name;
+        }
+
+        data.bCloneMaterial = this.bCloneMaterial;
+
+        return data;
+    };
+
+    Object.assign(Mesh, {
+        decode: function decode(data, mesh) {
+            var mesh = _parseMesh(data, mesh, Mesh);
+
+            Object3D.decode(data, mesh);
+
+            return mesh;
+        }
+    });
+
+    Mesh.prototype.clone = function () {
+        var mesh = new this.constructor(this.geometry, this.material).copy(this);
+
+        if (this.states) {
+            mesh.states = {};
+            for (var name in this.states) {
+                mesh.states[name] = State.decode(this.states[name].encode(), mesh);
+            }
+            Config.addStates(mesh);
+        }
+
+        mesh.bCloneMaterial = this.bCloneMaterial;
+
+        return mesh;
+    };
+
+    SkinnedMesh.prototype.clone = function () {
+        var mesh = Mesh.prototype.clone.call(this);
+
+        //record bones & boneInverses here, create or share skeleton later;
+        mesh.skeleton = this.skeleton;
+
+        return mesh;
+    };
+
+    SkinnedMesh.prototype.encode = function () {
+        var data = Mesh.prototype.encode.call(this);
+
+        if (this.skeleton) {
+            data.skeleton = this.skeleton.encode();
+        }
+
+        return data;
+    };
+
+    Object.assign(SkinnedMesh, {
+        decode: function decode(data, mesh) {
+            var mesh = _parseMesh(data, mesh, SkinnedMesh);
+
+            Object3D.decode(data, mesh);
+
+            if (data.skeleton) {
+                _skeletons.push({
+                    mesh: mesh,
+                    skeleton: data.skeleton
+                });
+            }
+
+            return mesh;
+        }
+    });
+
+    Geometry.prototype.encode = function () {
+        var data = {};
+        data.type = 'Geometry';
+        data.shape = this.type;
+        data.parameters = this.parameters;
+        data.data = {};
+        var boundingSphere = this.boundingSphere;
+        if (boundingSphere !== null) {
+            data.data.boundingSphere = {
+                center: boundingSphere.center.toArray(),
+                radius: boundingSphere.radius
+            };
+        }
+        return data;
+    };
+
+    Object.assign(Geometry, {
+        decode: function decode(data, geometry) {
+            if (!geometry) {
+                switch (data.shape) {
+                    case 'SphereGeometry':
+                        geometry = new SphereGeometry(data.parameters.radius, data.parameters.widthSegments, data.parameters.heightSegments);
+                        break;
+                    case 'PlaneGeometry':
+                        geometry = new PlaneGeometry(data.parameters.width, data.parameters.height, data.parameters.widthSegments, data.parameters.heightSegments);
+                        break;
+                    case 'BoxGeometry':
+                        geometry = new BoxGeometry(data.parameters.width, data.parameters.height, data.parameters.depth);
+                        break;
+                    default:
+                        geometry = new BoxGeometry(1, 1, 1);
+                        break;
+                }
+                geometry.name = data.shape;
+            }
+
+            var boundingSphere = data.data.boundingSphere;
+            if (boundingSphere !== undefined) {
+                var center = new Vector3();
+                if (boundingSphere.center !== undefined) {
+                    center.fromArray(boundingSphere.center);
+                }
+                geometry.boundingSphere = new Sphere(center, boundingSphere.radius);
+            }
+
+            return geometry;
+        }
+    });
+
+    BufferGeometry.prototype.encode = function () {
+        var data = {};
+
+        data.type = this.type;
+
+        if (this.parameters !== undefined) {
+            var parameters = this.parameters;
+            for (var key in parameters) {
+                if (parameters[key] !== undefined) data[key] = parameters[key];
+            }
+        } else {
+            data.data = {
+                attributes: {}
+            };
+            var index = this.index;
+            if (index !== null) {
+                var array = Array.prototype.slice.call(index.array);
+                data.data.index = {
+                    type: index.array.constructor.name,
+                    array: array
+                };
+            }
+
+            var attributes = this.attributes;
+            for (var key in attributes) {
+                var attribute = attributes[key];
+                var array = Array.prototype.slice.call(attribute.array);
+                data.data.attributes[key] = {
+                    itemSize: attribute.itemSize,
+                    type: attribute.array.constructor.name,
+                    array: array,
+                    normalized: attribute.normalized
+                };
+            }
+
+            var groups = this.groups;
+            if (groups.length > 0) {
+                data.data.groups = JSON.parse(JSON.stringify(groups));
+            }
+
+            var boundingSphere = this.boundingSphere;
+            if (boundingSphere !== null) {
+                data.data.boundingSphere = {
+                    center: boundingSphere.center.toArray(),
+                    radius: boundingSphere.radius
+                };
+            }
+        }
+
+        return data;
+    };
+
+    Object.assign(BufferGeometry, {
+        decode: function decode(data, geometry) {
+            var TYPED_ARRAYS = {
+                Int8Array: Int8Array,
+                Uint8Array: Uint8Array,
+                Uint8ClampedArray: typeof Uint8ClampedArray !== 'undefined' ? Uint8ClampedArray : Uint8Array,
+                Int16Array: Int16Array,
+                Uint16Array: Uint16Array,
+                Int32Array: Int32Array,
+                Uint32Array: Uint32Array,
+                Float32Array: Float32Array,
+                Float64Array: Float64Array
+            };
+
+            if (geometry === undefined) {
+                geometry = new BufferGeometry();
+            }
+            var index = data.data.index;
+            if (index !== undefined) {
+                var typedArray = new TYPED_ARRAYS[index.type](index.array);
+                geometry.setIndex(new BufferAttribute(typedArray, 1));
+            }
+
+            var attributes = data.data.attributes;
+            for (var key in attributes) {
+                var attribute = attributes[key];
+                var typedArray = new TYPED_ARRAYS[attribute.type](attribute.array);
+                geometry.addAttribute(key, new BufferAttribute(typedArray, attribute.itemSize, attribute.normalized));
+            }
+
+            var groups = data.data.groups || data.data.drawcalls || data.data.offsets;
+            if (groups !== undefined) {
+                for (var i = 0, n = groups.length; i !== n; ++i) {
+                    var group = groups[i];
+                    geometry.addGroup(group.start, group.count, group.materialIndex);
+                }
+            }
+
+            var boundingSphere = data.data.boundingSphere;
+            if (boundingSphere !== undefined) {
+                var center = new Vector3();
+                if (boundingSphere.center !== undefined) {
+                    center.fromArray(boundingSphere.center);
+                }
+                geometry.boundingSphere = new Sphere(center, boundingSphere.radius);
+            }
+
+            return geometry;
+        }
+    });
+
+    Skeleton.prototype.encode = function () {
+        var data = {
+            bones: [],
+            boneInverses: []
+        };
+        if (this.bones) {
+            var i, il;
+            for (i = 0, il = this.bones.length; i < il; i++) {
+                data.bones.push(this.bones[i].uuid);
+            }
+
+            for (i = 0, il = this.boneInverses.length; i < il; ++i) {
+                var inv = this.boneInverses[i];
+                data.boneInverses.push(inv.toArray());
+            }
+        }
+
+        return data;
+    };
+
+    Object.assign(Skeleton, {
+        decode: function decode(group, data) {
+            function findBoneByUUID(uuid) {
+                for (var _i2 = 0, _il = group.skeleton.bones.length; _i2 != _il; ++_i2) {
+                    var bone = group.skeleton.bones[_i2];
+                    if (bone.uuid === uuid) {
+                        return bone;
+                    }
+                }
+                return null;
+            }
+            var bones = [];
+            var boneInverses = [];
+            var i, il;
+            for (i = 0, il = data.bones.length; i < il; i++) {
+                var bone_uuid = data.bones[i];
+                var bone = findBoneByUUID(bone_uuid);
+                if (bone !== null) {
+                    bones.push(bone);
+                }
+            }
+
+            for (i = 0, il = data.boneInverses.length; i < il; i++) {
+                var inv = data.boneInverses[i];
+                var matrix = new Matrix4();
+                matrix.fromArray(inv);
+                boneInverses.push(matrix);
+            }
+
+            return new Skeleton(bones, boneInverses);
+        }
+    });
+
+    Material.prototype.getDeps = function (meta) {
+        var deps = [];
+        if (this.map && this.map.isTexture) {
+            deps.push(this.map.getDeps(meta));
+        }
+        if (this.alphaMap && this.alphaMap.isTexture) {
+            deps.push(this.alphaMap.getDeps(meta));
+        }
+        if (this.lightMap && this.lightMap.isTexture) {
+            deps.push(this.lightMap.getDeps(meta));
+        }
+        if (this.bumpMap && this.bumpMap.isTexture) {
+            deps.push(this.bumpMap.getDeps(meta));
+        }
+        if (this.normalMap && this.normalMap.isTexture) {
+            deps.push(this.normalMap.getDeps(meta));
+        }
+        if (this.displacementMap && this.displacementMap.isTexture) {
+            deps.push(this.displacementMap.getDeps(meta));
+        }
+        if (this.roughnessMap && this.roughnessMap.isTexture) {
+            deps.push(this.roughnessMap.getDeps(meta));
+        }
+        if (this.metalnessMap && this.metalnessMap.isTexture) {
+            deps.push(this.metalnessMap.getDeps(meta));
+        }
+        if (this.emissiveMap && this.emissiveMap.isTexture) {
+            deps.push(this.emissiveMap.getDeps(meta));
+        }
+        if (this.specularMap && this.specularMap.isTexture) {
+            deps.push(this.specularMap.getDeps(meta));
+        }
+        if (this.envMap && this.envMap.isTexture) {
+            deps.push(this.envMap.getDeps(meta));
+        }
+        if (this.gradientMap && this.gradientMap.isTexture) {
+            deps.push(this.gradientMap.getDeps(meta));
+        }
+        if (this.aoMap && this.aoMap.isTexture) {
+            deps.push(this.aoMap.getDeps(meta));
+        }
+
+        return deps;
+    };
+
+    Material.prototype.encode = function () {
+        var data = {
+            type: this.type
+        };
+
+        if (this.states) {
+            data.states = {};
+            for (var name in this.states) {
+                data.states[name] = this.states[name].encode();
+            }
+        }
+        if (this.uuid) data.uuid = this.uuid;
+        if (this.color && this.color.isColor) data.color = this.color.getHex();
+        if (this.roughness !== undefined) data.roughness = this.roughness;
+        if (this.metalness !== undefined) data.metalness = this.metalness;
+        if (this.emissive && this.emissive.isColor) data.emissive = this.emissive.getHex();
+        if (this.specular && this.specular.isColor) data.specular = this.specular.getHex();
+        if (this.shininess !== undefined) data.shininess = this.shininess;
+        if (this.clearCoat !== undefined) data.clearCoat = this.clearCoat;
+        if (this.clearCoatRoughness !== undefined) data.clearCoatRoughness = this.clearCoatRoughness;
+
+        if (this.map && this.map.isTexture) {
+            data.map = this.map.encode();
+        }
+        if (this.alphaMap && this.alphaMap.isTexture) {
+            data.alphaMap = this.alphaMap.encode();
+        }
+        if (this.lightMap && this.lightMap.isTexture) {
+            data.lightMap = this.lightMap.encode();
+        }
+        if (this.bumpMap && this.bumpMap.isTexture) {
+            data.bumpMap = this.bumpMap.encode();
+            data.bumpScale = this.bumpScale;
+        }
+        if (this.normalMap && this.normalMap.isTexture) {
+            data.normalMap = this.normalMap.encode();
+            data.normalScale = this.normalScale.toArray();
+        }
+        if (this.displacementMap && this.displacementMap.isTexture) {
+            data.displacementMap = this.displacementMap.encode();
+            data.displacementScale = this.displacementScale;
+            data.displacementBias = this.displacementBias;
+        }
+        if (this.roughnessMap && this.roughnessMap.isTexture) {
+            data.roughnessMap = this.roughnessMap.encode();
+        }
+        if (this.metalnessMap && this.metalnessMap.isTexture) {
+            data.metalnessMap = this.metalnessMap.encode();
+        }
+        if (this.emissiveMap && this.emissiveMap.isTexture) {
+            data.emissiveMap = this.emissiveMap.encode();
+        }
+        if (this.specularMap && this.specularMap.isTexture) {
+            data.specularMap = this.specularMap.encode();
+        }
+        if (this.envMap && this.envMap.isTexture) {
+            data.envMap = this.envMap.encode();
+        }
+        if (this.gradientMap && this.gradientMap.isTexture) {
+            data.gradientMap = this.gradientMap.encode();
+        }
+        if (this.aoMap && this.aoMap.isTexture) {
+            data.aoMap = this.aoMap.encode();
+            data.aoMapIntensity = this.aoMapIntensity;
+        }
+
+        if (this.reflectivity !== undefined) data.reflectivity = this.reflectivity;
+        if (this.envMapIntensity !== undefined) data.envMapIntensity = this.envMapIntensity;
+        if (this.size !== undefined) data.size = this.size;
+        if (this.sizeAttenuation !== undefined) data.sizeAttenuation = this.sizeAttenuation;
+        if (this.blending !== NormalBlending) data.blending = this.blending;
+        if (this.shading !== SmoothShading) data.shading = this.shading;
+        if (this.side !== FrontSide) data.side = this.side;
+        if (this.vertexColors !== NoColors) data.vertexColors = this.vertexColors;
+        if (this.opacity < 1) data.opacity = this.opacity;
+        if (this.transparent === true) data.transparent = this.transparent;
+
+        data.depthFunc = this.depthFunc;
+        data.depthTest = this.depthTest;
+        data.depthWrite = this.depthWrite;
+
+        if (this.alphaTest > 0) data.alphaTest = this.alphaTest;
+        if (this.premultipliedAlpha === true) data.premultipliedAlpha = this.premultipliedAlpha;
+        if (this.wireframe === true) data.wireframe = this.wireframe;
+        if (this.wireframeLinewidth > 1) data.wireframeLinewidth = this.wireframeLinewidth;
+        if (this.wireframeLinecap !== 'round') data.wireframeLinecap = this.wireframeLinecap;
+        if (this.wireframeLinejoin !== 'round') data.wireframeLinejoin = this.wireframeLinejoin;
+
+        data.skinning = this.skinning;
+        data.morphTargets = this.morphTargets;
+        data.dithering = this.dithering;
+
+        if (this.cloneMaps instanceof Array && this.cloneMaps.length > 0) {
+            data.cloneMaps = this.cloneMaps;
+        }
+
+        data.deps = this.getDeps();
+        _uniqueDeps(data.deps);
+
+        return data;
+    };
+
+    var _MATERIALS = {
+        ShadowMaterial: ShadowMaterial,
+        SpriteMaterial: SpriteMaterial,
+        RawShaderMaterial: RawShaderMaterial,
+        ShaderMaterial: ShaderMaterial,
+        PointsMaterial: PointsMaterial,
+        MeshPhysicalMaterial: MeshPhysicalMaterial,
+        MeshStandardMaterial: MeshStandardMaterial,
+        MeshPhongMaterial: MeshPhongMaterial,
+        MeshToonMaterial: MeshToonMaterial,
+        MeshNormalMaterial: MeshNormalMaterial,
+        MeshLambertMaterial: MeshLambertMaterial,
+        MeshDepthMaterial: MeshDepthMaterial,
+        MeshBasicMaterial: MeshBasicMaterial,
+        LineDashedMaterial: LineDashedMaterial,
+        LineBasicMaterial: LineBasicMaterial,
+        Material: Material
+    };
+
+    Material.prototype.clone = function () {
+        var material = new this.constructor().copy(this);
+
+        if (this.states) {
+            material.states = {};
+            for (var name in this.states) {
+                material.states[name] = State.decode(this.states[name].encode(), material);
+            }
+            Config.addStates(material);
+        }
+
+        if (this.cloneMaps instanceof Array) {
+            material.cloneMaps = this.cloneMaps.slice(0);
+        }
+
+        return material;
+    };
+
+    Object.assign(Material, {
+        decode: function decode(data, material) {
+            if (!material) {
+                material = new _MATERIALS[data.type]();
+            }
+
+            material.deps = data.deps;
+
+            if (data.states !== undefined) {
+                material.states = {};
+                for (var name in data.states) {
+                    material.states[name] = State.decode(data.states[name], material);
+                }
+                Config.addStates(material);
+            }
+
+            if (data.uuid !== undefined) material.uuid = data.uuid;
+            if (data.color !== undefined) material.color.setHex(data.color);
+            if (data.roughness !== undefined) material.roughness = data.roughness;
+            if (data.metalness !== undefined) material.metalness = data.metalness;
+            if (data.emissive !== undefined) material.emissive.setHex(data.emissive);
+            if (data.specular !== undefined) material.specular.setHex(data.specular);
+            if (data.shininess !== undefined) material.shininess = data.shininess;
+            if (data.clearCoat !== undefined) material.clearCoat = data.clearCoat;
+            if (data.clearCoatRoughness !== undefined) material.clearCoatRoughness = data.clearCoatRoughness;
+            if (data.uniforms !== undefined) {
+                material.uniforms = data.uniforms;
+            }
+            if (data.vertexShader !== undefined) material.vertexShader = data.vertexShader;
+            if (data.fragmentShader !== undefined) material.fragmentShader = data.fragmentShader;
+            if (data.vertexColors !== undefined) material.vertexColors = data.vertexColors;
+            if (data.fog !== undefined) material.fog = data.fog;
+            if (data.shading !== undefined) material.shading = data.shading;
+            if (data.blending !== undefined) material.blending = data.blending;
+            if (data.side !== undefined) material.side = data.side;
+            if (data.opacity !== undefined) material.opacity = data.opacity;
+            if (data.transparent !== undefined) material.transparent = data.transparent;
+            if (data.alphaTest !== undefined) material.alphaTest = data.alphaTest;
+            if (data.depthTest !== undefined) material.depthTest = data.depthTest;
+            if (data.depthWrite !== undefined) material.depthWrite = data.depthWrite;
+            if (data.colorWrite !== undefined) material.colorWrite = data.colorWrite;
+            if (data.wireframe !== undefined) material.wireframe = data.wireframe;
+            if (data.wireframeLinewidth !== undefined) material.wireframeLinewidth = data.wireframeLinewidth;
+            if (data.wireframeLinecap !== undefined) material.wireframeLinecap = data.wireframeLinecap;
+            if (data.wireframeLinejoin !== undefined) material.wireframeLinejoin = data.wireframeLinejoin;
+            if (data.skinning !== undefined) material.skinning = data.skinning;
+            if (data.morphTargets !== undefined) material.morphTargets = data.morphTargets;
+
+            // for PointsMaterial
+            if (data.size !== undefined) material.size = data.size;
+            if (data.sizeAttenuation !== undefined) material.sizeAttenuation = data.sizeAttenuation;
+
+            // maps
+            if (data.map !== undefined) material.map = ResourceParser.decode(data.map);
+            if (data.alphaMap !== undefined) {
+                material.alphaMap = ResourceParser.decode(data.alphaMap);
+            }
+
+            if (data.bumpMap !== undefined) material.bumpMap = ResourceParser.decode(data.bumpMap);
+            if (data.bumpScale !== undefined) material.bumpScale = data.bumpScale;
+
+            if (data.normalMap !== undefined) material.normalMap = ResourceParser.decode(data.normalMap);
+            if (data.normalScale !== undefined) {
+                var normalScale = data.normalScale;
+                if (Array.isArray(normalScale) === false) {
+                    // Blender exporter used to export a scalar. See #7459
+                    normalScale = [normalScale, normalScale];
+                }
+                material.normalScale = new Vector2().fromArray(normalScale);
+            }
+
+            if (data.displacementMap !== undefined) material.displacementMap = ResourceParser.decode(data.displacementMap);
+            if (data.displacementScale !== undefined) material.displacementScale = data.displacementScale;
+            if (data.displacementBias !== undefined) material.displacementBias = data.displacementBias;
+
+            if (data.roughnessMap !== undefined) material.roughnessMap = ResourceParser.decode(data.roughnessMap);
+            if (data.metalnessMap !== undefined) material.metalnessMap = ResourceParser.decode(data.metalnessMap);
+
+            if (data.emissiveMap !== undefined) material.emissiveMap = ResourceParser.decode(data.emissiveMap);
+            if (data.emissiveIntensity !== undefined) material.emissiveIntensity = data.emissiveIntensity;
+
+            if (data.specularMap !== undefined) material.specularMap = ResourceParser.decode(data.specularMap);
+            if (data.envMapIntensity !== undefined) material.envMapIntensity = data.envMapIntensity;
+
+            if (data.envMap !== undefined) material.envMap = ResourceParser.decode(data.envMap);
+
+            if (data.reflectivity !== undefined) material.reflectivity = data.reflectivity;
+
+            if (data.lightMap !== undefined) material.lightMap = ResourceParser.decode(data.lightMap);
+            if (data.lightMapIntensity !== undefined) material.lightMapIntensity = data.lightMapIntensity;
+
+            if (data.aoMap !== undefined) material.aoMap = ResourceParser.decode(data.aoMap);
+            if (data.aoMapIntensity !== undefined) material.aoMapIntensity = data.aoMapIntensity;
+
+            if (data.gradientMap !== undefined) material.gradientMap = ResourceParser.decode(data.gradientMap);
+
+            if (data.cloneMaps instanceof Array) {
+                for (var i = 0; i !== data.cloneMaps.length; ++i) {
+                    var name = data.cloneMaps[i];
+                    var texture = material[name];
+                    if (texture) {
+                        texture = texture.clone();
+                        texture.needsUpdate = true;
+                        material[name] = texture;
+                    }
+                }
+                material.cloneMaps = data.cloneMaps;
+            }
+
+            return material;
+        }
+    });
+
+    return {
+        MATERIALS: _MATERIALS,
+
+        decode: function decode(data) {
+            switch (data.type) {
+                case 'Scene':
+                    return HaloScene.decode(data);
+                case 'Object3D':
+                    return Object3D.decode(data);
+                case 'Group':
+                    return Group.decode(data);
+                case 'Bone':
+                    return Bone.decode(data);
+                case 'Effect':
+                    return Effect.decode(data);
+                case 'AmbientLight':
+                    var light = new AmbientLight(data.color, data.intensity);
+                    return light.decode(data);
+                case 'DirectionalLight':
+                    var light = new DirectionalLight(data.color, data.intensity);
+                    return light.decode(data);
+                case 'PointLight':
+                    var light = new PointLight(data.color, data.intensity, data.distance, data.decay);
+                    return light.decode(data);
+                case 'RectAreaLight':
+                    var light = new RectAreaLight(data.color, data.intensity, data.width, data.height);
+                    return light.decode(data);
+                case 'SpotLight':
+                    var light = new SpotLight(data.color, data.intensity, data.distance, data.angle, data.penumbra, data.decay);
+                    return light.decode(data);
+                case 'HemisphereLight':
+                    var light = new HemisphereLight(data.color, data.groundColor, data.intensity);
+                    return light.decode(data);
+                case 'Mesh':
+                    return Mesh.decode(data);
+                case 'SkinnedMesh':
+                    return SkinnedMesh.decode(data);
+                case 'BufferGeometry':
+                    return BufferGeometry.decode(data);
+                case 'Geometry':
+                    return Geometry.decode(data);
+                case 'AnimationClip':
+                    return AnimationClip.decode(data);
+                case 'Animation':
+                    var animations = [];
+                    for (var i = 0, n = data.clips.length; i !== n; ++i) {
+                        animations.push(ResourceParser.decode(data.clips[i]));
+                    }
+                    return animations;
+                case 'Texture':
+                    return Texture.decode(data);
+                case 'VideoTexture':
+                    return VideoTexture.decode(data);
+                case 'PerspectiveCamera':
+                    return new PerspectiveCamera.decode(data);
+                default:
+                    var MATERIAL = ResourceParser.MATERIALS[data.type];
+                    if (MATERIAL !== undefined) {
+                        if (MATERIAL.decode !== undefined) {
+                            return MATERIAL.decode(data);
+                        } else {
+                            return Material.decode(data);
+                        }
+                    } else {
+                        console.error("ResourceParser can not find data type:", data.type);
+                    }
+                    return null;
+            }
+        },
+
+        encodeAnimations: function encodeAnimations(animations) {
+            return _encodeAnimations(animations);
+        },
+
+        getDataURL: function getDataURL(image, name) {
+            return _getDataURL(image, name);
+        },
+
+        uniqueDeps: function uniqueDeps(deps) {
+            _uniqueDeps(deps);
+        }
+    };
+}();
+
+function SimpleSprite(tex, sprite, x, y, w, h) {
+    this.texture = tex;
+    this.sprite = sprite;
+
+    this.x1 = x * 65535;
+    this.y1 = y * 65535;
+    this.x2 = (x + w) * 65535;
+    this.y2 = (y - h) * 65535;
+}
+
+Object.assign(SimpleSprite.prototype, {
+    updateUV: function updateUV(uv, offset) {
+        uv.setXY(offset, this.x1, this.y1);
+        uv.setXY(offset + 1, this.x2, this.y1);
+        uv.setXY(offset + 2, this.x2, this.y2);
+        uv.setXY(offset + 3, this.x1, this.y2);
+    }
+});
+
+var ResourceManager = function () {
+    var _baseUrl = '';
+    var _fileReader;
+
+    Texture.DEFAULT_IMAGE = document.createElementNS('http://www.w3.org/1999/xhtml', 'img');
+    Texture.DEFAULT_IMAGE.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAE0lEQVQoU2P8r8bwnwEPYBwZCgDLCxEp26bt7wAAAABJRU5ErkJggg==";
+
+    var _path3d = ['geo', 'ani', 'mat', 'mdl', 'scn'];
+    var _pathes = ['js', 'cfg', 'img', 'aud', 'vid', 'geo', 'ani', 'mat', 'mdl', 'scn'];
+    var _resources = {};
+
+    for (var i = 0; i !== _pathes.length; ++i) {
+        _resources[_pathes[i]] = {};
+    }
+
+    var _simpleAtlas = {};
+    var _funcs = {};
+
+    var _defaultTex = new Texture(Texture.DEFAULT_IMAGE);
+    _defaultTex.needsUpdate = true;
+    var _defaultMat = new MeshBasicMaterial({ name: 'DEFAULT', map: _defaultTex });
+    var _defaultGeo = new BoxGeometry(1, 1, 1);
+    var _defaultSimpleSprite = new SimpleSprite(_defaultTex, '', 0, 1, 1, 1);
+    var _defaultMesh = new Mesh(_defaultGeo, _defaultMat);
+    var _defaultGroup = new Group();
+
+    _defaultGroup.add(_defaultMesh);
+
+    var _defaultRes = {
+        'img': _defaultTex,
+        'mat': _defaultMat,
+        'geo': _defaultGeo,
+        'mdl': _defaultGroup,
+        'ani': []
+    };
+
+    var _createRes = function _createRes(path, name) {
+        var resPath = _resources[path];
+        var res = resPath ? resPath[name] : undefined;
+
+        if (res === undefined) {
+            res = {
+                name: name,
+                path: path,
+                unzip: null,
+                obj: null
+            };
+            if (resPath !== undefined) {
+                resPath[name] = res;
+            }
+        }
+
+        return res;
+    };
+
+    var _listen = function _listen(res) {
+        if (res.listeners === undefined) {
+            return false;
+        }
+
+        for (var _i = 0; _i !== res.listeners.length; ++_i) {
+            res.listeners[_i](res);
+        }
+        res.listeners = undefined;
+
+        return true;
+    };
+
+    // path	    data        raw		    unzip	    obj
+    // cfg	    string      string	    string	    Json
+    // img  	base64      base64	    <image>	    Texture
+    // aud	    arraybuffer base64	    audiobuffer	audiobuffer
+    // vid	    base64      base64	    <video>     VideoTexture
+    // 3d	    uint8array  string	    Json	    3d
+    // js       string      string      <script>    <script>
+    var _load = function _load(p, n, cb) {
+        (function () {
+            var path = p;
+            var name = n;
+            var callback = cb;
+
+            var res = _createRes(path, name);
+
+            if (res.unzip === null) {
+                if (res.listeners === undefined) {
+                    res.listeners = [callback];
+                    _fileReader(path, name, function (data) {
+                        if (data) {
+                            if (_path3d.indexOf(path) >= 0) {
+                                try {
+                                    res.unzip = _unzip(data);
+                                    _listen(res);
+                                } catch (e) {
+                                    console.error('UNZIP ERROR:', path, name, e);
+                                }
+                                _listen(res);
+                            } else if (path === 'img') {
+                                var img = new Image();
+                                // img.crossOrigin = "Anonymous";
+                                img.onload = function () {
+                                    res.unzip = img;
+                                    _listen(res);
+                                };
+                                img.onerror = function (e) {
+                                    alert(name + ":" + JSON.stringify(e));
+                                };
+                                img.src = data;
+                            } else if (path === 'vid') {
+                                var video = document.createElement('video');
+                                video.oncanplay = function () {
+                                    res.unzip = video;
+                                    _listen(res);
+                                };
+                                video.onerror = function (e) {
+                                    alert(name + ":" + JSON.stringify(e));
+                                };
+                                video.src = data;
+                            } else if (path === 'js') {
+                                if (!Config.bDebug) {
+                                    var script = document.createElement('script');
+                                    script.type = "text/javascript";
+                                    script.innerHTML = data;
+                                    document.head.appendChild(script);
+                                    res.unzip = script;
+                                } else {
+                                    res.unzip = data;
+                                }
+                                _listen(res);
+                            } else if (path === 'aud') {
+                                var context = AudioContext.getContext();
+                                context.decodeAudioData(data, function (audiobuffer) {
+                                    res.unzip = audiobuffer;
+                                    _listen(res);
+                                });
+                            } else {
+                                res.unzip = data;
+                                _listen(res);
+                            }
+                        } else {
+                            _listen(res);
+                        }
+                    });
+                } else {
+                    res.listeners.push(callback);
+                }
+            } else {
+                callback(res);
+            }
+        })();
+    };
+
+    var _getUrl = function _getUrl(path, name) {
+        if (name === '') {
+            return _baseUrl + path;
+        } else if (path === '') {
+            return _baseUrl + name;
+        } else if (_path3d.indexOf(path) === -1) {
+            return _baseUrl + path + '/' + name;
+        } else {
+            return _baseUrl + path + '/' + name + '.' + path;
+        }
+    };
+
+    var _parseSimpleAtlas = function _parseSimpleAtlas(name, image) {
+        var res = _resources['cfg'][name];
+        if (res && res.obj) {
+            var atlasMap = _simpleAtlas[image] = {};
+            var texture = _resources['img'][image].obj;
+            var invw = 1 / texture.image.width;
+            var invh = 1 / texture.image.height;
+            for (var key in res.obj) {
+                var at = res.obj[key];
+                var x = at.x * invw;
+                var y = 1 - at.y * invh;
+                var w = at.w * invw;
+                var h = at.h * invh;
+                var atlas = new SimpleSprite(texture, key, x, y, w, h);
+                atlasMap[key] = atlas;
+            }
+        }
+    };
+
+    var _parseRes = function _parseRes(res) {
+        var path = res.path;
+        var name = res.name;
+        var ret = res.obj === null ? 1 : 0;
+
+        if (res.unzip === null) {
+            var defaultRes = _defaultRes[path];
+            if (defaultRes) {
+                if (path === 'mdl') {
+                    res.obj = defaultRes.clone();
+                } else {
+                    res.obj = defaultRes;
+                }
+            }
+        } else {
+            if (_path3d.indexOf(path) >= 0) {
+                res.obj = ResourceParser.decode(res.unzip);
+                res.obj.name = name;
+            } else if (path === 'vid') {
+                res.obj = texture = new VideoTexture(res.unzip);
+                texture.name = name;
+                texture.minFilter = LinearFilter;
+                texture.format = RGBFormat;
+                texture.needsUpdate = true;
+            } else if (path === 'img') {
+                var tex_cfg = Config.getTexture(name);
+                var texture = null;
+                if (tex_cfg) {
+                    res.obj = texture = new Texture(res.unzip);
+
+                    if (tex_cfg.mapping !== undefined) texture.mapping = tex_cfg.mapping;
+                    if (tex_cfg.repeat !== undefined) texture.repeat.fromArray(tex_cfg.repeat);
+                    if (tex_cfg.offset !== undefined) texture.offset.fromArray(tex_cfg.offset);
+                    if (tex_cfg.wrapS !== undefined) texture.wrapS = tex_cfg.wrapS;
+                    if (tex_cfg.wrapT !== undefined) texture.wrapT = tex_cfg.wrapT;
+                    if (tex_cfg.minFilter !== undefined) texture.minFilter = tex_cfg.minFilter;
+                    if (tex_cfg.magFilter !== undefined) texture.magFilter = tex_cfg.magFilter;
+                    if (tex_cfg.flipY !== undefined) texture.flipY = tex_cfg.flipY;
+                    if (tex_cfg.format !== undefined) texture.format = tex_cfg.format;
+                    if (tex_cfg.anisotropy !== undefined) texture.anisotropy = tex_cfg.anisotropy;
+                    if (tex_cfg.generateMipmaps !== undefined) texture.generateMipmaps = tex_cfg.generateMipmaps;
+                    if (tex_cfg.premultiplyAlpha !== undefined) texture.premultiplyAlpha = tex_cfg.premultiplyAlpha;
+                    if (tex_cfg.flipY !== undefined) texture.flipY = tex_cfg.flipY;
+
+                    switch (tex_cfg.type) {
+                        case 'sprite':
+                            _parseSimpleAtlas(tex_cfg.json, name);
+                            break;
+                        case 'atlas':
+                            var json = _resources['cfg'][atlas.json];
+                            if (json && json.obj && Config.dargonbones) {
+                                Config.dargonbones.parseTextureAtlasData(json.obj, texture.image);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                if (texture === null) {
+                    texture = new Texture(res.unzip);
+                    res.obj = texture;
+                }
+
+                texture.name = name;
+                texture.needsUpdate = true;
+            } else if (path === 'aud') {
+                res.obj = res.unzip;
+            } else if (path === 'js') {
+                res.obj = res.unzip;
+                if (Config.bDebug && res.obj) {
+                    document.head.appendChild(res.obj);
+                }
+            } else if (path === 'cfg') {
+                res.obj = JSON.parse(res.unzip);
+                var dbs = Config.get().dragonbones;
+                if (dbs && dbs.indexOf(name) !== -1 && Config.dargonbones) {
+                    Config.dargonbones.parseDragonBonesData(res.obj);
+                }
+            }
+        }
+
+        return ret;
+    };
+
+    var _unzip = function _unzip(data) {
+        var zipFileLoaded = new JSZip(data, { "uint8array": true });
+        var keys = Object.keys(zipFileLoaded.files);
+        var contents = zipFileLoaded.files[keys[0]].asText();
+        var obj = JSON.parse(contents);
+        return obj;
+    };
+
+    var _loadList = function _loadList(resList, onFinish) {
+        var list = resList.slice(0);
+        ResourceParser.uniqueDeps(list);
+
+        var n = list.length;
+        var num = 0;
+        var deps = [];
+        var raws = new Array(n);
+
+        var _loop = function _loop(_i2) {
+            var path = list[_i2].path;
+            var name = list[_i2].name;
+            _load(path, name, function (res) {
+                if (res) {
+                    if (res.obj === null && res.unzip && res.unzip.deps) {
+                        deps = res.unzip.deps.concat(deps);
+                    }
+                    raws[_i2] = res;
+                }
+                if (++num === n) {
+                    if (deps.length > 0) {
+                        _loadList(deps, function (depraws) {
+                            raws = depraws.concat(raws);
+                            onFinish(raws);
+                        });
+                    } else {
+                        onFinish(raws);
+                    }
+                }
+            });
+        };
+
+        for (var _i2 = 0; _i2 != n; ++_i2) {
+            _loop(_i2);
+        }
+    };
+
+    var _parseList = function _parseList(raws, callback) {
+        for (var _i3 = 0, n = raws.length; _i3 !== n; ++_i3) {
+            var res = raws[_i3];
+            if (res && _parseRes(res) === 1) {
+                callback(res);
+            }
+        }
+
+        callback(null);
+    };
+
+    return {
+        defaultTexture: _defaultTex,
+
+        defaultMaterial: _defaultMat,
+
+        defualtGeometry: _defaultGeo,
+
+        defaultMesh: _defaultMesh,
+
+        defaultGroup: _defaultGroup,
+
+        defaultSimpleSprite: _defaultSimpleSprite,
+
+        getResources: function getResources(path) {
+            return _resources[path];
+        },
+
+        getSimpleAtlas: function getSimpleAtlas() {
+            return _simpleAtlas;
+        },
+
+        getFunc: function getFunc(name) {
+            return _funcs[name];
+        },
+
+        funcs: function funcs() {
+            return _funcs;
+        },
+
+        path3d: function path3d() {
+            return _path3d;
+        },
+
+        pathes: function pathes() {
+            return _pathes;
+        },
+
+        getUrl: function getUrl(path, name) {
+            return _getUrl(path, name);
+        },
+
+        parseRes: function parseRes(path, name) {
+            return _parseRes(_resources[path][name]);
+        },
+
+        unzip: function unzip(data) {
+            return _unzip(data);
+        },
+
+        setFileReader: function setFileReader(fileReader) {
+            _fileReader = fileReader;
+        },
+
+        setBaseUrl: function setBaseUrl(baseUrl) {
+            _baseUrl = baseUrl;
+        },
+
+        clearCache: function clearCache() {
+            for (var i = 0; i !== _pathes.length; ++i) {
+                _resources[_pathes[i]] = {};
+            }
+
+            _simpleAtlas = {};
+        },
+
+        clearResource: function clearResource(path, name) {
+            delete _resources[path][name];
+        },
+
+        getSimpleSprite: function getSimpleSprite(image, name) {
+            var sheet = _simpleAtlas[image];
+            if (sheet) {
+                return sheet[name];
+            }
+        },
+
+        parseSimpleAtlas: function parseSimpleAtlas(name, image) {
+            _parseSimpleAtlas(name, image);
+        },
+
+        getRes: function getRes(path, name) {
+            return _resources[path][name];
+        },
+
+        getObj: function getObj(path, name) {
+            var res = _resources[path][name];
+            if (res) {
+                if (!res.obj && res.unzip) {
+                    _parseRes(res);
+                }
+
+                return res.obj;
+            }
+
+            return null;
+        },
+
+        addResource: function addResource(path, name, unzip, obj) {
+            var res = _resources[path][name];
+            if (res === undefined) {
+                res = {
+                    name: name,
+                    path: path,
+                    unzip: null,
+                    obj: null
+                };
+                _resources[path][name] = res;
+            }
+
+            res.obj = obj || null;
+            res.unzip = unzip || null;
+
+            return res;
+        },
+
+        loadData: function loadData(path, name, callback) {
+            _load(path, name, function (res) {
+                callback && callback(res);
+            });
+        },
+
+        loadList: function loadList(list, callback) {
+            if (!(list instanceof Array) || list.length === 0) {
+                callback && callback(null);
+                return;
+            }
+
+            _loadList(list, function (raws) {
+                _parseList(raws, callback);
+            });
+        }
+    };
+}();
+
+var math2 = function math2() {
+    _Math.TWO_PI = 2 * Math.PI;
+    _Math.HALF_PI = 0.5 * Math.PI;
+
+    _Math._rands = [];
+    for (var i = 0; i !== 4096; ++i) {
+        _Math._rands.push(Math.random());
+    }
+
+    _Math._seed = 0;
+
+    _Math._sin = [];
+
+    for (var _i = 0; _i !== 360; ++_i) {
+        _Math._sin.push(Math.sin(_i * _Math.DEG2RAD));
+    }
+
+    _Math._cos = [];
+    for (var _i2 = 0; _i2 !== 360; ++_i2) {
+        _Math._cos.push(Math.cos(_i2 * _Math.DEG2RAD));
+    }
+
+    _Math.genName = function (len) {
+        var chars = '0123456789abcdefghijklmnopqrstuvwxyz';
+        var strLen = chars.length;
+        len = len || 12;
+        var R = '';
+        for (var i = 0; i < len; i++) {
+            R += chars[Math.floor(Math.random() * strLen)];
+        }
+        return R;
+    };
+
+    _Math.rand = function () {
+        if (4095 === _Math._seed++) {
+            _Math._seed = 0;
+        }
+        return _Math._rands[_Math._seed];
+    };
+
+    _Math.randFloatRange = function (low, high) {
+        return low + _Math.rand() * (high - low);
+    };
+
+    _Math.randIntRange = function (low, high) {
+        return low + Math.floor(_Math.rand() * (high - low));
+    };
+
+    _Math.sin = function (angle) {
+        var degree = Math.floor(angle * _Math.RAD2DEG % 360);
+        if (degree < 0) {
+            degree += 360;
+        }
+        return _Math._sin[degree];
+    };
+
+    _Math.cos = function (angle) {
+        var degree = Math.floor(angle * _Math.RAD2DEG % 360);
+        if (degree < 0) {
+            degree += 360;
+        }
+        return _Math._cos[degree];
+    };
+
+    _Math.sincos = function (angle) {
+        var degree = Math.floor(angle * _Math.RAD2DEG % 360);
+        if (degree < 0) {
+            degree += 360;
+        }
+        return { sin: _Math._sin[degree], cos: _Math._cos[degree] };
+    };
+
+    _Math.hashCode = function (s) {
+        return s.split("").reduce(function (a, b) {
+            a = (a << 5) - a + b.charCodeAt(0);
+            return a & a;
+        }, 0);
+    };
+};
+
+var TextCanvas = function () {
+    var _canvas = document.createElement('canvas');
+    var _ctx = _canvas.getContext('2d');
+    var _lines = {};
+    var _id = 0;
+
+    _canvas.width = 2048;
+    _canvas.height = 2048;
+
+    _ctx.textAlign = 'left';
+    _ctx.textBaseline = 'top';
+    _ctx.fillStyle = '#FFFFFF';
+
+    var _invw = 1 / _canvas.width;
+    var _invh = 1 / _canvas.height;
+
+    var _texture = new Texture(_canvas);
+    _texture.generateMipmaps = false;
+    _texture.minFilter = LinearFilter;
+
+    var _mark = { x: 0, y: 0, line_height: 0 };
+
+    var _dummy = document.createElement("div");
+    _dummy.appendChild(document.createTextNode("M"));
+    _dummy.style.visibility = "hidden";
+    _dummy.style.position = "absolute";
+
+    var _determineFontHeight = function _determineFontHeight(font) {
+        _dummy.style.font = font;
+        return _dummy.offsetHeight;
+    };
+
+    var _addLine = function _addLine(text, font, w, h) {
+        var line = { id: ++_id, str: text, font: font, width: w, height: h, x: 0, y: 0 };
+        _lines[_id] = line;
+        return line;
+    };
+
+    var _redraw = function _redraw() {
+        for (var id in _lines) {
+            var line = _lines[id];
+
+            if (_mark.x + line.width > _canvas.width) {
+                _mark.x = 0;
+                _mark.line_height = line.height;
+                _mark.y += _mark.line_height;
+                if (_mark.y + line.height > _canvas.height) {
+                    _mark.line_height = 0;
+                    _mark.y = 0;
+                    console.error('Error: TextCanvas is too small!');
+                }
+            } else {
+                _mark.line_height = Math.max(line.height, _mark.line_height);
+            }
+
+            line.x = _mark.x;
+            line.y = _mark.y;
+            _mark.x += line.width;
+
+            if (_ctx.font !== line.font) {
+                _ctx.font = line.font;
+            }
+
+            _ctx.clearRect(line.x, line.y, line.width, line.height);
+            _ctx.fillText(line.str, line.x, line.y, line.width);
+        }
+
+        _texture.needsUpdate = true;
+    };
+
+    return {
+        init: function init() {
+            document.body.appendChild(_dummy);
+        },
+
+        getTexture: function getTexture() {
+            return _texture;
+        },
+
+        getInvW: function getInvW() {
+            return _invw;
+        },
+
+        getInvH: function getInvH() {
+            return _invh;
+        },
+
+        remove: function remove(lines) {
+            for (var i = 0; i !== lines.length; ++i) {
+                delete _lines[lines[i].id];
+            }
+        },
+
+        addText: function addText(text, font, max_width, auto_break) {
+            if (_ctx.font !== font) {
+                _ctx.font = font;
+            }
+
+            var strs = text.split('\n');
+
+            var lines = [];
+            var lineWidth = 0;
+            var height = _determineFontHeight(font);
+
+            for (var i = 0; i !== strs.length; ++i) {
+                var str = strs[i];
+                var width = _ctx.measureText(str).width;
+                if (width > max_width) {
+                    if (auto_break) {
+                        var lineWidth = 0;
+                        var line = '';
+                        for (var j = 0; j !== str.length; ++j) {
+                            var c = str[j];
+                            var cw = _ctx.measureText(c).width;
+                            if (lineWidth + cw > max_width) {
+                                lines.push(_addLine(line, font, lineWidth, height));
+                                lineWidth = cw;
+                                line = c;
+                            } else {
+                                line += c;
+                                lineWidth += cw;
+                            }
+                        }
+                        lines.push(_addLine(line, font, lineWidth, height));
+                    } else {
+                        lines.push(_addLine(str, font, max_width, height));
+                    }
+                } else {
+                    lines.push(_addLine(str, font, width, height));
+                }
+            }
+
+            for (var i = 0, l = lines.length; i !== l; ++i) {
+                var line = lines[i];
+
+                if (_mark.x + line.width > _canvas.width) {
+                    _mark.x = 0;
+                    _mark.line_height = line.height;
+                    _mark.y += _mark.line_height;
+                    if (_mark.y + line.height > _canvas.height) {
+                        _mark.y = 0;
+                        _mark.line_height = 0;
+                        _redraw();
+                        return lines;
+                    }
+                } else {
+                    _mark.line_height = Math.max(line.height, _mark.line_height);
+                }
+
+                line.x = _mark.x;
+                line.y = _mark.y;
+                _mark.x += line.width;
+            }
+
+            for (var i = 0, l = lines.length; i !== l; ++i) {
+                var line = lines[i];
+
+                _ctx.clearRect(line.x, line.y, line.width, line.height);
+                _ctx.fillText(line.str, line.x, line.y, line.width);
+            }
+
+            if (lines.length > 0) {
+                _texture.needsUpdate = true;
+            }
+
+            return lines;
+        }
+    };
+}();
+
+exports.version = null;
+
+function httpRequest(url, type) {
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    resolve(xhr.response);
+                } else {
+                    reject(url);
+                }
+            } else {
+                //loading...
+            }
+        };
+        xhr.responseType = type;
+        if (xhr.overrideMimeType) xhr.overrideMimeType('text/plain');
+        xhr.send(null);
+    });
+}
+
+function uint8ArrayToBase64(bytes) {
+    var binary = '';
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+}
+
+function arrayBufferToBase64(buffer) {
+    var bytes = new Uint8Array(buffer);
+    return uint8ArrayToBase64(bytes);
+}
+
+function base64ToUint8Array(string_base64) {
+    var binary_string = window.atob(string_base64);
+    var len = binary_string.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+        var ascii = binary_string.charCodeAt(i);
+        bytes[i] = ascii;
+    }
+    return bytes;
+}
+
+function base64ToArrayBuffer(string_base64) {
+    var array = base64ToUint8Array(string_base64);
+    return array.buffer;
+}
+
+var storageLoader = function storageLoader(path, name, callback) {
+    var url = ResourceManager.getUrl(path, name);
+    Storage.get(url, function (res) {
+        var ver = exports.version[path][name];
+        if (!ver) {
+            console.error(path + ':' + name + ' miss version!');
+            callback(null);
+            return;
+        }
+
+        if (Config.bDebug && path === 'js') {
+            var script = document.createElement('script');
+            script.type = "text/javascript";
+            script.onload = function () {
+                document.head.removeChild(script);
+                callback(script);
+            };
+            script.src = url;
+            document.head.appendChild(script);
+            return;
+        }
+
+        if (Config.bDebug || res === undefined || ver.version !== res.version) {
+            var type = path === 'cfg' || path === 'js' || path === '' ? 'text' : 'arraybuffer';
+            httpRequest(url, type).then(function (data) {
+                if (path === 'img') {
+                    data = 'data:img/' + name.split('.').pop().toLowerCase() + ';base64,' + arrayBufferToBase64(data);
+                } else if (path === 'vid') {
+                    data = 'data:video/' + name.split('.').pop().toLowerCase() + ';base64,' + arrayBufferToBase64(data);
+                } else if (path === 'mat' || path === 'geo' || path === 'mdl' || path === 'ani' || path === 'scn') {
+                    data = new Uint8Array(data);
+                }
+                Storage.set(url, data, ver.version);
+                callback(data);
+                Halo.onLoadData && Halo.onLoadData(path, name, ver.size);
+            }).catch(function (url) {
+                callback(null);
+                console.log('(Halo) Load resource failed: ' + url);
+            });
+        } else {
+            callback(res.data);
+            Halo.onLoadData && Halo.onLoadData(path, name, ver.size);
+        }
+    });
+};
+
+function init(storageName, baseUrl, fileLoader, callback) {
+    var loader = fileLoader || storageLoader;
+
+    math2();
+    TextCanvas.init();
+    ResourceManager.setBaseUrl(baseUrl);
+    ResourceManager.setFileReader(loader);
+
+    if (storageName) {
+        //web game mode
+        Storage.init(storageName).then(function () {
+            var versionUrl = ResourceManager.getUrl('', 'version.json');
+            httpRequest(versionUrl, 'text').then(function (data) {
+                exports.version = JSON.parse(data);
+                loader('', 'config.json', function (cfgData) {
+                    Config.init(JSON.parse(cfgData));
+                    callback && callback(null);
+                });
+            });
+        });
+    } else {
+        if (fileLoader) {
+            //desktop mode
+            fileLoader('', 'config.json', function (cfgData) {
+                Config.init(JSON.parse(cfgData));
+                callback && callback(null);
+            });
+        } else {
+            //project package mode
+            callback && callback(null);
+        }
+    }
+}
+
+function encodeProject(getData) {
+    var allRes = [];
+    var pathes = ResourceManager.pathes();
+
+    for (var i = 0; i != pathes.length; ++i) {
+        var path = pathes[i];
+        var resList = ResourceManager.getResources(path);
+        for (var name in resList) {
+            var res = resList[name];
+            var data;
+            if (path === 'scn' || path === 'mdl' || path === 'geo' || path === 'mat') {
+                data = res.obj.encode();
+            } else if (path === 'ani') {
+                data = ResourceParser.encodeAnimations(res.obj);
+            } else if (path === 'img') {
+                data = ResourceParser.getDataURL(res.unzip, name);
+            } else if (path === 'vid') {
+                data = res.unzip.src;
+            } else if (path === 'js') {
+                data = res.unzip.innerHTML || getData(path, name);
+            } else if (path === 'aud') {
+                data = res.data || getData(path, name);
+            } else {
+                data = res.unzip;
+            }
+            allRes.push({ path: path, name: name, data: data });
+        }
+    }
+
+    return { cfg: Config.get(), res: allRes };
+}
+
+function parseProject(meta, callback) {
+    var count = 0;
+
+    function checkState(res) {
+        if (res) {
+            callback && callback(res);
+            ++count;
+        }
+        if (meta.res.length === count) {
+            try {
+                for (var i = 0; i !== meta.res.length; ++i) {
+                    var res = meta.res[i];
+                    ResourceManager.parseRes(res.path, res.name);
+                }
+            } catch (e) {
+                if (Config.bDebug) {
+                    alert(e);
+                }
+            }
+            callback && callback(null);
+        }
+    }
+
+    function ImageParser(path, name, data) {
+        var img = document.createElement('img');
+        img.onload = function () {
+            var res = ResourceManager.addResource(path, name, img);
+            checkState(res);
+        };
+        img.src = data;
+    }
+
+    function VideoParser(path, name, data) {
+        var video = document.createElement('video');
+        video.oncanplay = function () {
+            var res = ResourceManager.addResource(path, name, video);
+            checkState(res);
+        };
+        video.src = data;
+    }
+
+    function AudioParser(path, name, data) {
+        var context = AudioContext.getContext();
+        context.decodeAudioData(base64ToArrayBuffer(data), function (audiobuffer) {
+            var res = ResourceManager.addResource(path, name, audiobuffer);
+            res.data = data;
+            checkState(res);
+        });
+    }
+
+    Config.init(meta.cfg);
+    checkState(null);
+
+    for (var i = 0; i !== meta.res.length; ++i) {
+        var res = meta.res[i];
+        var path = res.path;
+        var name = res.name;
+        var data = res.data;
+
+        if (path === 'img') {
+            new ImageParser(path, name, data);
+        } else if (path === 'vid') {
+            new VideoParser(path, name, data);
+        } else if (path === 'aud') {
+            new AudioParser(path, name, data);
+        } else if (path === 'js') {
+            var script = document.createElement('script');
+            script.type = "text/javascript";
+            script.innerHTML = data;
+            document.head.appendChild(script);
+            var res = ResourceManager.addResource(path, name, script);
+            checkState(res);
+        } else {
+            var res = ResourceManager.addResource(path, name, data);
+            checkState(res);
+        }
+    }
+}
+
+var Easing = {
+    /**
+     * @param {number} t Current time
+     * @param {number} b Start value
+     * @param {number} c Distance traveled relative to the start value
+     * @param {number} d Duration
+     */
+    linear: function linear(t, b, c, d) {
+        return c * t / d + b;
+    },
+
+    quadIn: function quadIn(t, b, c, d) {
+        t /= d;
+        return c * t * t + b;
+    },
+
+    quadOut: function quadOut(t, b, c, d) {
+        t /= d;
+        return -c * t * (t - 2) + b;
+    },
+
+    quadInOut: function quadInOut(t, b, c, d) {
+        t /= d / 2;
+        if (t < 1) {
+            return c / 2 * t * t + b;
+        }
+        t--;
+        return -c / 2 * (t * (t - 2) - 1) + b;
+    },
+
+    cubeIn: function cubeIn(t, b, c, d) {
+        t /= d;
+        return c * t * t * t + b;
+    },
+
+    cubeOut: function cubeOut(t, b, c, d) {
+        t /= d;
+        t--;
+        return c * (t * t * t + 1) + b;
+    },
+
+    cubeInOut: function cubeInOut(t, b, c, d) {
+        t /= d / 2;
+        if (t < 1) {
+            return c / 2 * t * t * t + b;
+        }
+        t -= 2;
+        return c / 2 * (t * t * t + 2) + b;
+    },
+
+    quartIn: function quartIn(t, b, c, d) {
+        t /= d;
+        return c * t * t * t * t + b;
+    },
+
+    quartOut: function quartOut(t, b, c, d) {
+        t /= d;
+        t--;
+        return -c * (t * t * t * t - 1) + b;
+    },
+
+    quartInOut: function quartInOut(t, b, c, d) {
+        t /= d / 2;
+        if (t < 1) {
+            return c / 2 * t * t * t * t + b;
+        }
+        t -= 2;
+        return -c / 2 * (t * t * t * t - 2) + b;
+    },
+
+    quintIn: function quintIn(t, b, c, d) {
+        t /= d;
+        return c * t * t * t * t * t + b;
+    },
+
+    quintOut: function quintOut(t, b, c, d) {
+        t /= d;
+        t--;
+        return c * (t * t * t * t * t + 1) + b;
+    },
+
+    quintInOut: function quintInOut(t, b, c, d) {
+        t /= d / 2;
+        if (t < 1) {
+            return c / 2 * t * t * t * t * t + b;
+        }
+        t -= 2;
+        return c / 2 * (t * t * t * t * t + 2) + b;
+    },
+
+    sineIn: function sineIn(t, b, c, d) {
+        return -c * Math.cos(t / d * (Math.PI / 2)) + c + b;
+    },
+
+    sineOut: function sineOut(t, b, c, d) {
+        return c * Math.sin(t / d * (Math.PI / 2)) + b;
+    },
+
+    sineInOut: function sineInOut(t, b, c, d) {
+        return -c / 2 * (Math.cos(Math.PI * t / d) - 1) + b;
+    },
+
+    expoIn: function expoIn(t, b, c, d) {
+        return c * Math.pow(2, 10 * (t / d - 1)) + b;
+    },
+
+    expoOut: function expoOut(t, b, c, d) {
+        return c * (-Math.pow(2, -10 * t / d) + 1) + b;
+    },
+
+    expoInOut: function expoInOut(t, b, c, d) {
+        t /= d / 2;
+        if (t < 1) {
+            return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
+        }
+        t--;
+        return c / 2 * (-Math.pow(2, -10 * t) + 2) + b;
+    },
+
+    circIn: function circIn(t, b, c, d) {
+        t /= d;
+        return -c * (Math.sqrt(1 - t * t) - 1) + b;
+    },
+
+    circOut: function circOut(t, b, c, d) {
+        t /= d;
+        t--;
+        return c * Math.sqrt(1 - t * t) + b;
+    },
+
+    circInOut: function circInOut(t, b, c, d) {
+        t /= d / 2;
+        if (t < 1) {
+            return -c / 2 * (Math.sqrt(1 - t * t) - 1) + b;
+        }
+        t -= 2;
+        return c / 2 * (Math.sqrt(1 - t * t) + 1) + b;
+    }
+};
+
+function Atlas(imageName, frame, orig, trim, rotate) {
+    this.texture = ResourceManager.getObj('img', imageName);
+
+    this._frame = frame;
+    this.trim = trim;
+    this.orig = orig || this._frame;
+    this._rotation = 0;
+
+    var tw = 65535 / this.texture.image.width;
+    var th = 65535 / this.texture.image.height;
+
+    var x1 = this._frame.x * tw;
+    var y1 = 65535 - this._frame.y * th;
+    var x2 = x1 + this._frame.width * tw;
+    var y2 = y1 - this._frame.height * th;
+
+    this.updateUV = function (uv, offset) {
+        uv.setXY(offset, x1, y2);
+        uv.setXY(offset + 1, x2, y2);
+        uv.setXY(offset + 2, x2, y1);
+        uv.setXY(offset + 3, x1, y1);
+    };
+}
+
+function Sprite2D() {
+    Object2D.call(this);
+    this._atlas = null;
+    this._anchor = new Vector2(0, 0);
+    this._srcFactor = SrcAlphaFactor;
+    this._dstFactor = OneMinusSrcAlphaFactor;
+    this.color = new Color(1, 1, 1);
+}
+
+Sprite2D.prototype = Object.assign(Object.create(Object2D.prototype), {
+    constructor: Sprite2D,
+
+    isSprite2D: true,
+
+    getMatCfg: function getMatCfg() {
+        return {
+            enable: true,
+            scissorID: -1,
+            texture: this._atlas.texture,
+            srcFactor: this._srcFactor,
+            dstFactor: this._dstFactor
+        };
+    },
+
+    getVertexCount: function getVertexCount() {
+        return 4;
+    },
+
+    getIndexCount: function getIndexCount() {
+        return 6;
+    },
+
+    updatePosition: function updatePosition(pos, offset) {
+        // set the vertex data
+        // const texture = this._texture;
+        var wt = this.transform.worldTransform;
+        var a = wt.a;
+        var b = wt.b;
+        var c = wt.c;
+        var d = wt.d;
+        var tx = wt.tx;
+        var ty = wt.ty;
+        var trim = this._atlas.trim;
+        var orig = this._atlas.orig;
+        var anchor = this._anchor;
+
+        var w0 = 0;
+        var w1 = 0;
+        var h0 = 0;
+        var h1 = 0;
+
+        var aow = anchor.x * orig.width;
+        var aoh = anchor.y * orig.height;
+        if (trim) {
+            // if the sprite is trimmed and is not a tilingsprite then we need to add the extra
+            // space before transforming the sprite coords.
+            w1 = trim.min.x - aow;
+            w0 = trim.max.x - aow;
+
+            h1 = trim.min.y - aoh;
+            h0 = trim.max.y - aoh;
+        } else {
+            w1 = -aow;
+            w0 = w1 + orig.width;
+
+            h1 = -aoh;
+            h0 = h1 + orig.height;
+        }
+
+        var x1 = a * w1 + c * h1 + tx;
+        var y1 = d * h1 + b * w1 + ty;
+
+        var x2 = a * w0 + c * h1 + tx;
+        var y2 = d * h1 + b * w0 + ty;
+
+        var x3 = a * w0 + c * h0 + tx;
+        var y3 = d * h0 + b * w0 + ty;
+
+        var x4 = a * w1 + c * h0 + tx;
+        var y4 = d * h0 + b * w1 + ty;
+
+        pos.setXYZ(offset, x1, y1, 0);
+        pos.setXYZ(offset + 1, x2, y2, 0);
+        pos.setXYZ(offset + 2, x3, y3, 0);
+        pos.setXYZ(offset + 3, x4, y4, 0);
+    },
+
+    updateColor: function updateColor(color, offset) {
+        var cr = this.color.r * 255;
+        var cg = this.color.g * 255;
+        var cb = this.color.b * 255;
+        var ca = this.worldAlpha * 255;
+
+        color.setXYZW(offset, cr, cg, cb, ca);
+        color.setXYZW(offset + 1, cr, cg, cb, ca);
+        color.setXYZW(offset + 2, cr, cg, cb, ca);
+        color.setXYZW(offset + 3, cr, cg, cb, ca);
+    },
+
+    updateUV: function updateUV(uv, offset) {
+        this._atlas.updateUV(uv, offset);
+    },
+
+    updateIndex: function updateIndex(index, offset, voffset) {
+        index.array[offset++] = voffset;
+        index.array[offset++] = voffset + 1;
+        index.array[offset++] = voffset + 2;
+        index.array[offset++] = voffset;
+        index.array[offset++] = voffset + 2;
+        index.array[offset++] = voffset + 3;
+    },
+
+    render: function render(queue) {
+        if (this.visible && this._atlas) {
+            queue.push(this);
+            for (var i = 0, l = this.children.length; i < l; i++) {
+                this.children[i].render(queue);
+            }
+        }
+    },
+
+    setBlendMode: function setBlendMode(src, dst) {
+        this._srcFactor = src;
+        this._dstFactor = dst;
+    }
+});
+
+Object.defineProperty(Sprite2D.prototype, "atlas", {
+    get: function get() {
+        return this._atlas;
+    },
+
+    set: function set(value) {
+        this._atlas = value;
+    },
+
+    enumerable: true,
+    configurable: true
 });
 
 function WtImage(image, sprite) {
@@ -37537,9 +42019,11 @@ WtImage.prototype = Object.assign(Object.create(Widget.prototype), {
     },
 
     setSprite: function setSprite(image, sprite) {
-        this.image = image;
-        this.sprite = sprite;
-        this._atlas = ResourceManager.getSimpleSprite(image, sprite) || ResourceManager.defaultSimpleSprite;
+        if (this.image !== image || this.sprite !== sprite) {
+            this.image = image;
+            this.sprite = sprite;
+            this._atlas = ResourceManager.getSimpleSprite(this.image, this.sprite) || ResourceManager.defaultSimpleSprite;
+        }
     },
 
     getVertexCount: function getVertexCount() {
@@ -37565,9 +42049,10 @@ WtImage.prototype = Object.assign(Object.create(Widget.prototype), {
     },
 
     updatePosition: function updatePosition(pos, offset) {
-        var gap = 0.5 - this.scale * 0.5;
-        var dx = this.size.x * gap;
-        var dy = this.size.y * gap;
+        var sizeX = this.dimension.max.x - this.dimension.min.x;
+        var sizeY = this.dimension.max.y - this.dimension.min.y;
+        var dx = sizeX * (0.5 - this.scale.x * 0.5);
+        var dy = sizeY * (0.5 - this.scale.y * 0.5);
 
         var minx = this.dimension.min.x + dx;
         var miny = this.dimension.min.y + dy;
@@ -37630,17 +42115,142 @@ Object.assign(WtImage, {
     }
 });
 
+function WtVideo(video) {
+    Widget.call(this);
+
+    this.type = 'WtVideo';
+
+    this._srcFactor = SrcAlphaFactor;
+    this._dstFactor = OneMinusSrcAlphaFactor;
+    this.video = ResourceManager.getObj('vid', video) || ResourceManager.defaultTexture;
+    this.color = new Color(1, 1, 1);
+}
+
+WtVideo.prototype = Object.assign(Object.create(Widget.prototype), {
+    constructor: WtVideo,
+
+    setBlendMode: function setBlendMode(src, dst) {
+        this._srcFactor = src;
+        this._dstFactor = dst;
+    },
+
+    getMatCfg: function getMatCfg() {
+        return {
+            enable: this.enable,
+            scissorID: this.scissorID,
+            texture: this.video,
+            srcFactor: this._srcFactor,
+            dstFactor: this._dstFactor
+        };
+    },
+
+    setVideo: function setVideo(video) {
+        if (this.video.name !== video) {
+            this.video = ResourceManager.getObj('vid', video) || ResourceManager.defaultTexture;
+        }
+    },
+
+    getVertexCount: function getVertexCount() {
+        return 4;
+    },
+
+    getIndexCount: function getIndexCount() {
+        return 6;
+    },
+
+    encode: function encode() {
+        var template = Widget.prototype.encode.call(this);
+
+        template.video = this.video.name;
+
+        var color = this.color.getHex();
+        if (color !== 0xFFFFFF) {
+            template.color = color;
+        }
+
+        return template;
+    },
+
+    updatePosition: function updatePosition(pos, offset) {
+        var sizeX = this.dimension.max.x - this.dimension.min.x;
+        var sizeY = this.dimension.max.y - this.dimension.min.y;
+        var dx = sizeX * (0.5 - this.scale.x * 0.5);
+        var dy = sizeY * (0.5 - this.scale.y * 0.5);
+
+        var minx = this.dimension.min.x + dx;
+        var miny = this.dimension.min.y + dy;
+        var maxx = this.dimension.max.x - dx;
+        var maxy = this.dimension.max.y - dy;
+
+        pos.setXYZ(offset, minx, maxy, 0);
+        pos.setXYZ(offset + 1, maxx, maxy, 0);
+        pos.setXYZ(offset + 2, maxx, miny, 0);
+        pos.setXYZ(offset + 3, minx, miny, 0);
+    },
+
+    updateColor: function updateColor(color, offset) {
+        var cr = this.color.r * 255;
+        var cg = this.color.g * 255;
+        var cb = this.color.b * 255;
+        var ca = this.worldAlpha * 255;
+
+        color.setXYZW(offset, cr, cg, cb, ca);
+        color.setXYZW(offset + 1, cr, cg, cb, ca);
+        color.setXYZW(offset + 2, cr, cg, cb, ca);
+        color.setXYZW(offset + 3, cr, cg, cb, ca);
+    },
+
+    updateUV: function updateUV(uv, offset) {
+        uv.setXY(offset, 0, 65535);
+        uv.setXY(offset + 1, 65535, 65535);
+        uv.setXY(offset + 2, 65535, 0);
+        uv.setXY(offset + 3, 0, 0);
+    },
+
+    updateIndex: function updateIndex(index, offset, voffset) {
+        index.array[offset++] = voffset;
+        index.array[offset++] = voffset + 2;
+        index.array[offset++] = voffset + 1;
+        index.array[offset++] = voffset;
+        index.array[offset++] = voffset + 3;
+        index.array[offset++] = voffset + 2;
+    },
+
+    render: function render(queue) {
+        var dim = this.parent ? this.parent.dimension : this.dimension;
+        if (this.visible && dim.intersectsBox(this.dimension)) {
+            queue.push(this);
+            for (var i = 0, l = this.children.length; i < l; i++) {
+                this.children[i].render(queue);
+            }
+        }
+    }
+});
+
+Object.assign(WtVideo, {
+    decode: function decode(template, widget) {
+        widget = widget || new WtVideo(template.video);
+
+        Widget.decode(template, widget);
+
+        if (template.color !== undefined) {
+            widget.color.setHex(template.color);
+        }
+
+        return widget;
+    }
+});
+
 function WtButton(img, sprite) {
     WtImage.call(this, img, sprite);
 
     this.type = 'WtButton';
     this.pressedScale = 0.95;
     this._pressed = false;
-    this.fn_onclick = null;
 
     this.addEventListener(EVT_UI_DOWN, function (evt) {
         this._pressed = true;
-        this.setScale(this.pressedScale);
+        this.setScale(this.pressedScale, this.pressedScale);
         evt.stop = true;
     });
 
@@ -37648,13 +42258,15 @@ function WtButton(img, sprite) {
         if (this._pressed) {
             if (this.dimension.containsPoint(evt)) {
                 try {
-                    !Config.bEditor && this.fn_onclick && this.fn_onclick(this);
+                    if (this.sID) {
+                        Config.enter(this.sID, 'click');
+                    }
                 } catch (e) {
                     console.log(e);
                 }
             }
             this._pressed = false;
-            this.setScale(1);
+            this.setScale(1, 1);
         }
     });
 }
@@ -37664,10 +42276,6 @@ WtButton.prototype = Object.assign(Object.create(WtImage.prototype), {
 
     encode: function encode() {
         var template = WtImage.prototype.encode.call(this);
-
-        if (this.fn_onclick) {
-            template.onclick = this.fn_onclick.name;
-        }
 
         if (this.pressedScale !== 0.95) {
             template.pressedScale = this.pressedScale;
@@ -37683,10 +42291,6 @@ Object.assign(WtButton, {
 
         WtImage.decode(template, widget);
 
-        if (template.onclick !== undefined) {
-            widget.fn_onclick = ResourceManager.getFunc(template.onclick);
-        }
-
         if (template.pressedScale !== undefined) {
             widget.pressedScale = template.pressedScale;
         }
@@ -37694,187 +42298,6 @@ Object.assign(WtButton, {
         return widget;
     }
 });
-
-function SimpleSprite(tex, sprite, x, y, w, h) {
-    this.texture = tex;
-    this.sprite = sprite;
-
-    this.x1 = x * 65535;
-    this.y1 = y * 65535;
-    this.x2 = (x + w) * 65535;
-    this.y2 = (y - h) * 65535;
-}
-
-Object.assign(SimpleSprite.prototype, {
-    updateUV: function updateUV(uv, offset) {
-        uv.setXY(offset, this.x1, this.y1);
-        uv.setXY(offset + 1, this.x2, this.y1);
-        uv.setXY(offset + 2, this.x2, this.y2);
-        uv.setXY(offset + 3, this.x1, this.y2);
-    }
-});
-
-var TextCanvas = function () {
-    var _canvas = document.createElement('canvas');
-    var _ctx = _canvas.getContext('2d');
-    var _lines = {};
-    var _id = 0;
-
-    _canvas.width = 2048;
-    _canvas.height = 2048;
-
-    _ctx.textAlign = 'left';
-    _ctx.textBaseline = 'top';
-
-    var _invw = 1 / _canvas.width;
-    var _invh = 1 / _canvas.height;
-
-    var _texture = new Texture(_canvas);
-    _texture.generateMipmaps = false;
-    _texture.minFilter = NearestFilter;
-
-    var _mark = { x: 0, y: 0, line_height: 0 };
-
-    var _p = document.createElement('p');
-    var _getLineSize = function _getLineSize(str, font) {
-        _p.style.font = font;
-        document.body.appendChild(_p);
-        var size = {
-            width: _ctx.measureText(str).width,
-            height: parseInt(window.getComputedStyle(_p).fontSize, 10)
-        };
-        document.body.removeChild(_p);
-
-        return size;
-    };
-
-    var _addLine = function _addLine(text, w, h) {
-        var line = { id: ++_id, str: text, width: w, height: h, x: 0, y: 0 };
-        _lines[_id] = line;
-        return line;
-    };
-
-    var _redraw = function _redraw() {
-        for (var id in _lines) {
-            var line = _lines[id];
-
-            if (_mark.x + line.width > _canvas.width) {
-                _mark.x = 0;
-                _mark.line_height = line.height;
-                _mark.y += _mark.line_height;
-                if (_mark.y + line.height > _canvas.height) {
-                    _mark.line_height = 0;
-                    _mark.y = 0;
-                    console.error('Error: TextCanvas is too small!');
-                }
-            } else {
-                _mark.line_height = Math.max(line.height, _mark.line_height);
-            }
-
-            line.x = _mark.x;
-            line.y = _mark.y;
-            _mark.x += line.width;
-
-            _ctx.clearRect(line.x, line.y, line.width, line.height);
-            _ctx.fillText(line.str, line.x, line.y, line.width);
-        }
-
-        _texture.needsUpdate = true;
-    };
-
-    return {
-        getTexture: function getTexture() {
-            return _texture;
-        },
-
-        getInvW: function getInvW() {
-            return _invw;
-        },
-
-        getInvH: function getInvH() {
-            return _invh;
-        },
-
-        remove: function remove(lines) {
-            for (var i = 0; i !== lines.length; ++i) {
-                delete _lines[lines[i].id];
-            }
-        },
-
-        addText: function addText(text, font, max_width, color, auto_break) {
-            _ctx.font = font;
-            _ctx.fillStyle = '#' + color.getHexString();
-
-            var strs = text.split('\n');
-
-            var lines = [];
-            var lineWidth = 0;
-
-            for (var i = 0; i !== strs.length; ++i) {
-                var str = strs[i];
-                var size = _getLineSize(str, font);
-                if (size.width > max_width) {
-                    if (auto_break) {
-                        var lineWidth = 0;
-                        var line = '';
-                        for (var j = 0; j !== str.length; ++j) {
-                            var c = str[j];
-                            var cw = _ctx.measureText(c).width;
-                            if (lineWidth + cw > max_width) {
-                                lines.push(_addLine(line, lineWidth, size.height));
-                                lineWidth = cw;
-                                line = c;
-                            } else {
-                                line += c;
-                                lineWidth += cw;
-                            }
-                        }
-                        lines.push(_addLine(line, lineWidth, size.height));
-                    } else {
-                        lines.push(_addLine(str, max_width, size.height));
-                    }
-                } else {
-                    lines.push(_addLine(str, size.width, size.height));
-                }
-            }
-
-            for (var i = 0, l = lines.length; i !== l; ++i) {
-                var line = lines[i];
-
-                if (_mark.x + line.width > _canvas.width) {
-                    _mark.x = 0;
-                    _mark.line_height = line.height;
-                    _mark.y += _mark.line_height;
-                    if (_mark.y + line.height > _canvas.height) {
-                        _mark.y = 0;
-                        _mark.line_height = 0;
-                        _redraw();
-                        return lines;
-                    }
-                } else {
-                    _mark.line_height = Math.max(line.height, _mark.line_height);
-                }
-
-                line.x = _mark.x;
-                line.y = _mark.y;
-                _mark.x += line.width;
-            }
-
-            for (var i = 0, l = lines.length; i !== l; ++i) {
-                var line = lines[i];
-
-                _ctx.clearRect(line.x, line.y, line.width, line.height);
-                _ctx.fillText(line.str, line.x, line.y, line.width);
-            }
-
-            if (lines.length > 0) {
-                _texture.needsUpdate = true;
-            }
-
-            return lines;
-        }
-    };
-}();
 
 function WtText(text) {
     Widget.call(this);
@@ -37891,6 +42314,8 @@ function WtText(text) {
 
     this._srcFactor = SrcAlphaFactor;
     this._dstFactor = OneMinusSrcAlphaFactor;
+    this._srcAlpha = OneFactor;
+    this._dstAlpha = OneMinusSrcAlphaFactor;
 
     this.lines = [];
     this.max_width = -1;
@@ -37905,7 +42330,9 @@ WtText.prototype = Object.assign(Object.create(Widget.prototype), {
             scissorID: this.scissorID,
             texture: TextCanvas.getTexture(),
             srcFactor: this._srcFactor,
-            dstFactor: this._dstFactor
+            dstFactor: this._dstFactor,
+            blendSrcAlpha: this._srcAlpha,
+            blendDstAlpha: this._dstAlpha
         };
     },
 
@@ -37918,10 +42345,9 @@ WtText.prototype = Object.assign(Object.create(Widget.prototype), {
     },
 
     updatePosition: function updatePosition(pos, offset) {
-        var gap = 0.5 - this.scale * 0.5;
-        var dx = this.size.x * gap;
-        var dy = this.size.y * gap;
-        var line_gap = this.line_gap * this.scale;
+        var dx = (this.dimension.max.x - this.dimension.min.x) * (0.5 - this.scale.x * 0.5);
+        var dy = (this.dimension.max.y - this.dimension.min.y) * (0.5 - this.scale.y * 0.5);
+        var line_gap = this.line_gap * this.scale.y;
 
         var minx = this.dimension.min.x + dx;
         var maxx = this.dimension.max.x - dx;
@@ -37931,8 +42357,8 @@ WtText.prototype = Object.assign(Object.create(Widget.prototype), {
         for (var i = 0; i != this.lines.length; ++i) {
             var line = this.lines[i];
 
-            var lw = line.width * this.scale;
-            var lh = line.height * this.scale;
+            var lw = line.width * this.scale.x;
+            var lh = line.height * this.scale.y;
 
             if (this.text_align === ANCHOR_LEFT) {
                 x1 = minx;
@@ -37960,9 +42386,9 @@ WtText.prototype = Object.assign(Object.create(Widget.prototype), {
 
     updateColor: function updateColor(color, offset) {
         for (var i = 0; i != this.lines.length; ++i) {
-            var cr = 255;
-            var cg = 255;
-            var cb = 255;
+            var cr = this.color.r * 255;
+            var cg = this.color.g * 255;
+            var cb = this.color.b * 255;
             var ca = this.worldAlpha * 255;
 
             color.setXYZW(offset, cr, cg, cb, ca);
@@ -38010,7 +42436,7 @@ WtText.prototype = Object.assign(Object.create(Widget.prototype), {
 
     refresh: function refresh() {
         TextCanvas.remove(this.lines);
-        this.lines = TextCanvas.addText(this.text, this.font, this.size.x, this.color, this.auto_break);
+        this.lines = TextCanvas.addText(this.text, this.font, this.size.x, this.auto_break);
     },
 
     render: function render(queue) {
@@ -38264,22 +42690,24 @@ WtProgressBar.prototype = Object.assign(Object.create(WtImage.prototype), {
         var minx, miny, maxx, maxy;
 
         if (this.horizontal) {
+            var sizeX = this.dimension.max.x - this.dimension.min.x;
             if (this.reversed) {
                 maxx = this.dimension.max.x;
-                minx = maxx - this.size.x * this.progress;
+                minx = maxx - sizeX * this.progress;
             } else {
                 minx = this.dimension.min.x;
-                maxx = minx + this.size.x * this.progress;
+                maxx = minx + sizeX * this.progress;
             }
             miny = this.dimension.min.y;
             maxy = this.dimension.max.y;
         } else {
+            var sizeY = this.dimension.max.y - this.dimension.min.y;
             if (this.reversed) {
                 maxy = this.dimension.max.y;
-                miny = maxy - this.size.y * this.progress;
+                miny = maxy - sizeY * this.progress;
             } else {
                 miny = this.dimension.min.y;
-                maxy = miny + this.size.y * this.progress;
+                maxy = miny + sizeY * this.progress;
             }
             minx = this.dimension.min.x;
             maxx = this.dimension.max.x;
@@ -38374,26 +42802,29 @@ WtScrollView.prototype = Object.assign(Object.create(Widget.prototype), {
                 this.worldAlpha = this.alpha;
             }
             force = force || this._dirty;
+
             if (force) {
                 this.doRelayout();
                 var id = Widget.getScissorID(this.dimension);
                 this.enableScissor(id);
 
                 this._length = 0;
+
                 var w = this.size.x;
                 var h = this.size.y;
+
                 if (this.horizontal) {
                     for (var i = 0, l = this.children.length; i < l; i++) {
                         var child = this.children[i];
-                        var ox = child.formulaOffsetXFunc(w, h);
-                        var sx = child.formulaSizeXFunc(w, h);
+                        var ox = child._formulaOffsetX(w, h);
+                        var sx = child._formulaSizeX(w, h);
                         this._length = Math.max(this._length, ox + sx);
                     }
                 } else {
                     for (var i = 0, l = this.children.length; i < l; i++) {
                         var child = this.children[i];
-                        var oy = child.formulaOffsetYFunc(w, h);
-                        var sy = child.formulaSizeYFunc(w, h);
+                        var oy = child._formulaOffsetY(w, h);
+                        var sy = child._formulaSizeY(w, h);
                         this._length = Math.max(this._length, oy + sy);
                     }
                 }
@@ -38625,11 +43056,12 @@ function WtDialog(img, sprite) {
     WtPanel.call(this, img, sprite);
 
     this.type = 'WtDialog';
-    this.fn_onclose = null;
 
     this.addEventListener(EVT_UI_UP, function (evt) {
         if (!this.dimension.containsPoint(evt)) {
-            !Config.bEditor && this.close();
+            if (this.sID) {
+                Config.enter(this.sID, 'close');
+            }
         }
     });
 }
@@ -38640,7 +43072,9 @@ WtDialog.prototype = Object.assign(Object.create(WtPanel.prototype), {
     close: function close() {
         this.visible = false;
         try {
-            this.fn_onclose && this.fn_onclose(this);
+            if (this.sID) {
+                Config.enter(this.sID, 'close');
+            }
         } catch (e) {
             console.log(e);
         }
@@ -38663,442 +43097,7 @@ Object.assign(WtDialog, {
 
         WtPanel.decode(template, widget);
 
-        if (template.onclose !== undefined) {
-            widget.fn_onclose = ResourceManager.getFunc(template.onclose);
-        }
-
         return widget;
-    }
-});
-
-/**
- * | a | b | tx|
- * | c | d | ty|
- * | 0 | 0 | 1 |
- */
-function Matrix(a, b, c, d, tx, ty) {
-    this.a = a || 1;
-    this.b = b || 0;
-    this.c = c || 0;
-    this.d = d || 1;
-    this.tx = tx || 0;
-    this.ty = ty || 0;
-}
-
-Object.assign(Matrix.prototype, {
-    set: function set(a, b, c, d, tx, ty) {
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        this.d = d;
-        this.tx = tx;
-        this.ty = ty;
-
-        return this;
-    },
-
-    apply: function apply(pos, newPos) {
-        newPos = newPos || new Vector2();
-
-        var x = pos.x;
-        var y = pos.y;
-
-        newPos.x = this.a * x + this.c * y + this.tx;
-        newPos.y = this.b * x + this.d * y + this.ty;
-
-        return newPos;
-    },
-
-    applyInverse: function applyInverse(pos, newPos) {
-        newPos = newPos || new Vector2();
-
-        var id = 1 / (this.a * this.d + this.c * -this.b);
-
-        var x = pos.x;
-        var y = pos.y;
-
-        newPos.x = this.d * id * x + -this.c * id * y + (this.ty * this.c - this.tx * this.d) * id;
-        newPos.y = this.a * id * y + -this.b * id * x + (-this.ty * this.a + this.tx * this.b) * id;
-
-        return newPos;
-    },
-
-    translate: function translate(x, y) {
-        this.tx += x;
-        this.ty += y;
-
-        return this;
-    },
-
-    scale: function scale(x, y) {
-        this.a *= x;
-        this.d *= y;
-        this.c *= x;
-        this.b *= y;
-        this.tx *= x;
-        this.ty *= y;
-
-        return this;
-    },
-
-    rotate: function rotate(angle) {
-        var cos = Math.cos(angle);
-        var sin = Math.sin(angle);
-
-        var a1 = this.a;
-        var c1 = this.c;
-        var tx1 = this.tx;
-
-        this.a = a1 * cos - this.b * sin;
-        this.b = a1 * sin + this.b * cos;
-        this.c = c1 * cos - this.d * sin;
-        this.d = c1 * sin + this.d * cos;
-        this.tx = tx1 * cos - this.ty * sin;
-        this.ty = tx1 * sin + this.ty * cos;
-
-        return this;
-    },
-
-    append: function append(matrix) {
-        var a1 = this.a;
-        var b1 = this.b;
-        var c1 = this.c;
-        var d1 = this.d;
-
-        this.a = matrix.a * a1 + matrix.b * c1;
-        this.b = matrix.a * b1 + matrix.b * d1;
-        this.c = matrix.c * a1 + matrix.d * c1;
-        this.d = matrix.c * b1 + matrix.d * d1;
-
-        this.tx = matrix.tx * a1 + matrix.ty * c1 + this.tx;
-        this.ty = matrix.tx * b1 + matrix.ty * d1 + this.ty;
-
-        return this;
-    },
-
-    setTransform: function setTransform(x, y, pivotX, pivotY, scaleX, scaleY, rotation, skewX, skewY) {
-        var sr = Math.sin(rotation);
-        var cr = Math.cos(rotation);
-        var cy = Math.cos(skewY);
-        var sy = Math.sin(skewY);
-        var nsx = -Math.sin(skewX);
-        var cx = Math.cos(skewX);
-
-        var a = cr * scaleX;
-        var b = sr * scaleX;
-        var c = -sr * scaleY;
-        var d = cr * scaleY;
-
-        this.a = cy * a + sy * c;
-        this.b = cy * b + sy * d;
-        this.c = nsx * a + cx * c;
-        this.d = nsx * b + cx * d;
-
-        this.tx = x + (pivotX * a + pivotY * c);
-        this.ty = y + (pivotX * b + pivotY * d);
-
-        return this;
-    },
-
-    prepend: function prepend(matrix) {
-        var tx1 = this.tx;
-
-        if (matrix.a !== 1 || matrix.b !== 0 || matrix.c !== 0 || matrix.d !== 1) {
-            var a1 = this.a;
-            var c1 = this.c;
-
-            this.a = a1 * matrix.a + this.b * matrix.c;
-            this.b = a1 * matrix.b + this.b * matrix.d;
-            this.c = c1 * matrix.a + this.d * matrix.c;
-            this.d = c1 * matrix.b + this.d * matrix.d;
-        }
-
-        this.tx = tx1 * matrix.a + this.ty * matrix.c + matrix.tx;
-        this.ty = tx1 * matrix.b + this.ty * matrix.d + matrix.ty;
-
-        return this;
-    },
-
-    decompose: function decompose(transform) {
-        // sort out rotation / skew..
-        var a = this.a;
-        var b = this.b;
-        var c = this.c;
-        var d = this.d;
-
-        var skewX = -Math.atan2(-c, d);
-        var skewY = Math.atan2(b, a);
-
-        var delta = Math.abs(skewX + skewY);
-
-        if (delta < 0.00001) {
-            transform.rotation = skewY;
-
-            if (a < 0 && d >= 0) {
-                transform.rotation += transform.rotation <= 0 ? Math.PI : -Math.PI;
-            }
-
-            transform.skew.x = transform.skew.y = 0;
-        } else {
-            transform.skew.x = skewX;
-            transform.skew.y = skewY;
-        }
-
-        // next set scale
-        transform.scale.x = Math.sqrt(a * a + b * b);
-        transform.scale.y = Math.sqrt(c * c + d * d);
-
-        // next set position
-        transform.position.x = this.tx;
-        transform.position.y = this.ty;
-
-        return transform;
-    },
-
-    invert: function invert() {
-        var a1 = this.a;
-        var b1 = this.b;
-        var c1 = this.c;
-        var d1 = this.d;
-        var tx1 = this.tx;
-        var n = a1 * d1 - b1 * c1;
-
-        this.a = d1 / n;
-        this.b = -b1 / n;
-        this.c = -c1 / n;
-        this.d = a1 / n;
-        this.tx = (c1 * this.ty - d1 * tx1) / n;
-        this.ty = -(a1 * this.ty - b1 * tx1) / n;
-
-        return this;
-    },
-
-    identity: function identity() {
-        this.a = 1;
-        this.b = 0;
-        this.c = 0;
-        this.d = 1;
-        this.tx = 0;
-        this.ty = 0;
-
-        return this;
-    },
-
-    clone: function clone() {
-        var matrix = new Matrix();
-
-        matrix.a = this.a;
-        matrix.b = this.b;
-        matrix.c = this.c;
-        matrix.d = this.d;
-        matrix.tx = this.tx;
-        matrix.ty = this.ty;
-
-        return matrix;
-    },
-
-    copy: function copy(matrix) {
-        this.a = matrix.a;
-        this.b = matrix.b;
-        this.c = matrix.c;
-        this.d = matrix.d;
-        this.tx = matrix.tx;
-        this.ty = matrix.ty;
-
-        return this;
-    }
-});
-
-function Transform() {
-    this.worldTransform = new Matrix();
-    this.localTransform = new Matrix();
-    this._worldID = 0;
-    this._parentID = 0;
-    this.position = new Vector2(0, 0);
-    this.scale = new Vector2(1, 1);
-    this.skew = new Vector2(0, 0);
-    this.pivot = new Vector2(0, 0);
-    this._rotation = 0;
-    this._cx = 1;
-    this._sx = 0;
-    this._cy = 0;
-    this._sy = 1;
-}
-
-Object.assign(Transform.prototype, {
-    updateSkew: function updateSkew() {
-        this._cx = Math.cos(this._rotation + this.skew.y);
-        this._sx = Math.sin(this._rotation + this.skew.y);
-        this._cy = -Math.sin(this._rotation - this.skew.x); // cos, added PI/2
-        this._sy = Math.cos(this._rotation - this.skew.x); // sin, added PI/2
-    },
-
-    updateLocalTransform: function updateLocalTransform() {
-        var lt = this.localTransform;
-
-        lt.a = this._cx * this.scale.x;
-        lt.b = this._sx * this.scale.x;
-        lt.c = this._cy * this.scale.y;
-        lt.d = this._sy * this.scale.y;
-
-        lt.tx = this.position.x - (this.pivot.x * lt.a + this.pivot.y * lt.c);
-        lt.ty = this.position.y - (this.pivot.x * lt.b + this.pivot.y * lt.d);
-    },
-
-    updateTransform: function updateTransform(parentTransform) {
-        var lt = this.localTransform;
-
-        lt.a = this._cx * this.scale.x;
-        lt.b = this._sx * this.scale.x;
-        lt.c = this._cy * this.scale.y;
-        lt.d = this._sy * this.scale.y;
-
-        lt.tx = this.position.x - (this.pivot.x * lt.a + this.pivot.y * lt.c);
-        lt.ty = this.position.y - (this.pivot.x * lt.b + this.pivot.y * lt.d);
-
-        // concat the parent matrix with the objects transform.
-        var pt = parentTransform.worldTransform;
-        var wt = this.worldTransform;
-
-        wt.a = lt.a * pt.a + lt.b * pt.c;
-        wt.b = lt.a * pt.b + lt.b * pt.d;
-        wt.c = lt.c * pt.a + lt.d * pt.c;
-        wt.d = lt.c * pt.b + lt.d * pt.d;
-        wt.tx = lt.tx * pt.a + lt.ty * pt.c + pt.tx;
-        wt.ty = lt.tx * pt.b + lt.ty * pt.d + pt.ty;
-
-        this._worldID++;
-    },
-
-    setFromMatrix: function setFromMatrix(matrix) {
-        matrix.decompose(this);
-    }
-});
-
-Object.defineProperty(Transform.prototype, "rotation", {
-    get: function get() {
-        return this._rotation;
-    },
-    set: function set(value) {
-        this._rotation = value;
-        this.updateSkew();
-    },
-    enumerable: true,
-    configurable: true
-});
-
-function Object2D() {
-    this.transform = new Transform();
-    this.alpha = 1;
-    this.worldAlpha = 1;
-    this.visible = true;
-
-    this.parent = null;
-    this.children = [];
-    this.z = 0;
-}
-
-Object.assign(Object2D.prototype, {
-    isObject2D: true,
-
-    updateTransform: function updateTransform() {
-        if (this.parent) {
-            this.transform.updateTransform(this.parent.transform);
-            this.worldAlpha = this.alpha * this.parent.worldAlpha;
-        } else {
-            this.transform.updateLocalTransform();
-            this.worldAlpha = this.alpha;
-        }
-
-        for (var i = 0, j = this.children.length; i < j; ++i) {
-            var child = this.children[i];
-
-            if (child.visible) {
-                child.updateTransform();
-            }
-        }
-    },
-
-    setTransform: function setTransform(x, y, scaleX, scaleY, rotation, skewX, skewY, pivotX, pivotY) {
-        this.transform.position.x = x;
-        this.transform.position.y = y;
-        this.transform.scale.x = !scaleX ? 1 : scaleX;
-        this.transform.scale.y = !scaleY ? 1 : scaleY;
-        this.transform.rotation = rotation;
-        this.transform.skew.x = skewX;
-        this.transform.skew.y = skewY;
-        this.transform.pivot.x = pivotX;
-        this.transform.pivot.y = pivotY;
-
-        return this;
-    },
-
-    add: function add(object) {
-        if (object === this) {
-            console.error("Halo.Object2D.add: object can't be added as a child of itself.", object);
-            return this;
-        }
-
-        if (object && object.isObject2D) {
-            if (object.parent !== null) {
-                object.parent.remove(object);
-            }
-
-            object.parent = this;
-            this.children.push(object);
-        } else {
-            console.error("Halo.Object2D.add: object not an instance of Halo.Object2D.", object);
-        }
-    },
-
-    remove: function remove(object) {
-        var index = this.children.indexOf(object);
-        if (index !== -1) {
-            object.parent = null;
-            this.children.splice(index, 1);
-        }
-    },
-
-    traverse: function traverse(callback) {
-        if (this.visible) {
-            callback(this);
-            for (var i = 0, l = this.children.length; i < l; i++) {
-                this.children[i].traverse(callback);
-            }
-        }
-    },
-
-    render: function render(queue) {
-        if (this.visible) {
-            for (var i = 0, l = this.children.length; i < l; i++) {
-                this.children[i].render(queue);
-            }
-        }
-    },
-
-    update: function update(dt) {
-        !Config.bEditor && this.fn_update && this.fn_update(this, dt);
-
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            this.children[i].update(dt);
-        }
-    },
-
-    init: function init() {
-        !Config.bEditor && this.fn_init && this.fn_init(this);
-
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            this.children[i].init();
-        }
-    },
-
-    dispose: function dispose() {
-        !Config.bEditor && this.fn_dispose && this.fn_dispose(this);
-
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            var fn_dispose = this.children[i].fn_dispose;
-            fn_dispose && fn_dispose();
-        }
     }
 });
 
@@ -39113,6 +43112,11 @@ function WtObject2D() {
 WtObject2D.prototype = Object.assign(Object.create(Widget.prototype), {
     constructor: WtObject2D,
 
+    render: function render(queue) {
+        Widget.prototype.render.call(this, queue);
+        this.obj2d.render(queue);
+    },
+
     relayout: function relayout(force) {
         var relayout = this.visible && (force || this._dirty);
         Widget.prototype.relayout.call(this, force);
@@ -39121,7 +43125,9 @@ WtObject2D.prototype = Object.assign(Object.create(Widget.prototype), {
             this.center.add(this.dimension.max);
             this.center.multiplyScalar(0.5);
             this.obj2d.transform.position.copy(this.center);
+            this.obj2d.transform.updateTransform(Transform.IDENTITY);
         }
+        this.obj2d.updateTransform();
     }
 });
 
@@ -39134,3389 +43140,54 @@ Object.assign(WtObject2D, {
     }
 });
 
-function HaloScene() {
-    Scene.call(this);
+function WtObject3D() {
+    Widget.call(this);
 
-    this._ratio = 1;
-    this._invRatio = 1;
-    this._spriteRoot = new Object2D();
-    this._widgetRoot = new Widget();
-    this._widgetRoot.setSize(1920, 1080);
-    this._widgets = [];
-    this.fit_type = FIT_MIN;
-    this.camera = null;
-    this.fn_event = null;
+    this.type = 'WtObject3D';
+    this.obj3d = null;
 
-    var _vertex_count = 0;
-    var _index_count = 0;
+    this.location = new Vector2();
 
-    function createGeometry(vnum, inum) {
-        _vertex_count = vnum;
-        _index_count = inum;
-
-        var geo = new BufferGeometry();
-
-        var attrPos = new BufferAttribute(new Float32Array(3 * vnum), 3).setDynamic(true);
-        var attrColor = new BufferAttribute(new Uint8Array(4 * vnum), 4).setDynamic(true);
-        var attrUV = new BufferAttribute(new Uint16Array(2 * vnum), 2).setDynamic(true);
-        var attrIndex = new BufferAttribute(new Uint16Array(inum), 1).setDynamic(true);
-
-        attrColor.normalized = true;
-        attrUV.normalized = true;
-
-        geo.addAttribute('position', attrPos);
-        geo.addAttribute('color', attrColor);
-        geo.addAttribute('uv', attrUV);
-        geo.setIndex(attrIndex);
-
-        return geo;
-    }
-
-    var geo = createGeometry(2, 4);
-
-    function genMatKey(cfg) {
-        var id = (cfg.texture.id << 16) + (cfg.srcFactor << 4) + cfg.dstFactor - 3400;
-
-        if (cfg.enable) {
-            id += 256;
-        }
-
-        if (cfg.scissorID >= 0) {
-            id += cfg.scissorID + 1 << 9;
-        }
-
-        return id;
-    }
-
-    function genMaterial(matCfg) {
-        var material = new ShaderMaterial({
-            transparent: true,
-            depthWrite: false,
-            blending: CustomBlending,
-            blendEquation: AddEquation,
-            blendSrc: matCfg.srcFactor,
-            blendDst: matCfg.dstFactor,
-            vertexShader: HaloScene.SHADER_2D.vertex,
-            fragmentShader: matCfg.enable ? HaloScene.SHADER_2D.fragment : HaloScene.SHADER_2D.disabale,
-            uniforms: {
-                tSprite: { value: matCfg.texture },
-                uPMVMatrix: { value: HaloScene.PMV_MATRIX }
-            }
-        });
-
-        material.scissorID = matCfg.scissorID;
-        material.needsUpdate = true;
-
-        return material;
-    }
-
-    var mesh = null;
-
-    this._genRenderMesh = function () {
-        var renderList = [];
-
-        this._spriteRoot.render(renderList);
-        this._widgetRoot.render(renderList);
-
-        // renderList.sort(function zorder(a, b) {
-        //     return a.z - b.z;
-        // });
-
-        var vc = 0;
-        var ic = 0;
-        for (var i = 0, l = renderList.length; i !== l; ++i) {
-            var obj = renderList[i];
-            vc += obj.getVertexCount();
-            ic += obj.getIndexCount();
-        }
-
-        if (vc > _vertex_count || ic > _index_count) {
-            while (_vertex_count < vc) {
-                _vertex_count *= 2;
-            }
-            while (_index_count < ic) {
-                _index_count *= 2;
-            }
-            geo = createGeometry(_vertex_count, _index_count);
-        }
-
-        var pos = geo.getAttribute('position');
-        var color = geo.getAttribute('color');
-        var uv = geo.getAttribute('uv');
-
-        geo.clearGroups();
-        var voffset = 0;
-        var ioffset = 0;
-        var group = null;
-        for (var i = 0, l = renderList.length; i !== l; ++i) {
-            var obj = renderList[i];
-            var matCfg = obj.getMatCfg();
-            var matKey = genMatKey(matCfg);
-
-            var material = HaloScene.materials[matKey];
-            if (!material) {
-                material = genMaterial(matCfg);
-                HaloScene.materials[matKey] = material;
-                HaloScene.matqueue.push(material);
-            }
-            var matIndex = HaloScene.matqueue.indexOf(material);
-
-            if (group === null) {
-                geo.addGroup(0, 0, matIndex);
-                group = geo.groups[0];
-            } else if (group.materialIndex !== matIndex) {
-                geo.addGroup(ioffset, 0, matIndex);
-                group = geo.groups[geo.groups.length - 1];
-            }
-
-            obj.updatePosition(pos, voffset);
-            obj.updateColor(color, voffset);
-            obj.updateUV(uv, voffset);
-            obj.updateIndex(geo.index, ioffset, voffset);
-
-            voffset += obj.getVertexCount();
-            ioffset += obj.getIndexCount();
-            group.count = ioffset - group.start;
-        }
-
-        if (voffset > 0 || ioffset > 0) {
-            pos.updateRange.offset = color.updateRange.offset = uv.updateRange.offset = geo.index.updateRange.offset = 0;
-            pos.updateRange.count = voffset * 3;
-            color.updateRange.count = voffset * 4;
-            uv.updateRange.count = voffset * 2;
-            geo.index.updateRange.count = ioffset;
-            pos.needsUpdate = color.needsUpdate = uv.needsUpdate = geo.index.needsUpdate = true;
-        }
-
-        if (mesh === null) {
-            mesh = new Mesh(geo, HaloScene.matqueue);
-            mesh.name = 'HALO2D';
-            mesh.renderOrder = 1000;
-            mesh.frustumCulled = false;
-            this.add(mesh);
-
-            mesh.onBeforeRender = function (renderer, scene, camera, geometry, material, group) {
-                if (material.scissorID >= 0) {
-                    var ratio = renderer.getPixelRatio() * scene._invRatio;
-                    var box2 = Widget.scissors[material.scissorID];
-                    var x = box2.min.x * ratio;
-                    var y = box2.min.y * ratio;
-                    var w = box2.max.x * ratio - x;
-                    var h = box2.max.y * ratio - y;
-                    renderer.setScissor(x, y, w, h);
-                    renderer.setScissorTest(true);
-                } else {
-                    renderer.setScissorTest(false);
-                }
-            };
-
-            mesh.onAfterRender = function (renderer, scene, camera, geometry, material, group) {
-                renderer.setScissorTest(false);
-            };
-        } else {
-            mesh.geometry = geo;
-            mesh.material = HaloScene.matqueue;
-        }
+    this._formulaOffsetX = function () {
+        return this.location.x;
     };
+
+    this._formulaOffsetY = function () {
+        return this.location.y;
+    };
+
+    this.setAnchorType(ANCHOR_LEFT, ANCHOR_BOTTOM);
 }
 
-HaloScene.prototype = Object.assign(Object.create(Scene.prototype), {
-    constructor: HaloScene,
+WtObject3D.prototype = Object.assign(Object.create(Widget.prototype), {
+    constructor: WtObject3D,
 
-    getWidgetRoot: function getWidgetRoot() {
-        return this._widgetRoot;
-    },
+    setFormulaOffsetX: function setFormulaOffsetX(formula) {},
 
-    getSpriteRoot: function getSpriteRoot() {
-        return this._spriteRoot;
-    },
+    setFormulaOffsetY: function setFormulaOffsetY(formula) {},
 
     update: function update(dt) {
-        Scene.prototype.update.call(this, dt);
-
-        this._spriteRoot.update(dt);
-        this._widgetRoot.update(dt);
-
-        Config.updateDragonBones(dt);
-
-        this._spriteRoot.updateTransform();
-        this._widgetRoot.relayout();
-
-        this._genRenderMesh();
-    },
-
-    onResizeWindow: function onResizeWindow(w, h) {
-        this.windowSize = { w: w, h: h };
-
-        if (this.camera) {
-            this.camera.aspect = w / h;
-            this.camera.updateProjectionMatrix();
+        if (this.visible && this.obj3d && this.obj3d.isObject3D) {
+            var design_size = Config.get().design_size;
+            var camera = Config.scene().camera;
+            if (camera) {
+                var position = this.obj3d.getWorldPosition().project(camera);
+                this.location.x = (position.x + 1) / HaloScene.PMV_MATRIX.x;
+                this.location.y = (position.y + 1) / HaloScene.PMV_MATRIX.y;
+                this._dirty = true;
+            }
         }
-
-        var cfg = Config.get();
-
-        if (!cfg || !cfg.design_size) {
-            return;
-        }
-
-        var dw = cfg.design_size.x;
-        var dh = cfg.design_size.y;
-
-        this._widgetRoot.setSize(dw, dh);
-
-        var ratioW = w / dw;
-        var ratioH = h / dh;
-
-        var logicW = dw;
-        var logicH = dh;
-
-        if (this.fit_type === FIT_MIN) {
-            this._invRatio = Math.min(ratioW, ratioH);
-            this._ratio = 1 / this._invRatio;
-
-            logicW = ratioW < ratioH ? dw : dh * (w / h);
-            logicH = ratioW > ratioH ? dh : dw * (h / w);
-        } else if (this.fit_type === FIT_MAX) {
-            this._invRatio = Math.max(ratioW, ratioH);
-            this._ratio = 1 / this._invRatio;
-
-            logicW = ratioW > ratioH ? dw : dh * (w / h);
-            logicH = ratioW < ratioH ? dh : dw * (h / w);
-        } else if (this.fit_type === FIT_WIDTH) {
-            this._invRatio = ratioW;
-            this._ratio = 1 / this._invRatio;
-
-            logicW = dw;
-            logicH = dw * (h / w);
-        } else if (this.fit_type === FIT_HEIGHT) {
-            this._invRatio = ratioH;
-            this._ratio = 1 / this._invRatio;
-
-            logicW = dh * (w / h);
-            logicH = dh;
-        }
-
-        HaloScene.PMV_MATRIX.set(2 / logicW, 2 / logicH, 0, 1);
-
-        this._widgetRoot.setOffset(0, 0);
-        this._widgetRoot.setSize(logicW, logicH);
-    },
-
-    handleEvent: function handleEvent(evt, type, x, y) {
-        this.fn_event && this.fn_event(evt);
-        type && this._widgetRoot.captureEvent({ type: type, x: x * this._ratio, y: y * this._ratio });
-    },
-
-    clone: function clone() {
-        var mesh = this.getObjectByName('HALO2D');
-        if (mesh) {
-            this.remove(mesh);
-        }
-        var scene = new this.constructor().copy(this, true);
-        scene._widgets = this._widgets.slice(0);
-        for (var i = 0; i !== scene._widgets.length; ++i) {
-            scene._widgetRoot.add(Config.createWidget(scene._widgets[i]));
-        }
-        if (mesh) {
-            this.add(mesh);
-        }
-        return scene;
-    },
-
-    getDeps: function getDeps(meta) {
-        var mesh = this.getObjectByName('HALO2D');
-        if (mesh) {
-            this.remove(mesh);
-        }
-        var deps = Object3D.prototype.getDeps.call(this, meta);
-        if (mesh) {
-            this.add(mesh);
-        }
-        return deps;
-    },
-
-    encode: function encode() {
-        var mesh = this.getObjectByName('HALO2D');
-        if (mesh) {
-            this.remove(mesh);
-        }
-        var data = Object3D.prototype.encode.call(this);
-
-        if (this.background !== null) {
-            data.background = this.background.toJSON();
-        }
-        if (this.fog !== null) {
-            data.object.fog = this.fog.toJSON();
-        }
-
-        if (this._widgets !== null && this._widgets.length > 0) {
-            data.widgets = this._widgets;
-        }
-
-        if (this.fit_type !== FIT_MIN) {
-            data.fit_type = this.fit_type;
-        }
-
-        data.deps = this.getDeps();
-        ResourceParser.uniqueDeps(data.deps);
-
-        if (mesh) {
-            this.add(mesh);
-        }
-
-        return data;
-    },
-
-    init: function init() {
-        Object3D.prototype.init.call(this);
-        this._spriteRoot.init();
-        this._widgetRoot.init();
-    },
-
-    dispose: function dispose() {
-        Object3D.prototype.dispose.call(this);
-        this._spriteRoot.dispose();
-        this._widgetRoot.dispose();
     }
 });
 
-Object.assign(HaloScene, {
-    decode: function decode(data, scene) {
-        if (scene === undefined) {
-            scene = new HaloScene();
-        }
+Object.assign(WtObject3D, {
+    decode: function decode(template, widget) {
+        widget = widget || new WtObject3D();
+        Widget.decode(template, widget);
+        widget.setAnchorType(ANCHOR_LEFT, ANCHOR_BOTTOM);
 
-        scene.deps = data.deps;
-        Object3D.decode(data, scene);
-
-        if (data.background !== undefined) {
-            if (Number.isInteger(data.background)) {
-                scene.background = new Color(data.background);
-            }
-        }
-
-        if (data.fog !== undefined) {
-            if (data.fog.type === 'Fog') {
-                scene.fog = new Fog(data.fog.color, data.fog.near, data.fog.far);
-            } else if (data.fog.type === 'FogExp2') {
-                scene.fog = new FogExp2(data.fog.color, data.fog.density);
-            }
-        }
-
-        if (data.widgets !== undefined) {
-            scene._widgets = data.widgets;
-            for (var i = 0; i !== data.widgets.length; ++i) {
-                scene._widgetRoot.add(Config.createWidget(data.widgets[i]));
-            }
-        }
-
-        scene.fit_type = data.fit_type || FIT_MIN;
-
-        return scene;
-    },
-
-    PMV_MATRIX: new Vector4(),
-
-    materials: {},
-
-    matqueue: [],
-
-    SHADER_2D: {
-        vertex: ['attribute vec4 color;', 'uniform vec4 uPMVMatrix;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', '    vColor = color;', '    vUV = uv;', '    vec4 pos = uPMVMatrix * vec4(position, 1.0);', '    gl_Position = vec4(pos.x - 1.0, pos.y - 1.0, 0.0, 1.0);', '}'].join('\n'),
-
-        fragment: ['varying vec4 vColor;', 'varying vec2 vUV;', 'uniform sampler2D tSprite;', 'void main() {', '    gl_FragColor = texture2D(tSprite, vUV) * vColor;', '}'].join('\n'),
-
-        disabale: ['varying vec4 vColor;', 'varying vec2 vUV;', 'uniform sampler2D tSprite;', 'void main() {', '    vec4 color = texture2D(tSprite, vUV) * vColor;', '    float gray = dot(color.rgb, vec3(0.3, 0.59, 0.11));', '    gl_FragColor = vec4(gray, gray, gray, color.a);', '}'].join('\n')
+        return widget;
     }
-});
-
-var Config = function () {
-    var _cfg = null;
-    var _effects = {};
-    var _widgets = {};
-    var _audios = {};
-    var _scene = null;
-    var _renderer = null;
-
-    var _dragonbones = null;
-
-    var _wtFactory = {
-        "Widget": Widget,
-        "WtImage": WtImage,
-        "WtButton": WtButton,
-        "WtText": WtText,
-        "WtPanel": WtPanel,
-        "WtProgressBar": WtProgressBar,
-        "WtScrollView": WtScrollView,
-        "WtGridView": WtGridView,
-        "WtDialog": WtDialog,
-        "WtObject2D": WtObject2D
-    };
-
-    var _parseSimpleAtlas = function _parseSimpleAtlas(batch) {
-        if (batch.simple_atlas) {
-            for (var i = 0; i !== batch.simple_atlas.length; ++i) {
-                var atlas = batch.simple_atlas[i];
-                ResourceManager.parseSimpleAtlas(atlas.cfg, atlas.img);
-            }
-        }
-    };
-
-    var _parseAtlas = function _parseAtlas(batch) {
-        if (_dragonbones && batch.atlas) {
-            for (var i = 0; i !== batch.atlas.length; ++i) {
-                var atlas = batch.atlas[i];
-                var tex = ResourceManager.getObj('img', atlas.img);
-                var data = ResourceManager.getObj('cfg', atlas.cfg);
-
-                tex.magFilter = texture.minFilter = NearestFilter;
-                tex.generateMipmaps = false;
-
-                _dragonbones.parseTextureAtlasData(data, tex.image);
-            }
-        }
-    };
-
-    var _parseDragonBones = function _parseDragonBones(batch) {
-        if (_dragonbones && batch.dragonbones) {
-            for (var i = 0; i !== batch.dragonbones.length; ++i) {
-                var data = ResourceManager.getObj('cfg', batch.dragonbones[i]);
-                _dragonbones.parseDragonBonesData(data);
-            }
-        }
-    };
-
-    var _initConfig = function _initConfig(callback) {
-        var effLoader = ResourceManager.loadData('', 'effect.json', function (res) {
-            var effJson = JSON.parse(res.unzip);
-            for (var key in effJson) {
-                var effTemp = effJson[key];
-                var ptxTemps = [];
-                for (var i = 0, n = effTemp.length; i != n; ++i) {
-                    ptxTemps.push(new ParticleTemplate(effTemp[i]));
-                }
-                _effects[key] = ptxTemps;
-            }
-
-            var wgtLoader = ResourceManager.loadData('', 'widget.json', function (res) {
-                _widgets = JSON.parse(res.unzip);
-
-                var audLoader = ResourceManager.loadData('', 'audio.json', function (res) {
-                    _audios = JSON.parse(res.unzip);
-
-                    callback();
-                });
-            });
-        });
-    };
-
-    var _initPreload = function _initPreload(batch, callback) {
-        var resList = [];
-
-        if (batch.simple_atlas && batch.simple_atlas.length > 0) {
-            for (var i = 0; i !== batch.simple_atlas.length; ++i) {
-                resList.push({ path: 'cfg', name: batch.simple_atlas[i].cfg });
-                resList.push({ path: 'img', name: batch.simple_atlas[i].img });
-            }
-        }
-
-        if (batch.atlas && batch.atlas.length > 0) {
-            for (var i = 0; i !== batch.atlas.length; ++i) {
-                resList.push({ path: 'cfg', name: batch.atlas[i].cfg });
-                resList.push({ path: 'img', name: batch.atlas[i].img });
-            }
-        }
-
-        if (batch.dragonbones && batch.dragonbones.length > 0) {
-            for (var i = 0; i !== batch.dragonbones.length; ++i) {
-                resList.push({ path: 'cfg', name: batch.dragonbones[i] });
-            }
-        }
-
-        if (resList.length > 0) {
-            ResourceManager.loadList(resList, function (res) {
-                callback(res);
-            });
-        } else {
-            callback(null);
-        }
-    };
-
-    var _initResource = function _initResource(batch, callback) {
-        var resList = batch.resources ? batch.resources.slice(0) : [];
-
-        if (resList.length > 0) {
-            ResourceManager.loadList(resList, function (res) {
-                callback(res);
-            });
-        } else {
-            callback(null);
-        }
-    };
-
-    var _loadBatch = function _loadBatch(name, callback) {
-        var batch = _cfg.batches ? _cfg.batches[name] : null;
-        if (batch) {
-            _initPreload(batch, function (res) {
-                if (res === null) {
-                    _parseSimpleAtlas(batch);
-                    _parseAtlas(batch);
-                    _parseDragonBones(batch);
-                    _initResource(batch, function (res) {
-                        callback && callback(res);
-                    });
-                } else {
-                    callback && callback(res);
-                }
-            });
-        } else {
-            callback && callback(null);
-        }
-    };
-
-    return {
-        bEditor: false,
-
-        bDebug: false,
-
-        updateDragonBones: function updateDragonBones(dt) {
-            _dragonbones && _dragonbones.tick(dt);
-        },
-
-        init: function init(cfg, callback) {
-            try {
-                _dragonbones = dragonBones.XFactory.factory;
-            } catch (e) {
-                
-            }
-
-            if (!cfg) {
-                return;
-            }
-
-            _cfg = cfg;
-            _effects = {};
-            _widgets = {};
-
-            _initConfig(function () {
-                callback && _loadBatch('PRELOAD', callback);
-            });
-        },
-
-        initProject: function initProject(cfg, wgt, eff, aud) {
-            try {
-                _dragonbones = dragonBones.XFactory.factory;
-            } catch (e) {
-                
-            }
-
-            _cfg = cfg;
-            _effects = {};
-
-            for (var key in eff) {
-                var effTemp = eff[key];
-                var ptxTemps = [];
-                for (var i = 0, n = effTemp.length; i != n; ++i) {
-                    ptxTemps.push(new ParticleTemplate(effTemp[i]));
-                }
-                _effects[key] = ptxTemps;
-            }
-
-            _widgets = wgt;
-            _audios = aud;
-
-            _parseSimpleAtlas(_cfg);
-            _parseAtlas(_cfg);
-            _parseDragonBones(_cfg);
-        },
-
-        loadBatch: function loadBatch(name, callback) {
-            _loadBatch(name, callback);
-        },
-
-        loadAllBatch: function loadAllBatch(callback, bRes) {
-            var allbatch = { simple_atlas: [], atlas: [], dragonbones: [], resources: [] };
-
-            for (var name in _cfg.batches) {
-                var batch = _cfg.batches[name];
-                if (batch.simple_atlas && batch.simple_atlas.length > 0) {
-                    for (var i = 0; i !== batch.simple_atlas.length; ++i) {
-                        allbatch.simple_atlas.push({ cfg: batch.simple_atlas[i].cfg, img: batch.simple_atlas[i].img });
-                    }
-                }
-
-                if (batch.atlas && batch.atlas.length > 0) {
-                    for (var i = 0; i !== batch.atlas.length; ++i) {
-                        allbatch.atlas.push({ cfg: batch.simple_atlas[i].cfg, img: batch.simple_atlas[i].img });
-                    }
-                }
-
-                if (batch.dragonbones && batch.dragonbones.length > 0) {
-                    for (var i = 0; i !== batch.dragonbones.length; ++i) {
-                        allbatch.dragonbones.push(batch.dragonbones[i]);
-                    }
-                }
-
-                if (bRes) {
-                    for (var i = 0; i !== batch.resources.length; ++i) {
-                        allbatch.resources.push(batch.resources[i]);
-                    }
-                }
-            }
-
-            _initPreload(allbatch, function (res) {
-                if (res === null) {
-                    _parseSimpleAtlas(allbatch);
-                    _parseAtlas(allbatch);
-                    _parseDragonBones(allbatch);
-                    if (bRes) {
-                        _initResource(allbatch, function (res) {
-                            callback && callback(res);
-                        });
-                    } else {
-                        callback && callback(res);
-                    }
-                }
-            });
-        },
-
-        play: function play(scn) {
-            if (_scene) {
-                _scene.dispose();
-            }
-
-            _scene = ResourceManager.getObj('scn', scn || _cfg.entry_scene);
-            if (!_scene) {
-                _scene = new HaloScene();
-            }
-
-            _scene.init();
-
-            if (!_scene.camera) {
-                _scene.camera = new PerspectiveCamera(45, 1, 1, 1000);
-                _scene.camera.position.set(0, 50, 50);
-                _scene.camera.lookAt(0, 0, 0);
-            }
-
-            return _scene;
-        },
-
-        onResizeWindow: function onResizeWindow(w, h) {
-            if (_renderer) {
-                _renderer.setSize(w, h);
-            }
-            if (_scene) {
-                _scene.onResizeWindow(w, h);
-            }
-        },
-
-        renderer: function renderer() {
-            return _renderer;
-        },
-
-        scene: function scene() {
-            return _scene;
-        },
-
-        update: function update(dt) {
-            _renderer.clear();
-
-            if (_scene) {
-                _scene.update(dt);
-                _renderer.render(_scene, _scene.camera);
-            }
-        },
-
-        start: function start(dom) {
-            _renderer = new WebGLRenderer({ alpha: _cfg.alpha, antialias: _cfg.antialias, preserveDrawingBuffer: _cfg.preserveDrawingBuffer });
-            _renderer.autoClear = false;
-            _renderer.autoUpdateScene = false;
-            _renderer.shadowMap.enabled = true;
-            _renderer.shadowMap.type = _cfg.shadowMapType || PCFShadowMap;
-            _renderer.setPixelRatio(window.devicePixelRatio);
-            _renderer.setClearColor(_cfg.clear_color || 0xaaaaaa, _cfg.alpha ? 0 : 1);
-            if (_cfg.alpha) {
-                _renderer.domElement.style.background = "transparent";
-            }
-            dom.appendChild(_renderer.domElement);
-        },
-
-        get: function get() {
-            if (!_cfg) {
-                _cfg = {};
-            }
-            return _cfg;
-        },
-
-        getEffect: function getEffect(name) {
-            return _effects[name];
-        },
-
-        effects: function effects() {
-            return _effects;
-        },
-
-        getWidget: function getWidget(name) {
-            return _widgets[name];
-        },
-
-        widgets: function widgets() {
-            return _widgets;
-        },
-
-        getAudio: function getAudio(name) {
-            return _audios[name];
-        },
-
-        audios: function audios() {
-            return _audios;
-        },
-
-        createWidget: function createWidget(name) {
-            var template = _widgets[name];
-            if (template === undefined) {
-                return null;
-            }
-
-            return _wtFactory[template.class].decode(template);
-        },
-
-        wtClass: function wtClass(type) {
-            return _wtFactory[type];
-        },
-
-        wtFactory: function wtFactory(template) {
-            return _wtFactory[template.class].decode(template);
-        }
-    };
-}();
-
-function Particle(i) {
-  this.index = i || 0, this.position = new Vector3(), this.velocity = new Vector3(), this.birthScale = new Vector2(1, 1), this.scale = new Vector2(1, 1), this.color = new Color(1, 1, 1), this.alpha = 1, this.rotation = 0, this.spin = 0, this.timer = 0, this.ratio = 0, this.life = 0, this.frameIdx = 0, this.setActive = function (active) {
-    if (active) {
-      this.spin = this.rotation = this.ratio = this.timer = 0;
-      this.scale.set(1, 1);
-      this.birthScale.set(1, 1);
-      this.color.setRGB(1, 1, 1);
-      this.alpha = 1;
-      this.position.set(0, 0, 0);
-      this.velocity.set(0, 0, 0);
-    } else {
-      this.scale.set(0, 0);
-      this.alpha = 0;
-    }
-  };
-}
-
-function RendererBillboard(global, rt) {
-    BufferGeometry.call(this);
-
-    this.template = rt;
-    var count = rt.count;
-
-    this.attrPosition = new BufferAttribute(new Float32Array(count * 12), 3).setDynamic(true);
-    this.attrRotation = new BufferAttribute(new Float32Array(count * 4), 1).setDynamic(true);
-    this.attrColor = new BufferAttribute(new Uint8Array(count * 16), 4).setDynamic(true);
-    this.attrScale = new BufferAttribute(new Float32Array(count * 8), 2).setDynamic(true);
-    this.attrUV = new BufferAttribute(new Uint16Array(count * 8), 2).setDynamic(true);
-
-    this.attrColor.normalized = true;
-    this.attrUV.normalized = true;
-
-    this.addAttribute('position', this.attrPosition);
-    this.addAttribute('rotation', this.attrRotation);
-    this.addAttribute('color', this.attrColor);
-    this.addAttribute('scale', this.attrScale);
-    this.addAttribute('uv', this.attrUV);
-
-    var indices = [];
-    for (var i = 0; i != count; ++i) {
-        var offset = i * 4;
-        indices.push(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
-    }
-    this.setIndex(indices);
-
-    this.sprites = [];
-    if (rt.image && rt.sprites && rt.sprites.length > 0) {
-        for (var _i = 0, n = rt.sprites.length; _i !== n; ++_i) {
-            this.sprites.push(Halo.ResourceManager.getSimpleSprite(rt.image, rt.sprites[_i]));
-        }
-    } else {
-        this.sprites.push(Halo.ResourceManager.defaultSimpleSprite);
-    }
-
-    this.blend = ParticleSystem.BLENDS[rt.blend];
-
-    var shader = global ? rt.z_up ? 'z_up_global' : 'global' : rt.z_up ? 'z_up_local' : 'local';
-    this.shaderIdx = ParticleSystem.shaders.indexOf(shader);
-    if (this.shaderIdx < 0) {
-        this.shaderIdx = 255;
-    }
-}
-
-RendererBillboard.prototype = Object.assign(Object.create(BufferGeometry.prototype), {
-    constructor: RendererBillboard,
-
-    getMatCfg: function getMatCfg() {
-        return {
-            shaderIdx: this.shaderIdx,
-            texture: this.sprites[0].texture,
-            srcFactor: this.blend.src,
-            dstFactor: this.blend.dst
-        };
-    },
-
-    onUpdateBegin: function onUpdateBegin() {},
-
-    onParticleEmission: function onParticleEmission(p) {
-        if (this.template.random) {
-            p.frameIdx = Math2.randInt(0, this.sprites.length);
-        } else {
-            p.frameIdx = 0;
-        }
-
-        if (this.sprites.length > p.frameIdx) {
-            var s = this.sprites[p.frameIdx];
-            s.updateUV(this.attrUV, p.index * 4);
-        }
-    },
-
-    onParticleUpdate: function onParticleUpdate(p) {
-        var fcount = this.sprites.length;
-        if (fcount > 0 && !this.template.random) {
-            var frameIdx = Math.floor(p.timer / this.template.interval);
-            if (this.template.loop) {
-                frameIdx %= fcount;
-            } else if (frameIdx >= fcount) {
-                frameIdx = fcount - 1;
-            }
-            if (p.frameIdx !== frameIdx) {
-                p.frameIdx = frameIdx;
-                var s = this.sprites[p.frameIdx];
-                s.updateUV(this.attrUV, p.index * 4);
-            }
-        }
-
-        var array = this.attrPosition.array;
-        var index = p.index * 12;
-
-        p.position.toArray(array, index);
-        p.position.toArray(array, index + 3);
-        p.position.toArray(array, index + 6);
-        p.position.toArray(array, index + 9);
-
-        array = this.attrRotation.array;
-        index = p.index * 4;
-        array[index] = array[index + 1] = array[index + 2] = array[index + 3] = p.rotation;
-
-        array = this.attrColor.array;
-        index = p.index * 4;
-        var cr = p.color.r * 255;
-        var cg = p.color.g * 255;
-        var cb = p.color.b * 255;
-        var ca = p.alpha * 255;
-        this.attrColor.setXYZW(index, cr, cg, cb, ca);
-        this.attrColor.setXYZW(index + 1, cr, cg, cb, ca);
-        this.attrColor.setXYZW(index + 2, cr, cg, cb, ca);
-        this.attrColor.setXYZW(index + 3, cr, cg, cb, ca);
-
-        array = this.attrScale.array;
-        index = p.index * 8;
-        array[index + 0] = -p.scale.x;
-        array[index + 2] = +p.scale.x;
-        array[index + 4] = +p.scale.x;
-        array[index + 6] = -p.scale.x;
-
-        array[index + 1] = +p.scale.y;
-        array[index + 3] = +p.scale.y;
-        array[index + 5] = -p.scale.y;
-        array[index + 7] = -p.scale.y;
-    },
-
-    onParticleDeath: function onParticleDeath(p) {
-        // var array = this.attrColor.array;
-        // var index = p.index * 16;
-        // array[index + 3] = array[index + 7] = array[index + 11] = array[index + 15] = 0;
-        var array = this.attrScale.array;
-        var index = p.index * 8;
-        array[index] = array[index + 1] = array[index + 2] = array[index + 3] = array[index + 4] = array[index + 5] = array[index + 6] = array[index + 7] = 0;
-    },
-
-    onUpdateEnd: function onUpdateEnd() {
-        this.attrPosition.needsUpdate = true;
-        this.attrRotation.needsUpdate = true;
-        this.attrScale.needsUpdate = true;
-        this.attrColor.needsUpdate = true;
-        this.attrUV.needsUpdate = true;
-    }
-});
-
-function RendererBBArrow(global, rt) {
-    BufferGeometry.call(this);
-
-    this.template = rt;
-    var count = rt.count;
-
-    this.attrPosition = new BufferAttribute(new Float32Array(count * 12), 3).setDynamic(true);
-    this.attrVelocity = new BufferAttribute(new Float32Array(count * 12), 3).setDynamic(true);
-    this.attrColor = new BufferAttribute(new Uint8Array(count * 16), 4).setDynamic(true);
-    this.attrScale = new BufferAttribute(new Float32Array(count * 8), 2).setDynamic(true);
-    this.attrUV = new BufferAttribute(new Uint16Array(count * 8), 2).setDynamic(true);
-
-    this.attrColor.normalized = true;
-    this.attrUV.normalized = true;
-
-    this.addAttribute('position', this.attrPosition);
-    this.addAttribute('velocity', this.attrVelocity);
-    this.addAttribute('color', this.attrColor);
-    this.addAttribute('scale', this.attrScale);
-    this.addAttribute('uv', this.attrUV);
-
-    var indices = [];
-    for (var i = 0; i != count; ++i) {
-        var offset = i * 4;
-        indices.push(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
-    }
-    this.setIndex(indices);
-
-    this.sprites = [];
-    if (rt.image && rt.sprites && rt.sprites.length > 0) {
-        for (var _i = 0, n = rt.sprites.length; _i !== n; ++_i) {
-            this.sprites.push(Halo.ResourceManager.getSimpleSprite(rt.image, rt.sprites[_i]));
-        }
-    } else {
-        this.sprites.push(Halo.ResourceManager.defaultSimpleSprite);
-    }
-
-    this.blend = ParticleSystem.BLENDS[rt.blend];
-
-    var shader = global ? 'arrow_global' : 'arrow_local';
-    this.shaderIdx = ParticleSystem.shaders.indexOf(shader);
-    if (this.shaderIdx < 0) {
-        this.shaderIdx = 255;
-    }
-}
-
-RendererBBArrow.prototype = Object.assign(Object.create(BufferGeometry.prototype), {
-    constructor: RendererBBArrow,
-
-    getMatCfg: function getMatCfg() {
-        return {
-            shaderIdx: this.shaderIdx,
-            texture: this.sprites[0].texture,
-            srcFactor: this.blend.src,
-            dstFactor: this.blend.dst
-        };
-    },
-
-    onUpdateBegin: function onUpdateBegin() {},
-
-    onParticleEmission: function onParticleEmission(p) {
-        if (this.template.random) {
-            p.frameIdx = Math2.randInt(0, this.sprites.length);
-        } else {
-            p.frameIdx = 0;
-        }
-
-        if (this.sprites.length > p.frameIdx) {
-            var s = this.sprites[p.frameIdx];
-            s.updateUV(this.attrUV, p.index * 4);
-        }
-    },
-
-    onParticleUpdate: function onParticleUpdate(p) {
-        var fcount = this.sprites.length;
-        if (fcount > 0 && !this.template.random) {
-            var frameIdx = Math.floor(p.timer / this.template.interval);
-            if (this.template.loop) {
-                frameIdx %= fcount;
-            } else if (frameIdx >= fcount) {
-                frameIdx = fcount - 1;
-            }
-            if (p.frameIdx !== frameIdx) {
-                p.frameIdx = frameIdx;
-                var s = this.sprites[p.frameIdx];
-                s.updateUV(this.attrUV, p.index * 4);
-            }
-        }
-
-        var array = this.attrPosition.array;
-        var index = p.index * 12;
-
-        p.position.toArray(array, index);
-        p.position.toArray(array, index + 3);
-        p.position.toArray(array, index + 6);
-        p.position.toArray(array, index + 9);
-
-        array = this.attrVelocity.array;
-        index = p.index * 12;
-        p.velocity.toArray(array, index);
-        p.velocity.toArray(array, index + 3);
-        p.velocity.toArray(array, index + 6);
-        p.velocity.toArray(array, index + 9);
-
-        array = this.attrColor.array;
-        index = p.index * 4;
-        var cr = p.color.r * 255;
-        var cg = p.color.g * 255;
-        var cb = p.color.b * 255;
-        var ca = p.alpha * 255;
-        this.attrColor.setXYZW(index, cr, cg, cb, ca);
-        this.attrColor.setXYZW(index + 1, cr, cg, cb, ca);
-        this.attrColor.setXYZW(index + 2, cr, cg, cb, ca);
-        this.attrColor.setXYZW(index + 3, cr, cg, cb, ca);
-
-        array = this.attrScale.array;
-        index = p.index * 8;
-        array[index + 0] = -p.scale.x;
-        array[index + 2] = +p.scale.x;
-        array[index + 4] = +p.scale.x;
-        array[index + 6] = -p.scale.x;
-
-        array[index + 1] = +p.scale.y;
-        array[index + 3] = +p.scale.y;
-        array[index + 5] = -p.scale.y;
-        array[index + 7] = -p.scale.y;
-    },
-
-    onParticleDeath: function onParticleDeath(p) {
-        // var array = this.attrColor.array;
-        // var index = p.index * 16;
-        // array[index + 3] = array[index + 7] = array[index + 11] = array[index + 15] = 0;
-        var array = this.attrScale.array;
-        var index = p.index * 8;
-        array[index] = array[index + 1] = array[index + 2] = array[index + 3] = array[index + 4] = array[index + 5] = array[index + 6] = array[index + 7] = 0;
-    },
-
-    onUpdateEnd: function onUpdateEnd() {
-        this.attrPosition.needsUpdate = true;
-        this.attrVelocity.needsUpdate = true;
-        this.attrScale.needsUpdate = true;
-        this.attrColor.needsUpdate = true;
-        this.attrUV.needsUpdate = true;
-    }
-});
-
-function ParticleSystem(template) {
-
-    var renderer = new ParticleSystem.RENDERERS[template.renderer.name](template.global, template.renderer);
-    var material = ParticleSystem.getMaterial(renderer.getMatCfg());
-
-    Mesh.call(this, renderer, material);
-
-    this.template = template;
-    this.type = 'ParticleSystem';
-    this.name = template.name;
-
-    this.timer = 0;
-    this.mark = 0;
-    this.emitting = false;
-    this.fractionEmitNum = 0;
-    this.particles = [];
-
-    this.position.fromArray(template.pos);
-    this.rotation.fromArray(template.rot);
-    this.scale.fromArray(template.sca);
-
-    this.drawMode = TrianglesDrawMode;
-}
-
-ParticleSystem.prototype = Object.assign(Object.create(Mesh.prototype), {
-    constructor: ParticleSystem,
-
-    play: function play() {
-        for (var i = 0, n = this.template.renderer.count; i !== n; ++i) {
-            this.particles.push(new Particle(i));
-        }
-
-        this.mark = 0;
-        this.emitting = true;
-        this.fractionEmitNum = 0;
-        this.timer = 0;
-    },
-
-    stop: function stop() {
-        this.emitting = false;
-    },
-
-    update: function update(dt) {
-        if (!this.emitting && this.mark === 0) {
-            return true;
-        }
-
-        this.geometry.onUpdateBegin();
-
-        for (var i = 0; i < this.mark;) {
-            var p = this.particles[i];
-            p.timer += dt;
-            if (p.timer > p.life) {
-                p.setActive(false);
-                var tail = this.particles[--this.mark];
-                this.particles[i] = tail;
-                this.particles[this.mark] = p;
-                this.geometry.onParticleDeath(p);
-            } else {
-                var t = p.timer;
-                if (this.template.period > 0) {
-                    t = Math.euclideanModulo(t, this.template.peroid);
-                }
-                p.ratio = t / p.life;
-                if (this.template.affect(p, dt)) {}
-                if (!this.emitting && this.template.doFadeout(p, dt)) {
-                    p.life = 0;
-                }
-                ++i;
-            }
-        }
-
-        if (this.emitting && this.template.isEmissionOver(this.timer)) {
-            this.emitting = false;
-        }
-
-        if (this.emitting) {
-            var numObj = this.template.getEmitNum(this.timer, dt, this.template.renderer.count - this.mark, this.fractionEmitNum);
-            var num = numObj.num;
-            this.fractionEmitNum = numObj.fraction;
-            this.timer += dt;
-            for (var _i = 0; _i !== num; ++_i) {
-                var p = this.particles[this.mark++];
-                this.template.init(p);
-                if (this.template.global) {
-                    p.position.applyMatrix4(this.matrixWorld);
-                }
-                this.geometry.onParticleEmission(p);
-            }
-        }
-
-        for (var _i2 = 0; _i2 < this.mark; ++_i2) {
-            var p = this.particles[_i2];
-            this.geometry.onParticleUpdate(p);
-        }
-
-        this.geometry.onUpdateEnd();
-
-        return false;
-    },
-
-    setTarget: function setTarget(obj) {}
-});
-
-Object.assign(ParticleSystem, {
-    shaders: ['local', 'global', 'z_up_local', 'z_up_global', 'arrow_local', 'arrow_global'],
-
-    VERTEX_SHADERS: {
-        local: ['attribute float rotation;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'vec4 viewPos = modelViewMatrix * vec4(position, 1.0);', 'float cosr = cos(rotation);', 'float sinr = sin(rotation);', 'float x = scale.x * cosr + scale.y * sinr;', 'float y = scale.y * cosr - scale.x * sinr;', 'viewPos.x = viewPos.x + x * 0.5;', 'viewPos.y = viewPos.y + y * 0.5;', 'gl_Position = projectionMatrix * viewPos;', '}'].join('\n'),
-
-        global: ['attribute float rotation;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'vec4 viewPos = viewMatrix * vec4(position, 1.0);', 'float cosr = cos(rotation);', 'float sinr = sin(rotation);', 'float x = scale.x * cosr + scale.y * sinr;', 'float y = scale.y * cosr - scale.x * sinr;', 'viewPos.x = viewPos.x + x * 0.5;', 'viewPos.y = viewPos.y + y * 0.5;', 'gl_Position = projectionMatrix * viewPos;', '}'].join('\n'),
-
-        z_up_local: ['attribute float rotation;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'float cosr = cos(rotation);', 'float sinr = sin(rotation);', 'float x = scale.x * cosr + scale.y * sinr;', 'float y = scale.y * cosr - scale.x * sinr;', 'vec3 pos = position + vec3(-x*0.5, 0.0, y*0.5);', 'gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);', '}'].join('\n'),
-
-        z_up_global: ['attribute float rotation;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'float cosr = cos(rotation);', 'float sinr = sin(rotation);', 'float x = scale.x * cosr + scale.y * sinr;', 'float y = scale.y * cosr - scale.x * sinr;', 'vec3 pos = position + vec3(-x*0.5, 0.0, y*0.5);', 'gl_Position = projectionMatrix * viewMatrix * vec4(pos, 1.0);', '}'].join('\n'),
-
-        arrow_local: ['attribute vec3 velocity;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'vec4 viewPos = modelViewMatrix * vec4(position, 1.0);', 'vec4 viewVel = modelViewMatrix * vec4(velocity, 1.0);', 'vec4 viewOri = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);', 'vec3 yDir = normalize(viewVel.xyz - viewOri.xyz);', 'vec3 xDir = cross(yDir, vec3(0, 0, 1));', 'viewPos.xyz = viewPos.xyz + scale.x * 0.5 * xDir + scale.y * 0.5 * yDir;', 'gl_Position = projectionMatrix * viewPos;', '}'].join('\n'),
-
-        arrow_global: ['attribute vec3 velocity;', 'attribute vec4 color;', 'attribute vec2 scale;', 'varying vec4 vColor;', 'varying vec2 vUV;', 'void main() {', 'vColor = color;', 'vUV = uv;', 'vec4 viewPos = viewMatrix * vec4(position, 1.0);', 'vec4 viewVel = viewMatrix * vec4(velocity, 1.0);', 'vec4 viewOri = viewMatrix * vec4(0.0, 0.0, 0.0, 1.0);', 'vec3 yDir = normalize(viewVel.xyz - viewOri.xyz);', 'vec3 xDir = cross(yDir, vec3(0, 0, 1));', 'viewPos.xyz = viewPos.xyz + scale.x * 0.5 * xDir + scale.y * 0.5 * yDir;', 'gl_Position = projectionMatrix * viewPos;', '}'].join('\n')
-    },
-
-    FRAGMENT: ['varying vec4 vColor;', 'varying vec2 vUV;', 'uniform sampler2D tSprite;', 'void main() {', 'vec4 tex = texture2D(tSprite, vUV);', 'gl_FragColor = tex * vColor;', '}'].join('\n'),
-
-    RENDERERS: {
-        billboard: RendererBillboard,
-        bb_arrow: RendererBBArrow
-    },
-
-    BLENDS: {
-        add: {
-            src: SrcAlphaFactor,
-            dst: OneFactor
-        },
-
-        blend: {
-            src: SrcAlphaFactor,
-            dst: OneMinusSrcAlphaFactor
-        },
-
-        dark: {
-            src: DstColorFactor,
-            dst: OneMinusSrcAlphaFactor
-        },
-
-        light: {
-            src: SrcColorFactor,
-            dst: OneFactor
-        }
-    },
-
-    materials: {},
-
-    getMaterial: function getMaterial(cfg) {
-        var key = (cfg.texture.id << 16) + (cfg.shaderIdx << 8) + (cfg.srcFactor << 4) + cfg.dstFactor - 3400;
-        var material = ParticleSystem.materials[key];
-
-        if (material === undefined) {
-            var shader = ParticleSystem.shaders[cfg.shaderIdx];
-            material = new ShaderMaterial({
-                transparent: true,
-                depthWrite: false,
-                side: DoubleSide,
-                blending: CustomBlending,
-                blendEquation: AddEquation,
-                blendSrc: cfg.srcFactor,
-                blendDst: cfg.dstFactor,
-                vertexShader: ParticleSystem.VERTEX_SHADERS[shader],
-                fragmentShader: ParticleSystem.FRAGMENT,
-                uniforms: {
-                    tSprite: { value: cfg.texture }
-                }
-            });
-            material.needsUpdate = true;
-            ParticleSystem.materials[key] = material;
-        }
-
-        return material;
-    }
-});
-
-function Effect(name) {
-    Object3D.call(this);
-    this.type = 'Effect';
-    this.name = name;
-    this.timer = 0;
-    this.active = false;
-    this.template = Config.getEffect(name);
-    this.maxDelay = 0;
-
-    for (var i = 0; i !== this.template.length; ++i) {
-        var ptxTmp = this.template[i];
-        var particle = new ParticleSystem(ptxTmp);
-        this.add(particle);
-        this.maxDelay = Math.max(this.maxDelay, ptxTmp.delay);
-    }
-}
-
-Effect.prototype = Object.assign(Object.create(Object3D.prototype), {
-    constructor: Effect,
-
-    play: function play() {
-        this.active = true;
-        this.timer = 0;
-    },
-
-    stop: function stop() {
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            this.children[i].stop();
-        }
-    },
-
-    update: function update(dt) {
-        if (this.active) {
-            var activeNum = this.children.length;
-            for (var i = 0, n = this.children.length; i !== n; ++i) {
-                var ptx = this.children[i];
-                var delay = ptx.template.delay;
-                if (this.timer <= delay && delay < this.timer + dt) {
-                    ptx.visible = true;
-                    ptx.play();
-                }
-
-                if (this.timer >= delay && ptx.update(dt)) {
-                    ptx.visible = false;
-                    activeNum--;
-                }
-            }
-
-            if (activeNum === 0 && this.maxDelay < this.timer + dt) {
-                this.active = false;
-            }
-
-            this.timer += dt;
-        }
-    },
-
-    setTarget: function setTarget(obj) {},
-
-    encode: function encode() {
-        var data = {
-            type: this.type,
-            name: this.name,
-            matrix: this.matrix.toArray()
-        };
-
-        return data;
-    }
-});
-
-Object.assign(Effect, {
-    decode: function decode(data) {
-        var effect = new Effect(data.name);
-
-        effect.matrix.fromArray(data.matrix);
-        effect.matrix.decompose(effect.position, effect.quaternion, effect.scale);
-
-        effect.play();
-
-        return effect;
-    }
-});
-
-var ResourceParser = function () {
-    var _skeletons = [];
-
-    var _uniqueDeps = function _uniqueDeps(deps) {
-        var depsmap = {};
-        for (var i = 0; i !== deps.length;) {
-            var dep = deps[i];
-            if (!dep) {
-                deps.splice(i, 1);
-                continue;
-            }
-            var key = dep.path + dep.name;
-            if (depsmap[key] === undefined) {
-                depsmap[key] = dep;
-                ++i;
-            } else {
-                deps.splice(i, 1);
-            }
-        }
-    };
-
-    var _updateMaterial = function _updateMaterial(material, dt) {
-        if (material instanceof Array) {
-            for (var i = 0, n = material.length; i !== n; ++i) {
-                var mat = material[i];
-                if (mat.active && material.uniforms.uTimer) {
-                    mat.uniforms.uTimer.value += dt;
-                }
-            }
-        } else {
-            if (material.active && material.uniforms.uTimer) {
-                material.uniforms.uTimer.value += dt;
-            }
-        }
-    };
-
-    var _encodeAnimations = function _encodeAnimations(animations) {
-        var data = {
-            type: 'Animation',
-            clips: [],
-            deps: []
-        };
-        for (var i = 0, n = animations.length; i !== n; ++i) {
-            var anim = animations[i];
-            data.clips.push(anim.encode());
-        }
-
-        return data;
-    };
-
-    var _getDataURL = function _getDataURL(image, name) {
-        var canvas;
-        if (image.toDataURL !== undefined) {
-            canvas = image;
-        } else {
-            canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
-            canvas.width = image.width;
-            canvas.height = image.height;
-            canvas.getContext('2d').drawImage(image, 0, 0, image.width, image.height);
-        }
-
-        var extension = name ? name.split('.').pop().toLowerCase() : 'png';
-        if (extension === 'png') {
-            return canvas.toDataURL('image/png');
-        } else {
-            return canvas.toDataURL('image/jpeg', 0.6);
-        }
-    };
-
-    AnimationClip.prototype.encode = function () {
-        var tracks = [],
-            clipTracks = this.tracks;
-
-        var data = {
-            name: this.name,
-            duration: this.duration,
-            tracks: tracks,
-            type: 'AnimationClip'
-        };
-
-        for (var i = 0, n = clipTracks.length; i !== n; ++i) {
-            tracks.push(KeyframeTrack.toJSON(clipTracks[i]));
-        }
-
-        return data;
-    };
-
-    Light.prototype.encode = function () {
-        var data = Object3D.prototype.encode.call(this);
-
-        data.type = this.type;
-        data.color = this.color.getHex();
-        data.intensity = this.intensity;
-
-        if (this.groundColor !== undefined) data.groundColor = this.groundColor.getHex();
-
-        if (this.distance !== undefined) data.distance = this.distance;
-        if (this.angle !== undefined) data.angle = this.angle;
-        if (this.decay !== undefined) data.decay = this.decay;
-        if (this.penumbra !== undefined) data.penumbra = this.penumbra;
-        if (this.shadow !== undefined) data.shadow = this.shadow.toJSON();
-        if (this.target !== undefined) data.target = this.target.position.toArray();
-
-        return data;
-    };
-
-    Light.prototype.decode = function (data) {
-        Object3D.decode(data, this);
-
-        if (data.target) {
-            this.target.position.fromArray(data.target);
-            this.target.updateMatrixWorld();
-        }
-
-        if (data.shadow) {
-            this.shadow.bias = data.shadow.bias || 0;
-            this.shadow.radius = data.shadow.radius || 1;
-            this.shadow.mapSize.width = data.shadow.mapSize ? data.shadow.mapSize[0] : 512;
-            this.shadow.mapSize.height = data.shadow.mapSize ? data.shadow.mapSize[1] : 512;
-
-            this.shadow.camera.right = data.shadow.camera.right;
-            this.shadow.camera.left = data.shadow.camera.left;
-            this.shadow.camera.top = data.shadow.camera.top;
-            this.shadow.camera.bottom = data.shadow.camera.bottom;
-            this.shadow.camera.near = data.shadow.camera.near;
-            this.shadow.camera.far = data.shadow.camera.far;
-
-            this.shadow.camera.updateProjectionMatrix();
-        }
-
-        return this;
-    };
-
-    PerspectiveCamera.prototype.encode = function () {
-        var data = Object3D.prototype.encode.call(this);
-
-        data.fov = this.fov;
-        data.near = this.near;
-        data.far = this.far;
-
-        return data;
-    };
-
-    Object.assign(PerspectiveCamera, {
-        decode: function decode(data) {
-            var camera = new PerspectiveCamera();
-
-            Object3D.decode(data, camera);
-
-            camera.fov = data.fov || 50;
-            camera.near = data.near || 0.1;
-            camera.far = data.far || 2000;
-
-            return camera;
-        }
-    });
-
-    Texture.prototype.getDeps = function (meta) {
-        if (this.sourceFile && this.sourceFile !== '') {
-            if (meta) {
-                var imgs = [];
-                for (var i = 0; i != meta.length; ++i) {
-                    if (meta[i].path === 'img') {
-                        imgs.push(meta[i].name);
-                    }
-                }
-                if (imgs.indexOf(this.sourceFile) === -1) {
-                    meta.push({ path: 'img', name: this.sourceFile, raw: _getDataURL(this.image, this.sourceFile) });
-                }
-            }
-            return {
-                path: 'img',
-                name: this.sourceFile
-            };
-        }
-    };
-
-    Texture.prototype.encode = function () {
-        var data = {
-            type: "Texture",
-            name: this.name,
-            mapping: this.mapping,
-            repeat: [this.repeat.x, this.repeat.y],
-            offset: [this.offset.x, this.offset.y],
-            wrap: [this.wrapS, this.wrapT],
-            minFilter: this.minFilter,
-            magFilter: this.magFilter,
-            anisotropy: this.anisotropy,
-            flipY: this.flipY,
-            format: this.format
-        };
-
-        if (this.image !== undefined && this.sourceFile && this.sourceFile !== '') {
-            data.image = this.sourceFile;
-        }
-
-        return data;
-    };
-
-    Object.assign(Texture, {
-        decode: function decode(data) {
-            var texture = ResourceManager.defaultTexture;
-            if (data.image) {
-                texture = ResourceManager.getObj('img', data.image);
-
-                texture.name = data.name;
-                texture.mapping = data.mapping;
-                texture.repeat = new Vector2(data.repeat[0], data.repeat[1]);
-                texture.offset = new Vector2(data.offset[0], data.offset[1]);
-                texture.wrapS = data.wrap[0];
-                texture.wrapT = data.wrap[1];
-                texture.minFilter = data.minFilter;
-                texture.magFilter = data.magFilter;
-                texture.flipY = data.flipY;
-                texture.format = data.format;
-                texture.sourceFile = data.image;
-
-                texture.needsUpdate = true;
-            }
-
-            return texture;
-        }
-    });
-
-    Object.assign(AnimationClip, {
-        decode: function decode(data) {
-            var tracks = [],
-                jsonTracks = data.tracks,
-                frameTime = 1.0 / (data.fps || 1.0);
-
-            for (var i = 0, n = jsonTracks.length; i !== n; ++i) {
-                tracks.push(KeyframeTrack.parse(jsonTracks[i]).scale(frameTime));
-            }
-
-            var clip = new AnimationClip(data.name, data.duration, tracks);
-
-            return clip;
-        }
-    });
-
-    Object3D.prototype.getDeps = function (meta) {
-        var deps = [];
-
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            var child = this.children[i];
-            if (child.type === 'Group') {
-                deps.splice(0, 0, {
-                    path: 'mdl',
-                    name: child.name
-                });
-                if (meta) {
-                    meta.push({ path: 'mdl', name: child.name, raw: child.encode() });
-                    child.getDeps(meta);
-                }
-            } else if (child.type === 'Effect') {} else {
-                deps = child.getDeps(meta).concat(deps);
-            }
-        }
-        return deps;
-    };
-
-    Object3D.prototype.encode = function () {
-        var data = {
-            type: this.type,
-            matrix: this.matrix.toArray()
-        };
-
-        if (this.name !== '') data.name = this.name;
-        if (this.castShadow === true) data.castShadow = true;
-        if (this.receiveShadow === true) data.receiveShadow = true;
-        if (this.visible === false) data.visible = false;
-        if (this.fn_init) data.func_init = this.fn_init.name;
-        if (this.fn_update) data.func_update = this.fn_update.name;
-        if (this.fn_dispose) data.func_dispose = this.fn_dispose.name;
-        if (this.userData) data.userData = this.userData;
-
-        if (this.children) {
-            data.children = [];
-            for (var i = 0, n = this.children.length; i !== n; ++i) {
-                var child = this.children[i];
-                if (child.type === 'Group' || child.type === 'Effect') {
-                    data.children.push({
-                        type: child.type,
-                        name: child.name,
-                        matrix: child.matrix.toArray()
-                    });
-                } else {
-                    data.children.push(child.encode());
-                }
-            }
-        }
-
-        return data;
-    };
-
-    Object3D.prototype.update = function (dt) {
-        !Config.bEditor && this.fn_update && this.fn_update(this, dt);
-
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            this.children[i].update(dt);
-        }
-    };
-
-    Object3D.prototype.init = function () {
-        !Config.bEditor && this.fn_init && this.fn_init(this);
-
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            this.children[i].init();
-        }
-    };
-
-    Object3D.prototype.dispose = function () {
-        !Config.bEditor && this.fn_dispose && this.fn_dispose(this);
-
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            var fn_dispose = this.children[i].fn_dispose;
-            fn_dispose && fn_dispose();
-        }
-    };
-
-    Object.assign(Object3D, {
-        decode: function decode(data, object) {
-            if (object === undefined) {
-                object = new Object3D();
-            }
-
-            object.matrix.fromArray(data.matrix);
-            object.matrix.decompose(object.position, object.quaternion, object.scale);
-            object.name = data.name;
-
-            if (data.castShadow !== undefined) object.castShadow = data.castShadow;
-            if (data.receiveShadow !== undefined) object.receiveShadow = data.receiveShadow;
-            if (data.visible !== undefined) object.visible = data.visible;
-
-            if (data.children) {
-                for (var i = 0, n = data.children.length; i !== n; ++i) {
-                    var childData = data.children[i];
-                    if (childData.type === 'Group') {
-                        var model = ResourceManager.getObj('mdl', childData.name);
-                        if (model === null) {
-                            console.error('Missing Model:', childData.name);
-                            continue;
-                        } else {
-                            model = model.clone();
-                        }
-                        if (childData.matrix) {
-                            model.matrix.fromArray(childData.matrix);
-                            model.matrix.decompose(model.position, model.quaternion, model.scale);
-                        }
-                        object.add(model);
-                    } else {
-                        object.add(ResourceParser.decode(childData));
-                    }
-                }
-            }
-
-            if (data.func_update) {
-                object.fn_update = ResourceManager.getFunc(data.func_update);
-            }
-
-            if (data.func_init) {
-                object.fn_init = ResourceManager.getFunc(data.func_init);
-            }
-
-            if (data.func_dispose) {
-                object.fn_dispose = ResourceManager.getFunc(data.func_dispose);
-            }
-
-            if (data.userData) {
-                object.userData = data.userData;
-            }
-
-            return object;
-        }
-    });
-
-    Bone.prototype.encode = function () {
-        var data = {
-            type: this.type,
-            uuid: this.uuid,
-            name: this.name,
-            // pos: this.position,
-            // rotq: this.quaternion,
-            // scl: this.scale
-            matrix: this.matrix.toArray()
-        };
-
-        if (this.children) {
-            data.children = [];
-            for (var i = 0, n = this.children.length; i !== n; ++i) {
-                var child = this.children[i];
-                data.children.push(child.encode());
-            }
-        }
-
-        return data;
-    };
-
-    Object.assign(Bone, {
-        decode: function decode(data) {
-            var bone = new Bone();
-
-            bone.uuid = data.uuid;
-            bone.matrix.fromArray(data.matrix);
-            bone.matrix.decompose(bone.position, bone.quaternion, bone.scale);
-            // bone.position.fromArray(data.pos);
-            // bone.quaternion.fromArray(data.rotq);
-            // if (data.scl !== undefined) bone.scale.fromArray(data.scl);
-            bone.name = data.name;
-
-            if (data.children) {
-                for (var i = 0, n = data.children.length; i !== n; ++i) {
-                    bone.add(ResourceParser.decode(data.children[i]));
-                }
-            }
-
-            return bone;
-        }
-    });
-
-    Group.prototype.getDeps = function (meta) {
-        var deps = Object3D.prototype.getDeps.call(this, meta);
-        if (this.animations && this.animations.length !== 0 && typeof this.anim_name === 'string') {
-            deps.splice(0, 0, {
-                path: 'ani',
-                name: this.anim_name
-            });
-
-            if (meta) {
-                meta.push({ path: 'ani', name: this.anim_name, raw: _encodeAnimations(this.animations) });
-            }
-        }
-
-        if (meta) {
-            _uniqueDeps(meta);
-        }
-
-        _uniqueDeps(deps);
-
-        return deps;
-    };
-
-    Group.prototype.play = function (name, loopMode, repetitions) {
-        var action = this.actions[name];
-
-        action.reset();
-        action.setLoop(loopMode || LoopRepeat, repetitions || Infinity);
-        action.play();
-
-        return action;
-    };
-
-    Group.prototype.stop = function (name) {
-        if (name) {
-            var action = this.actions[name];
-            action.stop();
-        } else {
-            this.mixer.stopAllAction();
-        }
-    };
-
-    Group.prototype.encode = function () {
-        var data = Object3D.prototype.encode.call(this);
-
-        if (this.skeleton) {
-            data.bones = true;
-        }
-
-        if (this.animations && this.animations.length !== 0 && typeof this.anim_name === 'string') {
-            data.anim_name = this.anim_name;
-        }
-
-        data.deps = this.getDeps();
-
-        return data;
-    };
-
-    Group.prototype.update = function (dt) {
-        Object3D.prototype.update.call(this, dt);
-        if (!this.pause && this.mixer) {
-            this.mixer.update(dt);
-        }
-    };
-
-    Group.prototype.clone = function () {
-        var group = Object3D.prototype.clone.call(this);
-
-        if (this.skeleton) {
-            group.skeleton = {
-                bones: []
-            };
-            group.traverse(function (child) {
-                if (group !== child) {
-                    group.skeleton.bones.push(child);
-                }
-            });
-
-            group.traverse(function (child) {
-                if (child.isSkinnedMesh) {
-                    var skt = Skeleton.decode(group, child.skeleton.encode());
-                    child.bind(skt, child.matrixWorld);
-                }
-            });
-        }
-
-        if (this.animations) {
-            group.mixer = new AnimationMixer(group);
-            group.anim_name = this.anim_name;
-            group.animations = this.animations;
-            group.actions = {};
-            for (var i = 0, n = group.animations.length; i !== n; ++i) {
-                var clip = group.animations[i];
-                group.actions[clip.name] = group.mixer.clipAction(clip);
-            }
-        }
-
-        return group;
-    };
-
-    Object.assign(Group, {
-        decode: function decode(data) {
-            var group = new Group();
-
-            Object3D.decode(data, group);
-
-            // group.deps = data.deps;
-
-            if (data.bones) {
-                group.skeleton = {
-                    bones: []
-                };
-                group.traverse(function (child) {
-                    if (group !== child) {
-                        group.skeleton.bones.push(child);
-                    }
-                });
-            }
-
-            for (var i = 0; i < _skeletons.length; ++i) {
-                var sdata = _skeletons[i];
-                var mesh = sdata.mesh;
-                var skeleton = sdata.skeleton;
-                var skt = Skeleton.decode(group, skeleton);
-
-                mesh.bind(skt, mesh.matrixWorld);
-            }
-
-            _skeletons = [];
-
-            if (data.anim_name) {
-                group.mixer = new AnimationMixer(group);
-                group.anim_name = data.anim_name;
-                group.animations = ResourceManager.getObj('ani', data.anim_name);
-                group.actions = {};
-                for (var _i = 0, n = group.animations.length; _i !== n; ++_i) {
-                    var clip = group.animations[_i];
-                    group.actions[clip.name] = group.mixer.clipAction(clip);
-                }
-            }
-
-            return group;
-        }
-    });
-
-    Mesh.prototype.getDeps = function (meta) {
-        var deps = Object3D.prototype.getDeps.call(this, meta);
-
-        if (Array.isArray(this.material)) {
-            for (var i = 0, l = this.material.length; i < l; i++) {
-                var mat = this.material[i];
-                deps.splice(0, 0, {
-                    path: 'mat',
-                    name: mat.name
-                });
-                if (meta) {
-                    meta.push({ path: 'mat', name: mat.name, raw: mat.encode() });
-                    mat.getDeps(meta);
-                }
-            }
-        } else {
-            deps.splice(0, 0, {
-                path: 'mat',
-                name: this.material.name
-            });
-            if (meta) {
-                meta.push({ path: 'mat', name: this.material.name, raw: this.material.encode() });
-                this.material.getDeps(meta);
-            }
-        }
-
-        if (this.geometry && this.geometry.isBufferGeometry) {
-            deps.splice(0, 0, {
-                path: 'geo',
-                name: this.geometry.name
-            });
-
-            if (meta) {
-                meta.push({ path: 'geo', name: this.geometry.name, raw: this.geometry.encode() });
-            }
-        }
-
-        return deps;
-    };
-
-    Mesh.prototype.encode = function () {
-        var data = Object3D.prototype.encode.call(this);
-
-        data.geometry = this.geometry.isBufferGeometry ? this.geometry.name : this.geometry.encode();
-
-        if (Array.isArray(this.material)) {
-            data.material = [];
-            for (var i = 0, l = this.material.length; i < l; i++) {
-                data.material.push(this.material[i].name);
-            }
-        } else {
-            data.material = this.material.name;
-        }
-
-        return data;
-    };
-
-    Mesh.prototype.update = function (dt) {
-        _updateMaterial(this.material, dt);
-        for (var i = 0, n = this.children.length; i !== n; ++i) {
-            this.children[i].update(dt);
-        }
-    };
-
-    Object.assign(Mesh, {
-        decode: function decode(data, mesh) {
-            var geometry = null;
-            var material = null;
-
-            if (typeof data.geometry === 'string') {
-                geometry = ResourceManager.getObj('geo', data.geometry);
-                if (!geometry) {
-                    geometry = ResourceManager.defualtGeometry;
-                }
-            } else {
-                geometry = ResourceParser.decode(data.geometry);
-            }
-
-            if (Array.isArray(data.material)) {
-                material = [];
-                for (var i = 0, n = data.material.length; i !== n; ++i) {
-                    material.push(ResourceManager.getObj('mat', data.material[i]));
-                }
-            } else {
-                material = ResourceManager.getObj('mat', data.material);
-            }
-
-            material = material || ResourceManager.defaultMaterial;
-
-            if (mesh === undefined) {
-                mesh = new Mesh(geometry, material);
-            } else {
-                mesh.material = material;
-                mesh.geometry = geometry;
-            }
-
-            Object3D.decode(data, mesh);
-
-            return mesh;
-        }
-    });
-
-    SkinnedMesh.prototype.clone = function () {
-        var mesh = new this.constructor(this.geometry, this.material).copy(this);
-        //record bones & boneInverses here, create or share skeleton later;
-        mesh.skeleton = this.skeleton;
-        return mesh;
-    };
-
-    Bone.prototype.clone = function (recursive) {
-        var bone = new this.constructor().copy(this, recursive);
-        bone.uuid = this.uuid;
-        return bone;
-    };
-
-    SkinnedMesh.prototype.encode = function () {
-        var data = Mesh.prototype.encode.call(this);
-
-        if (this.skeleton) {
-            data.skeleton = this.skeleton.encode();
-        }
-
-        return data;
-    };
-
-    Object.assign(SkinnedMesh, {
-        decode: function decode(data, mesh) {
-            var geometry = typeof data.geometry === 'string' ? ResourceManager.getObj('geo', data.geometry) : ResourceParser.decode(data.geometry);
-            var material = null;
-
-            if (Array.isArray(data.material)) {
-                material = [];
-                for (var i = 0, n = data.material.length; i !== n; ++i) {
-                    material.push(ResourceManager.getObj('mat', data.material[i]));
-                }
-            } else {
-                material = ResourceManager.getObj('mat', data.material);
-            }
-
-            if (mesh === undefined) {
-                mesh = new SkinnedMesh(geometry, material || new MeshBasicMaterial());
-            } else {
-                mesh.material = material;
-                mesh.geometry = geometry;
-            }
-
-            Object3D.decode(data, mesh);
-
-            if (data.skeleton) {
-                _skeletons.push({
-                    mesh: mesh,
-                    skeleton: data.skeleton
-                });
-            }
-
-            return mesh;
-        }
-    });
-
-    Geometry.prototype.encode = function () {
-        var data = {};
-        data.type = 'Geometry';
-        data.shape = this.type;
-        data.parameters = this.parameters;
-        data.data = {};
-        var boundingSphere = this.boundingSphere;
-        if (boundingSphere !== null) {
-            data.data.boundingSphere = {
-                center: boundingSphere.center.toArray(),
-                radius: boundingSphere.radius
-            };
-        }
-        return data;
-    };
-
-    Object.assign(Geometry, {
-        decode: function decode(data, geometry) {
-            if (!geometry) {
-                switch (data.shape) {
-                    case 'SphereGeometry':
-                        geometry = new SphereGeometry(data.parameters.radius, data.parameters.widthSegments, data.parameters.heightSegments);
-                        break;
-                    case 'PlaneGeometry':
-                        geometry = new PlaneGeometry(data.parameters.width, data.parameters.height, data.parameters.widthSegments, data.parameters.heightSegments);
-                        break;
-                    case 'BoxGeometry':
-                        geometry = new BoxGeometry(data.parameters.width, data.parameters.height, data.parameters.depth);
-                        break;
-                    default:
-                        geometry = new BoxGeometry(1, 1, 1);
-                        break;
-                }
-                geometry.name = data.shape;
-            }
-
-            var boundingSphere = data.data.boundingSphere;
-            if (boundingSphere !== undefined) {
-                var center = new Vector3();
-                if (boundingSphere.center !== undefined) {
-                    center.fromArray(boundingSphere.center);
-                }
-                geometry.boundingSphere = new Sphere(center, boundingSphere.radius);
-            }
-
-            return geometry;
-        }
-    });
-
-    BufferGeometry.prototype.encode = function () {
-        var data = {};
-
-        data.type = this.type;
-
-        if (this.parameters !== undefined) {
-            var parameters = this.parameters;
-            for (var key in parameters) {
-                if (parameters[key] !== undefined) data[key] = parameters[key];
-            }
-        } else {
-            data.data = {
-                attributes: {}
-            };
-            var index = this.index;
-            if (index !== null) {
-                var array = Array.prototype.slice.call(index.array);
-                data.data.index = {
-                    type: index.array.constructor.name,
-                    array: array
-                };
-            }
-
-            var attributes = this.attributes;
-            for (var key in attributes) {
-                var attribute = attributes[key];
-                var array = Array.prototype.slice.call(attribute.array);
-                data.data.attributes[key] = {
-                    itemSize: attribute.itemSize,
-                    type: attribute.array.constructor.name,
-                    array: array,
-                    normalized: attribute.normalized
-                };
-            }
-
-            var groups = this.groups;
-            if (groups.length > 0) {
-                data.data.groups = JSON.parse(JSON.stringify(groups));
-            }
-
-            var boundingSphere = this.boundingSphere;
-            if (boundingSphere !== null) {
-                data.data.boundingSphere = {
-                    center: boundingSphere.center.toArray(),
-                    radius: boundingSphere.radius
-                };
-            }
-        }
-
-        return data;
-    };
-
-    Object.assign(BufferGeometry, {
-        decode: function decode(data, geometry) {
-            var TYPED_ARRAYS = {
-                Int8Array: Int8Array,
-                Uint8Array: Uint8Array,
-                Uint8ClampedArray: Uint8ClampedArray,
-                Int16Array: Int16Array,
-                Uint16Array: Uint16Array,
-                Int32Array: Int32Array,
-                Uint32Array: Uint32Array,
-                Float32Array: Float32Array,
-                Float64Array: Float64Array
-            };
-
-            if (geometry === undefined) {
-                geometry = new BufferGeometry();
-            }
-            var index = data.data.index;
-            if (index !== undefined) {
-                var typedArray = new TYPED_ARRAYS[index.type](index.array);
-                geometry.setIndex(new BufferAttribute(typedArray, 1));
-            }
-
-            var attributes = data.data.attributes;
-            for (var key in attributes) {
-                var attribute = attributes[key];
-                var typedArray = new TYPED_ARRAYS[attribute.type](attribute.array);
-                geometry.addAttribute(key, new BufferAttribute(typedArray, attribute.itemSize, attribute.normalized));
-            }
-
-            var groups = data.data.groups || data.data.drawcalls || data.data.offsets;
-            if (groups !== undefined) {
-                for (var i = 0, n = groups.length; i !== n; ++i) {
-                    var group = groups[i];
-                    geometry.addGroup(group.start, group.count, group.materialIndex);
-                }
-            }
-
-            var boundingSphere = data.data.boundingSphere;
-            if (boundingSphere !== undefined) {
-                var center = new Vector3();
-                if (boundingSphere.center !== undefined) {
-                    center.fromArray(boundingSphere.center);
-                }
-                geometry.boundingSphere = new Sphere(center, boundingSphere.radius);
-            }
-
-            return geometry;
-        }
-    });
-
-    Skeleton.prototype.encode = function () {
-        var data = {
-            bones: [],
-            boneInverses: []
-        };
-        if (this.bones) {
-            var i, il;
-            for (i = 0, il = this.bones.length; i < il; i++) {
-                data.bones.push(this.bones[i].uuid);
-            }
-
-            for (i = 0, il = this.boneInverses.length; i < il; ++i) {
-                var inv = this.boneInverses[i];
-                data.boneInverses.push(inv.toArray());
-            }
-        }
-
-        return data;
-    };
-
-    Object.assign(Skeleton, {
-        decode: function decode(group, data) {
-            function findBoneByUUID(uuid) {
-                for (var _i2 = 0, _il = group.skeleton.bones.length; _i2 != _il; ++_i2) {
-                    var bone = group.skeleton.bones[_i2];
-                    if (bone.uuid === uuid) {
-                        return bone;
-                    }
-                }
-                return null;
-            }
-            var bones = [];
-            var boneInverses = [];
-            var i, il;
-            for (i = 0, il = data.bones.length; i < il; i++) {
-                var bone_uuid = data.bones[i];
-                var bone = findBoneByUUID(bone_uuid);
-                if (bone !== null) {
-                    bones.push(bone);
-                }
-            }
-
-            for (i = 0, il = data.boneInverses.length; i < il; i++) {
-                var inv = data.boneInverses[i];
-                var matrix = new Matrix4();
-                matrix.fromArray(inv);
-                boneInverses.push(matrix);
-            }
-
-            return new Skeleton(bones, boneInverses);
-        }
-    });
-
-    Material.prototype.getDeps = function (meta) {
-        var deps = [];
-        if (this.map && this.map.isTexture) {
-            deps.push(this.map.getDeps(meta));
-        }
-        if (this.alphaMap && this.alphaMap.isTexture) {
-            deps.push(this.alphaMap.getDeps(meta));
-        }
-        if (this.lightMap && this.lightMap.isTexture) {
-            deps.push(this.lightMap.getDeps(meta));
-        }
-        if (this.bumpMap && this.bumpMap.isTexture) {
-            deps.push(this.bumpMap.getDeps(meta));
-        }
-        if (this.normalMap && this.normalMap.isTexture) {
-            deps.push(this.normalMap.getDeps(meta));
-        }
-        if (this.displacementMap && this.displacementMap.isTexture) {
-            deps.push(this.displacementMap.getDeps(meta));
-        }
-        if (this.roughnessMap && this.roughnessMap.isTexture) {
-            deps.push(this.roughnessMap.getDeps(meta));
-        }
-        if (this.metalnessMap && this.metalnessMap.isTexture) {
-            deps.push(this.metalnessMap.getDeps(meta));
-        }
-        if (this.emissiveMap && this.emissiveMap.isTexture) {
-            deps.push(this.emissiveMap.getDeps(meta));
-        }
-        if (this.specularMap && this.specularMap.isTexture) {
-            deps.push(this.specularMap.getDeps(meta));
-        }
-        if (this.envMap && this.envMap.isTexture) {
-            deps.push(this.envMap.getDeps(meta));
-        }
-        if (this.gradientMap && this.gradientMap.isTexture) {
-            deps.push(this.gradientMap.getDeps(meta));
-        }
-        if (this.aoMap && this.aoMap.isTexture) {
-            deps.push(this.aoMap.getDeps(meta));
-        }
-
-        return deps;
-    };
-
-    Material.prototype.encode = function () {
-        var data = {
-            type: this.type
-        };
-
-        if (this.color && this.color.isColor) data.color = this.color.getHex();
-        if (this.roughness !== undefined) data.roughness = this.roughness;
-        if (this.metalness !== undefined) data.metalness = this.metalness;
-        if (this.emissive && this.emissive.isColor) data.emissive = this.emissive.getHex();
-        if (this.specular && this.specular.isColor) data.specular = this.specular.getHex();
-        if (this.shininess !== undefined) data.shininess = this.shininess;
-        if (this.clearCoat !== undefined) data.clearCoat = this.clearCoat;
-        if (this.clearCoatRoughness !== undefined) data.clearCoatRoughness = this.clearCoatRoughness;
-
-        if (this.map && this.map.isTexture) {
-            data.map = this.map.encode();
-        }
-        if (this.alphaMap && this.alphaMap.isTexture) {
-            data.alphaMap = this.alphaMap.encode();
-        }
-        if (this.lightMap && this.lightMap.isTexture) {
-            data.lightMap = this.lightMap.encode();
-        }
-        if (this.bumpMap && this.bumpMap.isTexture) {
-            data.bumpMap = this.bumpMap.encode();
-            data.bumpScale = this.bumpScale;
-        }
-        if (this.normalMap && this.normalMap.isTexture) {
-            data.normalMap = this.normalMap.encode();
-            data.normalScale = this.normalScale.toArray();
-        }
-        if (this.displacementMap && this.displacementMap.isTexture) {
-            data.displacementMap = this.displacementMap.encode();
-            data.displacementScale = this.displacementScale;
-            data.displacementBias = this.displacementBias;
-        }
-        if (this.roughnessMap && this.roughnessMap.isTexture) {
-            data.roughnessMap = this.roughnessMap.encode();
-        }
-        if (this.metalnessMap && this.metalnessMap.isTexture) {
-            data.metalnessMap = this.metalnessMap.encode();
-        }
-        if (this.emissiveMap && this.emissiveMap.isTexture) {
-            data.emissiveMap = this.emissiveMap.encode();
-        }
-        if (this.specularMap && this.specularMap.isTexture) {
-            data.specularMap = this.specularMap.encode();
-        }
-        if (this.envMap && this.envMap.isTexture) {
-            data.reflectivity = this.reflectivity;
-            data.envMap = this.envMap.encode();
-        }
-        if (this.gradientMap && this.gradientMap.isTexture) {
-            data.gradientMap = this.gradientMap.encode();
-        }
-        if (this.aoMap && this.aoMap.isTexture) {
-            data.aoMap = this.aoMap.encode();
-            data.aoMapIntensity = this.aoMapIntensity;
-        }
-
-        if (this.size !== undefined) data.size = this.size;
-        if (this.sizeAttenuation !== undefined) data.sizeAttenuation = this.sizeAttenuation;
-        if (this.blending !== NormalBlending) data.blending = this.blending;
-        if (this.shading !== SmoothShading) data.shading = this.shading;
-        if (this.side !== FrontSide) data.side = this.side;
-        if (this.vertexColors !== NoColors) data.vertexColors = this.vertexColors;
-        if (this.opacity < 1) data.opacity = this.opacity;
-        if (this.transparent === true) data.transparent = this.transparent;
-
-        data.depthFunc = this.depthFunc;
-        data.depthTest = this.depthTest;
-        data.depthWrite = this.depthWrite;
-
-        if (this.alphaTest > 0) data.alphaTest = this.alphaTest;
-        if (this.premultipliedAlpha === true) data.premultipliedAlpha = this.premultipliedAlpha;
-        if (this.wireframe === true) data.wireframe = this.wireframe;
-        if (this.wireframeLinewidth > 1) data.wireframeLinewidth = this.wireframeLinewidth;
-        if (this.wireframeLinecap !== 'round') data.wireframeLinecap = this.wireframeLinecap;
-        if (this.wireframeLinejoin !== 'round') data.wireframeLinejoin = this.wireframeLinejoin;
-
-        data.skinning = this.skinning;
-        data.morphTargets = this.morphTargets;
-        data.dithering = this.dithering;
-
-        data.deps = this.getDeps();
-        _uniqueDeps(data.deps);
-
-        return data;
-    };
-
-    var _MATERIALS = {
-        ShadowMaterial: ShadowMaterial,
-        SpriteMaterial: SpriteMaterial,
-        RawShaderMaterial: RawShaderMaterial,
-        ShaderMaterial: ShaderMaterial,
-        PointsMaterial: PointsMaterial,
-        MeshPhysicalMaterial: MeshPhysicalMaterial,
-        MeshStandardMaterial: MeshStandardMaterial,
-        MeshPhongMaterial: MeshPhongMaterial,
-        MeshToonMaterial: MeshToonMaterial,
-        MeshNormalMaterial: MeshNormalMaterial,
-        MeshLambertMaterial: MeshLambertMaterial,
-        MeshDepthMaterial: MeshDepthMaterial,
-        MeshBasicMaterial: MeshBasicMaterial,
-        LineDashedMaterial: LineDashedMaterial,
-        LineBasicMaterial: LineBasicMaterial,
-        Material: Material
-    };
-
-    Object.assign(Material, {
-        decode: function decode(data, material) {
-            if (!material) {
-                material = new _MATERIALS[data.type]();
-            }
-
-            material.deps = data.deps;
-
-            if (data.uuid !== undefined) material.uuid = data.uuid;
-            if (data.color !== undefined) material.color.setHex(data.color);
-            if (data.roughness !== undefined) material.roughness = data.roughness;
-            if (data.metalness !== undefined) material.metalness = data.metalness;
-            if (data.emissive !== undefined) material.emissive.setHex(data.emissive);
-            if (data.specular !== undefined) material.specular.setHex(data.specular);
-            if (data.shininess !== undefined) material.shininess = data.shininess;
-            if (data.clearCoat !== undefined) material.clearCoat = data.clearCoat;
-            if (data.clearCoatRoughness !== undefined) material.clearCoatRoughness = data.clearCoatRoughness;
-            if (data.uniforms !== undefined) {
-                material.uniforms = data.uniforms;
-            }
-            if (data.vertexShader !== undefined) material.vertexShader = data.vertexShader;
-            if (data.fragmentShader !== undefined) material.fragmentShader = data.fragmentShader;
-            if (data.vertexColors !== undefined) material.vertexColors = data.vertexColors;
-            if (data.fog !== undefined) material.fog = data.fog;
-            if (data.shading !== undefined) material.shading = data.shading;
-            if (data.blending !== undefined) material.blending = data.blending;
-            if (data.side !== undefined) material.side = data.side;
-            if (data.opacity !== undefined) material.opacity = data.opacity;
-            material.transparent = data.transparent !== undefined ? data.transparent : false;
-            if (data.alphaTest !== undefined) material.alphaTest = data.alphaTest;
-            if (data.depthTest !== undefined) material.depthTest = data.depthTest;
-            if (data.depthWrite !== undefined) material.depthWrite = data.depthWrite;
-            if (data.colorWrite !== undefined) material.colorWrite = data.colorWrite;
-            if (data.wireframe !== undefined) material.wireframe = data.wireframe;
-            if (data.wireframeLinewidth !== undefined) material.wireframeLinewidth = data.wireframeLinewidth;
-            if (data.wireframeLinecap !== undefined) material.wireframeLinecap = data.wireframeLinecap;
-            if (data.wireframeLinejoin !== undefined) material.wireframeLinejoin = data.wireframeLinejoin;
-            if (data.skinning !== undefined) material.skinning = data.skinning;
-            if (data.morphTargets !== undefined) material.morphTargets = data.morphTargets;
-
-            // for PointsMaterial
-            if (data.size !== undefined) material.size = data.size;
-            if (data.sizeAttenuation !== undefined) material.sizeAttenuation = data.sizeAttenuation;
-
-            // maps
-            if (data.map !== undefined) material.map = ResourceParser.decode(data.map);
-            if (data.alphaMap !== undefined) {
-                material.alphaMap = ResourceParser.decode(data.alphaMap);
-                material.transparent = true;
-            }
-
-            if (data.bumpMap !== undefined) material.bumpMap = ResourceParser.decode(data.bumpMap);
-            if (data.bumpScale !== undefined) material.bumpScale = data.bumpScale;
-
-            if (data.normalMap !== undefined) material.normalMap = ResourceParser.decode(data.normalMap);
-            if (data.normalScale !== undefined) {
-                var normalScale = data.normalScale;
-                if (Array.isArray(normalScale) === false) {
-                    // Blender exporter used to export a scalar. See #7459
-                    normalScale = [normalScale, normalScale];
-                }
-                material.normalScale = new Vector2().fromArray(normalScale);
-            }
-
-            if (data.displacementMap !== undefined) material.displacementMap = ResourceParser.decode(data.displacementMap);
-            if (data.displacementScale !== undefined) material.displacementScale = data.displacementScale;
-            if (data.displacementBias !== undefined) material.displacementBias = data.displacementBias;
-
-            if (data.roughnessMap !== undefined) material.roughnessMap = ResourceParser.decode(data.roughnessMap);
-            if (data.metalnessMap !== undefined) material.metalnessMap = ResourceParser.decode(data.metalnessMap);
-
-            if (data.emissiveMap !== undefined) material.emissiveMap = ResourceParser.decode(data.emissiveMap);
-            if (data.emissiveIntensity !== undefined) material.emissiveIntensity = data.emissiveIntensity;
-
-            if (data.specularMap !== undefined) material.specularMap = ResourceParser.decode(data.specularMap);
-
-            if (data.envMap !== undefined) material.envMap = ResourceParser.decode(data.envMap);
-
-            if (data.reflectivity !== undefined) material.reflectivity = data.reflectivity;
-
-            if (data.lightMap !== undefined) material.lightMap = ResourceParser.decode(data.lightMap);
-            if (data.lightMapIntensity !== undefined) material.lightMapIntensity = data.lightMapIntensity;
-
-            if (data.aoMap !== undefined) material.aoMap = ResourceParser.decode(data.aoMap);
-            if (data.aoMapIntensity !== undefined) material.aoMapIntensity = data.aoMapIntensity;
-
-            if (data.gradientMap !== undefined) material.gradientMap = ResourceParser.decode(data.gradientMap);
-
-            return material;
-        }
-    });
-
-    return {
-        MATERIALS: _MATERIALS,
-
-        decode: function decode(data) {
-            switch (data.type) {
-                case 'Scene':
-                    return HaloScene.decode(data);
-                    break;
-                case 'Object3D':
-                    return Object3D.decode(data);
-                    break;
-                case 'Group':
-                    return Group.decode(data);
-                    break;
-                case 'Bone':
-                    return Bone.decode(data);
-                    break;
-                case 'Effect':
-                    return Effect.decode(data);
-                    break;
-                case 'AmbientLight':
-                    var light = new AmbientLight(data.color, data.intensity);
-                    return light.decode(data);
-                    break;
-                case 'DirectionalLight':
-                    var light = new DirectionalLight(data.color, data.intensity);
-                    return light.decode(data);
-                    break;
-                case 'PointLight':
-                    var light = new PointLight(data.color, data.intensity, data.distance, data.decay);
-                    return light.decode(data);
-                    break;
-                case 'RectAreaLight':
-                    var light = new RectAreaLight(data.color, data.intensity, data.width, data.height);
-                    return light.decode(data);
-                    break;
-                case 'SpotLight':
-                    var light = new SpotLight(data.color, data.intensity, data.distance, data.angle, data.penumbra, data.decay);
-                    return light.decode(data);
-                    break;
-                case 'HemisphereLight':
-                    var light = new HemisphereLight(data.color, data.groundColor, data.intensity);
-                    return light.decode(data);
-                    break;
-                case 'Mesh':
-                    return Mesh.decode(data);
-                    break;
-                case 'SkinnedMesh':
-                    return SkinnedMesh.decode(data);
-                    break;
-                case 'BufferGeometry':
-                    return BufferGeometry.decode(data);
-                    break;
-                case 'Geometry':
-                    return Geometry.decode(data);
-                    break;
-                case 'AnimationClip':
-                    return AnimationClip.decode(data);
-                    break;
-                case 'Animation':
-                    var animations = [];
-                    for (var i = 0, n = data.clips.length; i !== n; ++i) {
-                        animations.push(ResourceParser.decode(data.clips[i]));
-                    }
-                    return animations;
-                    break;
-                case 'Texture':
-                    return Texture.decode(data);
-                    break;
-                case 'PerspectiveCamera':
-                    return new PerspectiveCamera.decode(data);
-                    break;
-                default:
-                    var MATERIAL = ResourceParser.MATERIALS[data.type];
-                    if (MATERIAL !== undefined) {
-                        if (MATERIAL.decode !== undefined) {
-                            return MATERIAL.decode(data);
-                        } else {
-                            return Material.decode(data);
-                        }
-                    } else {
-                        console.error("ResourceParser can not find data type:", data.type);
-                    }
-            }
-            return null;
-        },
-
-        encodeAnimations: function encodeAnimations(animations) {
-            return _encodeAnimations(animations);
-        },
-
-        getDataURL: function getDataURL(image, name) {
-            return _getDataURL(image, name);
-        },
-
-        uniqueDeps: function uniqueDeps(deps) {
-            _uniqueDeps(deps);
-        }
-    };
-}();
-
-var ResourceManager = function () {
-    var _baseUrl = '';
-    var _fileReader;
-
-    Texture.DEFAULT_IMAGE = document.createElementNS('http://www.w3.org/1999/xhtml', 'img');
-    Texture.DEFAULT_IMAGE.src = 'data:image/bmp;base64,Qk06AAAAAAAAADYAAAAoAAAAAQAAAP////8BACAAAAAAAAAAAAATCwAAEwsAAAAAAAAAAAAAACX//w==';
-
-    var _resources = {
-        'ani': {},
-        'scn': {},
-        'cfg': {},
-        'mat': {},
-        'mdl': {},
-        'img': {},
-        'geo': {},
-        'aud': {},
-        'js': {}
-    };
-
-    var _simpleAtlas = {};
-    var _funcs = {};
-
-    var _defaultTex = new Texture(Texture.DEFAULT_IMAGE);
-    _defaultTex.needsUpdate = true;
-    var _defaultMat = new MeshBasicMaterial({ name: 'DEFAULT', map: _defaultTex });
-    var _defaultGeo = new BoxGeometry(1, 1, 1);
-    var _defaultSimpleSprite = new SimpleSprite(_defaultTex, '', 0, 1, 1, 1);
-    var _defaultMesh = new Mesh(_defaultGeo, _defaultMat);
-    var _defaultGroup = new Group();
-
-    _defaultGroup.add(_defaultMesh);
-
-    var _audioListener = null;
-
-    var _defaultRes = {
-        'img': _defaultTex,
-        'mat': _defaultMat,
-        'geo': _defaultGeo,
-        'mdl': _defaultGroup,
-        'ani': []
-    };
-
-    var _createRes = function _createRes(path, name) {
-        var resPath = _resources[path];
-        var res = resPath ? resPath[name] : undefined;
-
-        if (res === undefined) {
-            res = {
-                name: name,
-                path: path,
-                unzip: null,
-                obj: null
-            };
-            if (resPath !== undefined) {
-                resPath[name] = res;
-            }
-        }
-
-        return res;
-    };
-
-    var _listen = function _listen(res) {
-        if (res.listeners === undefined) {
-            return false;
-        }
-
-        for (var i = 0; i !== res.listeners.length; ++i) {
-            res.listeners[i](res);
-        }
-        res.listeners = undefined;
-
-        return true;
-    };
-
-    // path	    data        raw		    unzip	    obj
-    // cfg	    string      string	    string	    Json
-    // img  	base64      base64	    <image>	    Texture
-    // aud	    arraybuffer base64	    audiobuffer	[Audio]
-    // 3d	    uint8array  string	    Json	    3d
-    // js       string      string      <script>    <script>
-    var _DataLoader = function _DataLoader(path, name, callback) {
-        var res = _createRes(path, name);
-
-        if (res.unzip === null) {
-            if (res.listeners === undefined) {
-                res.listeners = [callback];
-                _fileReader(path, name, function (data) {
-                    if (data) {
-                        if (path === 'scn' || path === 'mdl' || path === 'geo' || path === 'mat' || path === 'ani') {
-                            res.unzip = _unzip(data);
-                            _listen(res);
-                        } else if (path === 'img') {
-                            var img = new Image();
-                            // img.crossOrigin = "Anonymous";
-                            img.onload = function () {
-                                res.unzip = img;
-                                _listen(res);
-                            };
-                            img.onerror = function (e) {
-                                alert(name + ":" + JSON.stringify(e));
-                            };
-                            img.src = data;
-                        } else if (path === 'js') {
-                            if (!Config.bDebug) {
-                                var script = document.createElement('script');
-                                script.type = "text/javascript";
-                                script.innerHTML = data;
-                                document.head.appendChild(script);
-                                res.unzip = script;
-                            } else {
-                                res.unzip = data;
-                            }
-                            _listen(res);
-                        } else if (path === 'aud') {
-                            var context = AudioContext.getContext();
-                            context.decodeAudioData(data, function (audiobuffer) {
-                                res.unzip = audiobuffer;
-                                _listen(res);
-                            });
-                        } else {
-                            res.unzip = data;
-                            _listen(res);
-                        }
-                    }
-                });
-            } else {
-                res.listeners.push(callback);
-            }
-        } else {
-            callback(res);
-        }
-    };
-
-    var _getUrl = function _getUrl(path, name) {
-        if (name === '') {
-            return _baseUrl + path;
-        } else if (path === '') {
-            return _baseUrl + name;
-        } else if (path === 'img' || path === 'cfg' || path === 'aud' || path === 'js') {
-            return _baseUrl + path + '/' + name;
-        } else {
-            return _baseUrl + path + '/' + name + '.' + path;
-        }
-    };
-
-    var _loadList = function _loadList(list, callback) {
-        for (var i = 0, n = list.length; i != n; ++i) {
-            var path = list[i].path;
-            var name = list[i].name;
-            new _DataLoader(path, name, callback);
-        }
-    };
-
-    var _parseRes = function _parseRes(res) {
-        var path = res.path;
-        var name = res.name;
-        var ret = res.obj === null ? 1 : 0;
-
-        if (res.unzip === null) {
-            var defaultRes = _defaultRes[path];
-            if (defaultRes) {
-                if (path === 'mdl') {
-                    res.obj = defaultRes.clone();
-                } else {
-                    res.obj = defaultRes;
-                }
-            }
-        } else {
-            if (path === 'scn' || path === 'mdl' || path === 'geo' || path === 'mat' || path === 'ani') {
-                res.obj = ResourceParser.decode(res.unzip);
-                res.obj.name = name;
-            } else if (path === 'img') {
-                res.obj = new Texture(res.unzip);
-                res.obj.name = name;
-                res.obj.sourceFile = name;
-                res.obj.needsUpdate = true;
-            } else if (path === 'aud') {
-                var cfg = Config.getAudio(name);
-                res.obj = [];
-                for (var i = 0; i !== cfg.max; ++i) {
-                    var audio = cfg.b3D ? new PositionalAudio(_audioListener) : new Audio(_audioListener);
-                    audio.setBuffer(res.unzip);
-                    audio.setLoop(cfg.loop);
-                    audio.setVolume(cfg.volume);
-                    audio.offset = cfg.offset;
-                    res.obj.push(audio);
-                }
-            } else if (path === 'js') {
-                res.obj = res.unzip;
-                if (Config.bDebug && res.obj) {
-                    document.head.appendChild(res.obj);
-                }
-            } else {
-                res.obj = JSON.parse(res.unzip);
-            }
-        }
-
-        return ret;
-    };
-
-    var _unzip = function _unzip(data) {
-        var zipFileLoaded = new JSZip(data, { "uint8array": true });
-        var keys = Object.keys(zipFileLoaded.files);
-        var contents = zipFileLoaded.files[keys[0]].asText();
-        var obj = JSON.parse(contents);
-        return obj;
-    };
-
-    var _raws = null;
-    var _loadResList = function _loadResList(resList, onFinish) {
-        var deps = resList.slice(0);
-        var num = 0;
-        var rest = [];
-
-        ResourceParser.uniqueDeps(deps);
-
-        _loadList(deps, function (res) {
-            if (res) {
-                if (res.obj === null && res.unzip && res.unzip.deps) {
-                    rest = res.unzip.deps.concat(rest);
-                }
-                res.path === 'js' ? _raws.push(res) : _raws.unshift(res);
-            }
-            if (++num === deps.length) {
-                if (rest.length > 0) {
-                    _loadResList(rest, onFinish);
-                } else {
-                    onFinish();
-                }
-            }
-        });
-    };
-
-    var _parseList = function _parseList(callback) {
-        for (var i = 0, n = _raws.length; i !== n; ++i) {
-            var res = _raws[i];
-            if (res && _parseRes(res) === 1) {
-                callback(res);
-            }
-        }
-
-        callback(null);
-    };
-
-    return {
-        defaultTexture: _defaultTex,
-
-        defaultMaterial: _defaultMat,
-
-        defualtGeometry: _defaultGeo,
-
-        defaultSimpleSprite: _defaultSimpleSprite,
-
-        getResources: function getResources(path) {
-            return _resources[path];
-        },
-
-        getSimpleAtlas: function getSimpleAtlas() {
-            return _simpleAtlas;
-        },
-
-        getFunc: function getFunc(name) {
-            return _funcs[name];
-        },
-
-        funcs: function funcs() {
-            return _funcs;
-        },
-
-        getUrl: function getUrl(path, name) {
-            return _getUrl(path, name);
-        },
-
-        parseRes: function parseRes(path, name) {
-            return _parseRes(_resources[path][name]);
-        },
-
-        unzip: function unzip(data) {
-            return _unzip(data);
-        },
-
-        setFileReader: function setFileReader(fileReader) {
-            _fileReader = fileReader;
-        },
-
-        setBaseUrl: function setBaseUrl(baseUrl) {
-            _baseUrl = baseUrl;
-        },
-
-        createAudioListener: function createAudioListener() {
-            _audioListener = new AudioListener();
-        },
-
-        getAudioListener: function getAudioListener() {
-            return _audioListener;
-        },
-
-        clearCache: function clearCache() {
-            _resources = {
-                'ani': {},
-                'scn': {},
-                'cfg': {},
-                'mat': {},
-                'mdl': {},
-                'img': {},
-                'geo': {},
-                'aud': {},
-                'js': {}
-            };
-
-            _simpleAtlas = {};
-        },
-
-        clearResource: function clearResource(path, name) {
-            delete _resources[path][name];
-        },
-
-        getSimpleSprite: function getSimpleSprite(image, name) {
-            var sheet = _simpleAtlas[image];
-            if (sheet) {
-                return sheet[name];
-            }
-        },
-
-        parseSimpleAtlas: function parseSimpleAtlas(name, image) {
-            var res = _resources['cfg'][name];
-            if (res && res.obj) {
-                var atlasMap = _simpleAtlas[image] = {};
-                var texture = _resources['img'][image].obj;
-                texture.magFilter = texture.minFilter = NearestFilter;
-                texture.generateMipmaps = false;
-                var invw = 1 / texture.image.width;
-                var invh = 1 / texture.image.height;
-                for (var key in res.obj) {
-                    var at = res.obj[key];
-                    var x = at.x * invw;
-                    var y = 1 - at.y * invh;
-                    var w = at.w * invw;
-                    var h = at.h * invh;
-                    var atlas = new SimpleSprite(texture, key, x, y, w, h);
-                    atlasMap[key] = atlas;
-                }
-            }
-        },
-
-        getRes: function getRes(path, name) {
-            return _resources[path][name];
-        },
-
-        getObj: function getObj(path, name) {
-            var res = _resources[path][name];
-            if (res) {
-                if (!res.obj && res.unzip) {
-                    _parseRes(res);
-                }
-
-                return res.obj;
-            }
-
-            return null;
-        },
-
-        playAudio: function playAudio(name) {
-            var res = _resources['aud'][name];
-            var audios = res.obj;
-            for (var i = 0; i !== audios.length; ++i) {
-                var audio = audios[i];
-                if (!audio.isPlaying) {
-                    //TODO: read config
-                    audio.play();
-                    return true;
-                }
-            }
-            return false;
-        },
-
-        addResource: function addResource(path, name, unzip, obj) {
-            var res = _resources[path][name];
-            if (res === undefined) {
-                res = {
-                    name: name,
-                    path: path,
-                    unzip: null,
-                    obj: null
-                };
-                _resources[path][name] = res;
-            }
-
-            res.obj = obj || null;
-            res.unzip = unzip || null;
-
-            return res;
-        },
-
-        loadData: function loadData(path, name, callback) {
-            new _DataLoader(path, name, function (res) {
-                callback && callback(res);
-            });
-        },
-
-        loadList: function loadList(list, callback) {
-            _raws = [];
-
-            _loadResList(list, function () {
-                _parseList(callback);
-            });
-        }
-    };
-}();
-
-exports.version = null;
-
-function httpRequest(url, type) {
-    return new Promise(function (resolve, reject) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                if (xhr.status === 200) {
-                    resolve(xhr.response);
-                } else {
-                    reject(url);
-                }
-            } else {
-                //loading...
-            }
-        };
-        xhr.responseType = type;
-        if (xhr.overrideMimeType) xhr.overrideMimeType('text/plain');
-        xhr.send(null);
-    });
-}
-
-function arrayBufferToBase64(buffer) {
-    var binary = '';
-    var bytes = new Uint8Array(buffer);
-    var len = bytes.byteLength;
-    for (var i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
-}
-
-function base64ToUint8Array(string_base64) {
-    var binary_string = window.atob(string_base64);
-    var len = binary_string.length;
-    var bytes = new Uint8Array(len);
-    for (var i = 0; i < len; i++) {
-        var ascii = binary_string.charCodeAt(i);
-        bytes[i] = ascii;
-    }
-    return bytes;
-}
-
-function base64ToArrayBuffer(string_base64) {
-    var array = base64ToUint8Array(string_base64);
-    return array.buffer;
-}
-
-var storageLoader = function storageLoader(path, name, callback) {
-    var url = ResourceManager.getUrl(path, name);
-    Storage.get(url, function (res) {
-        var ver = exports.version[path][name];
-        if (!ver) {
-            console.error(path + ':' + name + ' miss version!');
-            callback(null);
-            return;
-        }
-
-        if (Config.bDebug && path === 'js') {
-            var script = document.createElement('script');
-            script.type = "text/javascript";
-            script.onload = function () {
-                document.head.removeChild(script);
-                callback(script);
-            };
-            script.src = url;
-            document.head.appendChild(script);
-            return;
-        }
-
-        if (Config.bDebug || res === undefined || ver.version !== res.version) {
-            var type = path === 'cfg' || path === 'js' || path === '' ? 'text' : 'arraybuffer';
-            httpRequest(url, type).then(function (data) {
-                if (path === 'img') {
-                    data = 'data:img/' + name.split('.').pop().toLowerCase() + ';base64,' + arrayBufferToBase64(data);
-                } else if (path === 'mat' || path === 'geo' || path === 'mdl' || path === 'ani' || path === 'scn') {
-                    data = new Uint8Array(data);
-                }
-                Storage.set(url, data, ver.version);
-                callback(data);
-                Halo.onLoadData && Halo.onLoadData(path, name, ver.size);
-            }).catch(function (url) {
-                callback(null);
-                console.log('(Halo) Load resource failed: ' + url);
-            });
-        } else {
-            callback(res.data);
-            Halo.onLoadData && Halo.onLoadData(path, name, ver.size);
-        }
-    });
-};
-
-function init(storageName, baseUrl, fileLoader, callback) {
-    var loader = fileLoader || storageLoader;
-
-    ResourceManager.setBaseUrl(baseUrl);
-    ResourceManager.setFileReader(loader);
-    ResourceManager.createAudioListener();
-
-    if (storageName) {
-        //web game mode
-        Storage.init(storageName).then(function () {
-            var versionUrl = ResourceManager.getUrl('', 'version.json');
-            httpRequest(versionUrl, 'text').then(function (data) {
-                exports.version = JSON.parse(data);
-                loader('', 'config.json', function (cfgData) {
-                    Config.init(JSON.parse(cfgData), function (res) {
-                        callback && callback(res);
-                    });
-                });
-            });
-        });
-    } else {
-        if (fileLoader) {
-            //desktop mode
-            fileLoader('', 'config.json', function (cfgData) {
-                Config.init(JSON.parse(cfgData), callback);
-            });
-        } else {
-            //project package mode
-            callback && callback(null);
-        }
-    }
-}
-
-function encodeProject(getData) {
-    var allRes = [];
-    var pathes = ['js', 'cfg', 'img', 'aud', 'geo', 'ani', 'mat', 'mdl', 'scn'];
-
-    for (var i = 0; i != pathes.length; ++i) {
-        var path = pathes[i];
-        var resList = ResourceManager.getResources(path);
-        for (var name in resList) {
-            var res = resList[name];
-            var data;
-            if (path === 'scn' || path === 'mdl' || path === 'geo' || path === 'mat' || path === 'ani') {
-                data = res.obj.encode();
-            } else if (path === 'img') {
-                data = ResourceParser.getDataURL(res.unzip, name);
-            } else if (path === 'js') {
-                data = res.unzip.innerHTML || getData(path, name);
-            } else if (path === 'aud') {
-                data = res.data || getData(path, name);
-            } else {
-                data = res.unzip;
-            }
-            allRes.push({ path: path, name: name, data: data });
-        }
-    }
-
-    return { cfg: Config.get(), wgt: Config.widgets(), eff: Config.effects(), aud: Config.audios(), res: allRes };
-}
-
-function parseProject(meta, callback) {
-    var count = 0;
-
-    function checkState(res) {
-        callback && callback(res);
-        if (meta.res.length === ++count) {
-            for (var i = 0; i !== meta.res.length; ++i) {
-                var res = meta.res[i];
-                ResourceManager.parseRes(res.path, res.name);
-            }
-            callback && callback(null);
-            Config.initProject(meta.cfg, meta.wgt, meta.eff, meta.aud);
-        }
-    }
-
-    function ImageParser(path, name, data) {
-        var img = document.createElement('img');
-        img.onload = function () {
-            var res = ResourceManager.addResource(path, name, img);
-            checkState(res);
-        };
-        img.src = data;
-    }
-
-    function AudioParser(path, name, data) {
-        var context = AudioContext.getContext();
-        context.decodeAudioData(base64ToArrayBuffer(data), function (audiobuffer) {
-            var res = ResourceManager.addResource(path, name, audiobuffer);
-            res.data = data;
-            checkState(res);
-        });
-    }
-
-    for (var i = 0; i !== meta.res.length; ++i) {
-        var res = meta.res[i];
-        var path = res.path;
-        var name = res.name;
-        var data = res.data;
-
-        if (path === 'img') {
-            new ImageParser(path, name, data);
-        } else if (path === 'aud') {
-            new AudioParser(path, name, data);
-        } else if (path === 'js') {
-            var script = document.createElement('script');
-            script.type = "text/javascript";
-            script.innerHTML = data;
-            document.head.appendChild(script);
-            var res = ResourceManager.addResource(path, name, script);
-            checkState(res);
-        } else {
-            var res = ResourceManager.addResource(path, name, data);
-            checkState(res);
-        }
-    }
-}
-
-function Atlas(imageName, frame, orig, trim, rotate) {
-    this.texture = ResourceManager.getObj('img', imageName);
-
-    this._frame = frame;
-    this.trim = trim;
-    this.orig = orig || this._frame;
-    this._rotation = 0;
-
-    var tw = 65535 / this.texture.image.width;
-    var th = 65535 / this.texture.image.height;
-
-    var x1 = this._frame.x * tw;
-    var y1 = 65535 - this._frame.y * th;
-    var x2 = x1 + this._frame.width * tw;
-    var y2 = y1 - this._frame.height * th;
-
-    this.updateUV = function (uv, offset) {
-        uv.setXY(offset, x1, y2);
-        uv.setXY(offset + 1, x2, y2);
-        uv.setXY(offset + 2, x2, y1);
-        uv.setXY(offset + 3, x1, y1);
-    };
-}
-
-function Sprite2D() {
-    Object2D.call(this);
-    this._atlas = null;
-    this._anchor = new Vector2(0, 0);
-    this._srcFactor = SrcAlphaFactor;
-    this._dstFactor = OneMinusSrcAlphaFactor;
-    this.color = new Color(1, 1, 1);
-}
-
-Sprite2D.prototype = Object.assign(Object.create(Object2D.prototype), {
-    constructor: Sprite2D,
-
-    isSprite2D: true,
-
-    getMatCfg: function getMatCfg() {
-        return {
-            enable: true,
-            scissorID: -1,
-            texture: this._atlas.texture,
-            srcFactor: this._srcFactor,
-            dstFactor: this._dstFactor
-        };
-    },
-
-    getVertexCount: function getVertexCount() {
-        return 4;
-    },
-
-    getIndexCount: function getIndexCount() {
-        return 6;
-    },
-
-    updatePosition: function updatePosition(pos, offset) {
-        // set the vertex data
-        // const texture = this._texture;
-        var wt = this.transform.worldTransform;
-        var a = wt.a;
-        var b = wt.b;
-        var c = wt.c;
-        var d = wt.d;
-        var tx = wt.tx;
-        var ty = wt.ty;
-        var trim = this._atlas.trim;
-        var orig = this._atlas.orig;
-        var anchor = this._anchor;
-
-        var w0 = 0;
-        var w1 = 0;
-        var h0 = 0;
-        var h1 = 0;
-
-        var aow = anchor.x * orig.width;
-        var aoh = anchor.y * orig.height;
-        if (trim) {
-            // if the sprite is trimmed and is not a tilingsprite then we need to add the extra
-            // space before transforming the sprite coords.
-            w1 = trim.min.x - aow;
-            w0 = trim.max.x - aow;
-
-            h1 = trim.min.y - aoh;
-            h0 = trim.max.y - aoh;
-        } else {
-            w1 = -aow;
-            w0 = w1 + orig.width;
-
-            h1 = -aoh;
-            h0 = h1 + orig.height;
-        }
-
-        var x1 = a * w1 + c * h1 + tx;
-        var y1 = d * h1 + b * w1 + ty;
-
-        var x2 = a * w0 + c * h1 + tx;
-        var y2 = d * h1 + b * w0 + ty;
-
-        var x3 = a * w0 + c * h0 + tx;
-        var y3 = d * h0 + b * w0 + ty;
-
-        var x4 = a * w1 + c * h0 + tx;
-        var y4 = d * h0 + b * w1 + ty;
-
-        pos.setXYZ(offset, x1, y1, 0);
-        pos.setXYZ(offset + 1, x2, y2, 0);
-        pos.setXYZ(offset + 2, x3, y3, 0);
-        pos.setXYZ(offset + 3, x4, y4, 0);
-    },
-
-    updateColor: function updateColor(color, offset) {
-        var cr = this.color.r * 255;
-        var cg = this.color.g * 255;
-        var cb = this.color.b * 255;
-        var ca = this.worldAlpha * 255;
-
-        color.setXYZW(offset, cr, cg, cb, ca);
-        color.setXYZW(offset + 1, cr, cg, cb, ca);
-        color.setXYZW(offset + 2, cr, cg, cb, ca);
-        color.setXYZW(offset + 3, cr, cg, cb, ca);
-    },
-
-    updateUV: function updateUV(uv, offset) {
-        this._atlas.updateUV(uv, offset);
-    },
-
-    updateIndex: function updateIndex(index, offset, voffset) {
-        index.array[offset++] = voffset;
-        index.array[offset++] = voffset + 1;
-        index.array[offset++] = voffset + 2;
-        index.array[offset++] = voffset;
-        index.array[offset++] = voffset + 2;
-        index.array[offset++] = voffset + 3;
-    },
-
-    render: function render(queue) {
-        if (this.visible && this._atlas) {
-            queue.push(this);
-            for (var i = 0, l = this.children.length; i < l; i++) {
-                this.children[i].render(queue);
-            }
-        }
-    },
-
-    setBlendMode: function setBlendMode(src, dst) {
-        this._srcFactor = src;
-        this._dstFactor = dst;
-    }
-});
-
-Object.defineProperty(Sprite2D.prototype, "atlas", {
-    get: function get() {
-        return this._atlas;
-    },
-
-    set: function set(value) {
-        this._atlas = value;
-    },
-
-    enumerable: true,
-    configurable: true
 });
 
 exports.WebGLRenderTargetCube = WebGLRenderTargetCube;
@@ -42644,6 +43315,7 @@ exports.CurvePath = CurvePath;
 exports.Curve = Curve;
 exports.ShapeUtils = ShapeUtils;
 exports.WebGLUtils = WebGLUtils;
+exports.Storage = Storage;
 exports.Config = Config;
 exports.TextCanvas = TextCanvas;
 exports.Effect = Effect;
@@ -42651,9 +43323,9 @@ exports.RendererBillboard = RendererBillboard;
 exports.RendererBBArrow = RendererBBArrow;
 exports.ResourceManager = ResourceManager;
 exports.ResourceParser = ResourceParser;
-exports.Math2 = Math2;
 exports.Matrix = Matrix;
 exports.Transform = Transform;
+exports.Easing = Easing;
 exports.HaloScene = HaloScene;
 exports.Object2D = Object2D;
 exports.Atlas = Atlas;
@@ -42661,6 +43333,7 @@ exports.SimpleSprite = SimpleSprite;
 exports.Sprite2D = Sprite2D;
 exports.Widget = Widget;
 exports.WtImage = WtImage;
+exports.WtVideo = WtVideo;
 exports.WtButton = WtButton;
 exports.WtText = WtText;
 exports.WtPanel = WtPanel;
@@ -42669,6 +43342,7 @@ exports.WtScrollView = WtScrollView;
 exports.WtGridView = WtGridView;
 exports.WtDialog = WtDialog;
 exports.WtObject2D = WtObject2D;
+exports.WtObject3D = WtObject3D;
 exports.WireframeGeometry = WireframeGeometry;
 exports.ParametricGeometry = ParametricGeometry;
 exports.ParametricBufferGeometry = ParametricBufferGeometry;
@@ -42888,6 +43562,7 @@ exports.RGBDEncoding = RGBDEncoding;
 exports.BasicDepthPacking = BasicDepthPacking;
 exports.RGBADepthPacking = RGBADepthPacking;
 exports.httpRequest = httpRequest;
+exports.uint8ArrayToBase64 = uint8ArrayToBase64;
 exports.arrayBufferToBase64 = arrayBufferToBase64;
 exports.base64ToUint8Array = base64ToUint8Array;
 exports.base64ToArrayBuffer = base64ToArrayBuffer;
@@ -42907,6 +43582,8 @@ exports.FIT_MIN = FIT_MIN;
 exports.FIT_MAX = FIT_MAX;
 exports.FIT_WIDTH = FIT_WIDTH;
 exports.FIT_HEIGHT = FIT_HEIGHT;
+exports.State = State;
+exports.Logic = Logic;
 exports.INITIALIZERS = INITIALIZERS;
 exports.AFFECTORS = AFFECTORS;
 exports.MAX_REPEAT_DELAY = MAX_REPEAT_DELAY;

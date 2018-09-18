@@ -14,12 +14,12 @@ function json_move(move) {
 }
 
 function Board() {
-    this.size = 7;
+    this.size = 9;
     this.user = 'b'; //'b': black, 'w': white, 'v': viewer(eve mode)
-    this.komi = 6.5;
+    this.komi = 5.5;
     this.next = 'b';
     this.bstart = false;
-    this.uiBoard = Halo.Config.createWidget('board');
+    this.uiBoard = Halo.Config.scene().getWidgetRoot().getChild('board');
     this.uiLastStone = null;
     this.stones = {};
     this.pass = 0;
@@ -34,6 +34,8 @@ function Board() {
             board.click(x, y);
         }
     });
+
+    this.clear();
 }
 
 Object.assign(Board.prototype, {
@@ -43,35 +45,20 @@ Object.assign(Board.prototype, {
         }
 
         var size = this.size;
+        var unit = 'w/' + size + '*';
         for (let i = 0; i !== size; ++i) {
             let uiLine = Halo.Config.createWidget('line');
-            uiLine.formulaOffsetXFunc = function (w, h) {
-                return w / size * (i + 0.475);
-            };
-            uiLine.formulaOffsetYFunc = function (w, h) {
-                return w / size * 0.475;
-            };
-            uiLine.formulaSizeXFunc = function (w, h) {
-                return w / size * 0.05;
-            };
-            uiLine.formulaSizeYFunc = function (w, h) {
-                return w / size * (size - 0.95);
-            };
+            uiLine.setFormulaOffsetX(unit + '('+ i + '+0.475)');
+            uiLine.setFormulaOffsetY(unit + '0.475');
+            uiLine.setFormulaSizeX(unit + '0.05');
+            uiLine.setFormulaSizeY(unit + '(' + size + '-0.95)');
             this.uiBoard.add(uiLine);
 
             uiLine = Halo.Config.createWidget('line');
-            uiLine.formulaOffsetXFunc = function (w, h) {
-                return w / size * 0.475;
-            };
-            uiLine.formulaOffsetYFunc = function (w, h) {
-                return w / size * (i + 0.475);
-            };
-            uiLine.formulaSizeXFunc = function (w, h) {
-                return w / size * (size - 0.95);
-            };
-            uiLine.formulaSizeYFunc = function (w, h) {
-                return w / size * 0.05;
-            };
+            uiLine.setFormulaOffsetX(unit + '0.475');
+            uiLine.setFormulaOffsetY(unit + '('+ i + '+0.475)');
+            uiLine.setFormulaSizeX(unit + '(' + size + '-0.95)');
+            uiLine.setFormulaSizeY(unit + '0.05');
             this.uiBoard.add(uiLine);
         }
     },
@@ -85,18 +72,11 @@ Object.assign(Board.prototype, {
 
         wt_stone.setAnchorType(Halo.ANCHOR_LEFT, Halo.ANCHOR_BOTTOM);
 
-        wt_stone.formulaSizeXFunc = function (w, h) {
-            return w / size * 0.9;
-        };
-        wt_stone.formulaSizeYFunc = function (w, h) {
-            return w / size * 0.9;
-        };
-        wt_stone.formulaOffsetXFunc = function (w, h) {
-            return w / size * (i + 0.05);
-        };
-        wt_stone.formulaOffsetYFunc = function (w, h) {
-            return w / size * (j + 0.05);
-        };
+        var unit = 'w/' + size + '*';
+        wt_stone.setFormulaSizeX(unit + '0.9');
+        wt_stone.setFormulaSizeY(unit + '0.9');
+        wt_stone.setFormulaOffsetX(unit + '(' + i + '+0.05)');
+        wt_stone.setFormulaOffsetY(unit + '(' + j + '+0.05)');
 
         this.uiBoard.add(wt_stone);
 

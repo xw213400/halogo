@@ -111,11 +111,15 @@ function init() {
             document.addEventListener('touchend', onTouchEnd, false);
             document.addEventListener('touchmove', onTouchMove, false);
 
-            Halo.Config.start(document.body);
-            Halo.Config.play(entryScene);
-
-            onResizeWindow();
-            mainloop();
+            Halo.Config.loadBatch(entryScene, function(res){
+                if (res === null) {
+                    Halo.Config.start(document.body);
+                    Halo.Config.play(entryScene);
+        
+                    onResizeWindow();
+                    mainloop();
+                }
+            });
         }
     });
 }

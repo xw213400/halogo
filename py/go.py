@@ -15,10 +15,10 @@ WORST_SCORE = -1000000000
 # + + +
 # + + +
 # # # #
-N = 7
-LN = 49
-M = 8
-LM = 8 * 9 + 1
+N = 9
+LN = 81
+M = 9
+LM = 9 * 10 + 1
 
 UP = M
 DOWN = -M
@@ -28,7 +28,7 @@ LEFTDOWN = LEFT + DOWN
 RIGHTUP = RIGHT + UP
 RIGHTDOWN = RIGHT + DOWN
 
-KOMI = 6.5
+KOMI = 5.5
 FLAG = 0
 FLAGS = None
 EMPTY_BOARD = None
@@ -493,11 +493,11 @@ def init(n):
     MOVE_POS = Position()
     POSITION_POOL = []
     i = 0
-    while i < 100000:
+    while i < 500000:
         POSITION_POOL.append(Position())
         i += 1
 
-init(7)
+init(9)
 
 def clear():
     POSITION.copy_board(EMPTY_BOARD)

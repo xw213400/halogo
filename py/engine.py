@@ -2,17 +2,16 @@ import go
 from mcts import MCTSPlayer
 
 class Engine():
-    def __init__(self, time, policy, pars):
+    def __init__(self, time=5, policy='resnet', pars=None):
         self.player = MCTSPlayer(time, policy, pars)
         
     def set_komi(self, komi):
         go.KOMI = komi
 
-    def set_size(self, n):
-        self.player.set_size(n)
-
-    def clear(self):
-        go.init(go.N)
+    def clear(self, size=0):
+        if size == 0:
+            size = go.N
+        go.init(size)
 
     def make_move(self, color, vertex):
         j, i = vertex

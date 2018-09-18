@@ -194,7 +194,7 @@ class Engine(object):
             size = int(arguments)
             if MIN_BOARD_SIZE <= size <= MAX_BOARD_SIZE:
                 self.size = size
-                self._game.set_size(size)
+                self._game.clear(size)
             else:
                 raise ValueError("unacceptable size")
         else:

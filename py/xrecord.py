@@ -2,35 +2,38 @@
 
 import sys
 import go
-import resnet
-import mcts
-import time
 import torch
 import os.path
+from engine import Engine
 
 def main(size):
     sys.setrecursionlimit(500000)
     go.init(size)
-    engine = mcts.MCTSPlayerMixin(10)
-    if os.path.isfile('../data/resnet_pars.pkl'):
-        resnet.halo_resnet.load_state_dict(torch.load('../data/resnet_pars.pkl'))
+    engineB = Engine(10, 'randmove')
+    engineW = Engine(10, 'randmove')
+    
     print('ready!')
     records = '[\n'
     pass_num = 0
     i = 0
+    move = None
+    legal = None
+    caps = None
     while pass_num < 2:
-        move = engine.suggest_move()
         i += 1
-        # print(i, '###########')
-        print(i, engine.debug_info)
-        # print(i, "AAA:", go.POSITION.vertex, go.POSITION.ko, move)
-        go.MOVE_POS.copy(go.POSITION)
-        # print("BBB:", go.POSITION.vertex, go.POSITION.ko, move)
-        legal = go.MOVE_POS.move2(go.POSITION, move)
-        # print("CCC:", go.POSITION.vertex, go.POSITION.ko, move)
+
+        if i % 2 == 1:
+            move = engineB.get_move('b')
+            legal, caps = engineB.make_move('b', move)
+        else:
+            move = engineW.get_move('w')
+            legal, caps = engineW.make_move('w', move)
+        
+        print(i, move, legal, caps)
+
         if not legal:
             print('Illegal move!')
-        if move == 0:
+        if move == (0, 0):
             pass_num += 1
         else:
             pass_num = 0
@@ -38,7 +41,6 @@ def main(size):
         record = go.POSITION.toJSON()
         records += '  '
         records += record
-        # print(record)
 
         if pass_num < 2:
             records += ',\n'
@@ -52,7 +54,7 @@ def main(size):
     
 
 if __name__ == '__main__':
-    size = 7
+    size = 9
 
     if len(sys.argv) >= 2:
         size = int(sys.argv[1])

@@ -1,77 +1,67 @@
 {
-  "": {
-    "audio.json": {
-      "size": 2, 
-      "version": 1, 
-      "md5": "99914b932bd37a50b983c5e7c90ae93b"
-    }, 
-    "effect.json": {
-      "size": 23, 
-      "version": 1, 
-      "md5": "b050b72e6b9124063d00a6394d4d1b7e"
-    }, 
-    "widget.json": {
-      "size": 5969, 
-      "version": 8, 
-      "md5": "e5f54cda21cd9f7199ce7bc80b06c58f"
-    }, 
-    "config.json": {
-      "size": 779, 
-      "version": 11, 
-      "md5": "cec57730193c0be07dc0e39793ec782c"
-    }
-  }, 
-  "scn": {
-    "debug": {
-      "size": 279, 
-      "version": 3, 
-      "md5": "99dc495013ae4f0a7d3c4947dcd0f262"
-    }, 
-    "main": {
-      "size": 267, 
-      "version": 6, 
-      "md5": "ac85c487dee18dd8fb630c2ae6679f73"
-    }
-  }, 
-  "img": {
-    "go_map.png": {
-      "size": 29336, 
-      "version": 3, 
-      "md5": "5ad47092b93194a8ba5d5e1c16174510"
-    }
-  }, 
-  "mdl": {}, 
   "cfg": {
     "go_map.json": {
-      "size": 651, 
-      "version": 3, 
-      "md5": "cf514b03fbdd994fabec2bbf8dfa2c1a"
+      "size": 441,
+      "version": 4,
+      "md5": "2a7edea70ef78f8be62621aa2ce3c5d2"
     }
-  }, 
-  "ani": {}, 
+  },
+  "img": {
+    "go_map.png": {
+      "size": 29336,
+      "version": 4,
+      "md5": "b701ae287b4403588a661bd754d22b20"
+    }
+  },
+  "scn": {
+    "debug": {
+      "size": 258,
+      "version": 5,
+      "md5": "6eb1cd8928bbd59e8657bf97d16a2c83"
+    },
+    "main": {
+      "size": 265,
+      "version": 9,
+      "md5": "199208411ded34328f2c68eb14aedb18"
+    }
+  },
   "js": {
-    "debug.js": {
-      "size": 1761, 
-      "version": 6, 
-      "md5": "2795f4f79b91e3130db3ccf58fd89ab5"
-    }, 
-    "signals.js": {
-      "size": 11654, 
-      "version": 1, 
-      "md5": "d5816bafc6267671655fb0051ca567d9"
-    }, 
+    "EnterState.js": {
+      "md5": "ea67048734df966ad72fc79215bc7b43",
+      "version": 1,
+      "size": 2848
+    },
     "board.js": {
-      "size": 7865, 
-      "version": 6, 
-      "md5": "caee53d963c96c4d9c88b5a109f12a14"
-    }, 
+      "size": 7427,
+      "version": 8,
+      "md5": "e5881dde021a6e7e0e3dd44d8a0532ef"
+    },
+    "debug.js": {
+      "size": 1618,
+      "version": 8,
+      "md5": "51074e109874a49a6ccc8c1c57ec885b"
+    },
     "main.js": {
-      "size": 3671, 
-      "version": 4, 
-      "md5": "63097aaa6a8dffbe52105a29d23ce19c"
+      "size": 1329,
+      "version": 7,
+      "md5": "b68034727636c7ae8b5433bd42dfad34"
+    },
+    "signals.js": {
+      "size": 11654,
+      "version": 1,
+      "md5": "d5816bafc6267671655fb0051ca567d9"
     }
-  }, 
-  "geo": {}, 
-  "aud": {}, 
-  "mat": {}
+  },
+  "": {
+    "config.json": {
+      "size": 7630,
+      "version": 16,
+      "md5": "b7338af1f40c7b6bcb66c8b0fd9b4f7b"
+    },
+    "version.json": {
+      "md5": "eae29d7a73740770a330946283ed38de",
+      "version": 5,
+      "size": 1327
+    }
+  }
 }

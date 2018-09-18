@@ -1,17 +1,320 @@
 {
+	"version": "1.4",
 	"alpha": false,
 	"antialias": false,
-	"simple_atlas": [
-		{
-			"img": "go_map.png",
-			"cfg": "go_map.json"
-		}],
+	"preserveDrawingBuffer": false,
+	"shadowMapType": 1,
 	"design_size": {
 		"x": 1080,
 		"y": 1920
 	},
-	"clear_color": 1794060,
-	"entry_scene": "main",
+	"textures": {
+		"go_map.png": {
+			"type": "sprite",
+			"json": "go_map.json"
+		}
+	},
+	"effects": {},
+	"widgets": {
+		"board": {
+			"class": "WtImage",
+			"children": [],
+			"name": "board",
+			"offsetX": "0",
+			"offsetY": "0",
+			"sizeX": "Math.min(w,h)",
+			"sizeY": "Math.min(w,h)",
+			"image": "go_map.png",
+			"sprite": "board_jpg"
+		},
+		"black": {
+			"class": "WtImage",
+			"children": [],
+			"name": "black",
+			"offsetX": "0",
+			"offsetY": "0",
+			"sizeX": "100",
+			"sizeY": "100",
+			"image": "go_map.png",
+			"sprite": "black_png"
+		},
+		"white": {
+			"class": "WtImage",
+			"children": [],
+			"name": "white",
+			"offsetX": "0",
+			"offsetY": "0",
+			"sizeX": "100",
+			"sizeY": "100",
+			"image": "go_map.png",
+			"sprite": "white_png"
+		},
+		"line": {
+			"class": "WtImage",
+			"children": [],
+			"name": "line",
+			"offsetX": "0",
+			"offsetY": "0",
+			"sizeX": "1",
+			"sizeY": "100",
+			"image": "go_map.png",
+			"sprite": "line_png"
+		},
+		"main": {
+			"class": "Widget",
+			"children": [
+				{
+					"class": "WtButton",
+					"children": [
+						{
+							"class": "WtText",
+							"children": [],
+							"name": "Text",
+							"zIndex": 10,
+							"anchor": {
+								"x": 2,
+								"y": 5
+							},
+							"offsetX": "0",
+							"offsetY": "0",
+							"sizeX": "300",
+							"sizeY": "50",
+							"text": "PASS",
+							"font": "40px Arial",
+							"text_align": 2
+						}],
+					"name": "pass",
+					"zIndex": 10,
+					"offsetX": "100",
+					"offsetY": "50",
+					"sizeX": "300",
+					"sizeY": "100",
+					"visible": false,
+					"states": {
+						"click": {
+							"name": "click",
+							"restart": false,
+							"logics": [
+								{
+									"start": 0,
+									"duration": 0,
+									"reset": false,
+									"replay": false,
+									"js": "EnterState.js",
+									"params": {
+										"type": "W",
+										"target": "main",
+										"enter": "main",
+										"flag": "p"
+									}
+								}]
+						}
+					},
+					"image": "go_map.png",
+					"sprite": "start_png"
+				},
+				{
+					"class": "Widget",
+					"children": [
+						{
+							"class": "WtButton",
+							"children": [],
+							"name": "black",
+							"zIndex": 10,
+							"offsetX": "0",
+							"offsetY": "0",
+							"sizeX": "100",
+							"sizeY": "100",
+							"states": {
+								"click": {
+									"name": "click",
+									"restart": false,
+									"logics": [
+										{
+											"start": 0,
+											"duration": 0,
+											"reset": false,
+											"replay": false,
+											"js": "EnterState.js",
+											"params": {
+												"type": "W",
+												"target": "main",
+												"enter": "main",
+												"flag": "b"
+											}
+										}]
+								}
+							},
+							"image": "go_map.png",
+							"sprite": "black_png"
+						},
+						{
+							"class": "WtButton",
+							"children": [],
+							"name": "white",
+							"zIndex": 10,
+							"offsetX": "200",
+							"offsetY": "0",
+							"sizeX": "100",
+							"sizeY": "100",
+							"states": {
+								"click": {
+									"name": "click",
+									"restart": false,
+									"logics": [
+										{
+											"start": 0,
+											"duration": 0,
+											"reset": false,
+											"replay": false,
+											"js": "EnterState.js",
+											"params": {
+												"type": "W",
+												"target": "main",
+												"enter": "main",
+												"flag": "w"
+											}
+										}]
+								}
+							},
+							"image": "go_map.png",
+							"sprite": "white_png"
+						}],
+					"name": "prepare",
+					"zIndex": 10,
+					"offsetX": "100",
+					"offsetY": "50",
+					"sizeX": "300",
+					"sizeY": "100"
+				}],
+			"name": "main",
+			"zIndex": 10,
+			"offsetX": "w>h?h:0",
+			"offsetY": "w>h?0:w",
+			"sizeX": "w>h?w-h:w",
+			"sizeY": "w>h?h:h-w",
+			"states": {
+				"main": {
+					"name": "main",
+					"restart": false,
+					"logics": [
+						{
+							"start": 0,
+							"duration": 0,
+							"reset": false,
+							"replay": false,
+							"js": "main.js",
+							"params": {}
+						}]
+				}
+			}
+		},
+		"debug": {
+			"class": "Widget",
+			"children": [
+				{
+					"class": "WtButton",
+					"children": [],
+					"name": "last_step",
+					"zIndex": 10,
+					"offsetX": "0",
+					"offsetY": "5",
+					"sizeX": "50",
+					"sizeY": "50",
+					"states": {
+						"click": {
+							"name": "click",
+							"restart": false,
+							"logics": [
+								{
+									"start": 0,
+									"duration": 0,
+									"reset": false,
+									"replay": false,
+									"js": "EnterState.js",
+									"params": {
+										"type": "W",
+										"target": "debug",
+										"enter": "main",
+										"flag": "last"
+									}
+								}]
+						}
+					},
+					"image": "go_map.png",
+					"sprite": "add_png"
+				},
+				{
+					"class": "WtButton",
+					"children": [],
+					"name": "next_step",
+					"zIndex": 10,
+					"offsetX": "385",
+					"offsetY": "5",
+					"sizeX": "50",
+					"sizeY": "50",
+					"states": {
+						"click": {
+							"name": "click",
+							"restart": false,
+							"logics": [
+								{
+									"start": 0,
+									"duration": 0,
+									"reset": false,
+									"replay": false,
+									"js": "EnterState.js",
+									"params": {
+										"type": "W",
+										"target": "debug",
+										"enter": "main",
+										"flag": "next"
+									}
+								}]
+						}
+					},
+					"image": "go_map.png",
+					"sprite": "sub_png"
+				},
+				{
+					"class": "WtText",
+					"children": [],
+					"name": "board_info",
+					"zIndex": 10,
+					"offsetX": "55",
+					"offsetY": "5",
+					"sizeX": "320",
+					"sizeY": "50",
+					"text": "{1} in {2}",
+					"font": "40px Arial",
+					"color": 16777215,
+					"text_align": 2
+				}],
+			"name": "debug",
+			"zIndex": 10,
+			"offsetX": "w>h?h:0",
+			"offsetY": "w>h?0:w",
+			"sizeX": "w>h?w-h:w",
+			"sizeY": "w>h?h:h-w",
+			"states": {
+				"main": {
+					"name": "main",
+					"restart": false,
+					"logics": [
+						{
+							"start": 0,
+							"duration": 0,
+							"reset": false,
+							"replay": false,
+							"js": "debug.js",
+							"params": {}
+						}]
+				}
+			}
+		}
+	},
+	"audios": {},
+	"dragonbones": [],
 	"batches": {
 		"PRELOAD": {
 			"simple_atlas": [
@@ -46,8 +349,71 @@
 					"path": "scn",
 					"name": "debug"
 				}]
-		}
+		},
+		"main": [
+			{
+				"path": "js",
+				"name": "EnterState.js"
+			},
+			{
+				"path": "js",
+				"name": "signals.js"
+			},
+			{
+				"path": "js",
+				"name": "board.js"
+			},
+			{
+				"path": "js",
+				"name": "main.js"
+			},
+			{
+				"path": "cfg",
+				"name": "go_map.json"
+			},
+			{
+				"path": "img",
+				"name": "go_map.png"
+			},
+			{
+				"path": "scn",
+				"name": "main"
+			}],
+		"debug": [
+			{
+				"path": "js",
+				"name": "EnterState.js"
+			},
+			{
+				"path": "js",
+				"name": "signals.js"
+			},
+			{
+				"path": "js",
+				"name": "board.js"
+			},
+			{
+				"path": "js",
+				"name": "debug.js"
+			},
+			{
+				"path": "cfg",
+				"name": "go_map.json"
+			},
+			{
+				"path": "img",
+				"name": "go_map.png"
+			},
+			{
+				"path": "scn",
+				"name": "debug"
+			}]
 	},
-	"preserveDrawingBuffer": false,
-	"shadowMapType": 1
+	"simple_atlas": [
+		{
+			"img": "go_map.png",
+			"cfg": "go_map.json"
+		}],
+	"clear_color": 1794060,
+	"entry_scene": "main"
 }

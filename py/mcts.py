@@ -128,14 +128,7 @@ class MCTSPlayer():
         self.pars = pars
         self.debug_info = ""
         self.best_node = None
-        go.init(7)
-        if self.policy_type == 'resnet':
-            self.policy = resnet.Policy(self.pars)
-        elif self.policy_type == 'randmove':
-            self.policy = randmove.Policy()
 
-    def set_size(self, n):
-        go.init(n)
         if self.policy_type == 'resnet':
             self.policy = resnet.Policy(self.pars)
         elif self.policy_type == 'randmove':
