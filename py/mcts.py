@@ -4,7 +4,6 @@ import resnet
 import randmove
 import go
 
-c_PUCT = 1
 POLICY = None
 
 class MCTSNode():
@@ -18,6 +17,7 @@ class MCTSNode():
             self.positions = POLICY.get(position) # list of Move resonable, sort by prior, PASS is always at first
 
         self.leaves = len(self.positions)
+        self.PN = self.leaves
 
         if self.parent is not None:
             self.parent.add_leaf(self.leaves) 
@@ -82,6 +82,8 @@ class MCTSNode():
             go.BRANCH_SIM.add(POLICY.sim())
 
         score = go.SIM_POS.score()
+        # go.SIM_POS.debug()
+        # print('@@@@@@@@:%d', score)
         go.HASH_SIM[go.SIM_POS.hash_code] = score
 
         return score
@@ -97,17 +99,9 @@ class MCTSNode():
             # No point in updating Q / U values for root, since they are
             # used to decide between children nodes.
             return
-        # This incrementally calculates node.Q = average(Q of children),
-        # given the newest Q value and the previous average of N-1 values.
-        # self.Q = self.Q + (score - self.Q) / self.N
-        # self.U = c_PUCT * math.sqrt(self.parent.N) * self.move.prior / self.N
-        # in here:
-        # action_score = q + (score - q) / n + C * sqrt(parent_n) * prior / n
-        # in pure mcts:
-        # action_score = win_n / n + C * sqrt(log(parent_n) / n)
         
         self.Q = self.Q + (score - self.Q) / self.N
-        self.U = c_PUCT * math.sqrt(math.log(self.parent.N + 1) / self.N)
+        self.U = POLICY.PUCT * math.sqrt(math.log(self.parent.N + 1) / self.N)
         self.action_score = self.Q + self.U
 
     def release(self, recursive=True):
@@ -122,17 +116,15 @@ class MCTSNode():
 
 
 class MCTSPlayer():
-    def __init__(self, seconds_per_move=5, policy='resnet', pars=None):
+    def __init__(self, seconds_per_move=5, policy=None):
         self.seconds_per_move = seconds_per_move
-        self.policy_type = policy
-        self.pars = pars
         self.debug_info = ""
         self.best_node = None
 
-        if self.policy_type == 'resnet':
-            self.policy = resnet.Policy(self.pars)
-        elif self.policy_type == 'randmove':
-            self.policy = randmove.Policy()
+        if policy == None:
+            self.policy = resnet.Policy()
+        else:
+            self.policy = policy
 
     def clear(self):
         if self.best_node is not None:

@@ -9,16 +9,16 @@ function update_step() {
     board.setBoard(records[step].bb);
 }
 
-function do_last_step() {
-    step--;
+function do_last_step(ds) {
+    step -= ds;
     if (step < 0) {
         step = 0;
     }
     update_step();
 }
 
-function do_next_step() {
-    step++;
+function do_next_step(ds) {
+    step += ds;
     if (step >= records.length-1) {
         step = records.length-1;
     }
@@ -29,9 +29,13 @@ function debug_play() {
     var flag = this.parent.flag;
 
     if (flag === 'last') {
-        do_last_step();
+        do_last_step(1);
     } else if (flag === 'next') {
-        do_next_step();
+        do_next_step(1);
+    } else if (flag === 'last10') {
+        do_last_step(10);
+    } else if (flag === 'next10') {
+        do_next_step(10);
     } else {
         wt_board_info = Halo.Config.scene().getWidgetRoot().getChild('debug').getChild('board_info');
 

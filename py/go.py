@@ -497,8 +497,6 @@ def init(n):
         POSITION_POOL.append(Position())
         i += 1
 
-init(9)
-
 def clear():
     POSITION.copy_board(EMPTY_BOARD)
     POSITION.next = BLACK

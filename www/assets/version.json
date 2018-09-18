@@ -37,9 +37,9 @@
       "md5": "e5881dde021a6e7e0e3dd44d8a0532ef"
     },
     "debug.js": {
-      "size": 1618,
-      "version": 8,
-      "md5": "51074e109874a49a6ccc8c1c57ec885b"
+      "size": 1848,
+      "version": 9,
+      "md5": "c746e1a260e9b96ce8f203be5870fec8"
     },
     "main.js": {
       "size": 1329,
@@ -54,13 +54,13 @@
   },
   "": {
     "config.json": {
-      "size": 7630,
-      "version": 16,
-      "md5": "b7338af1f40c7b6bcb66c8b0fd9b4f7b"
+      "size": 8957,
+      "version": 18,
+      "md5": "6e2785ca551b28d039c357cf87465328"
     },
     "version.json": {
-      "md5": "eae29d7a73740770a330946283ed38de",
-      "version": 5,
+      "md5": "020690604861c37e36dc350e9a4f8133",
+      "version": 7,
       "size": 1327
     }
   }

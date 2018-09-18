@@ -55,15 +55,16 @@ class Resnet(nn.Module):
 
 
 class Policy():
-    def __init__(self, pars):
+    def __init__(self, PUCT=1, pars='../data/resnet_pars.pkl'):
+        self.PUCT = PUCT
         self.resnet = Resnet(30)
         self.criterion = nn.MSELoss()
         if torch.cuda.is_available():
             self.resnet.cuda()
             self.criterion = self.criterion.cuda()
         self.optimizer = optim.SGD(self.resnet.parameters(), lr=0.001)
-        if os.path.isfile('../data/resnet_pars.pkl'):
-            self.resnet.load_state_dict(torch.load('../data/resnet_pars.pkl'))
+        if os.path.isfile(pars):
+            self.resnet.load_state_dict(torch.load(pars))
 
     def get(self, position):
         position.input_board()

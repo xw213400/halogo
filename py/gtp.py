@@ -140,7 +140,7 @@ class Engine(object):
         self.komi = 6.5
 
         self._game = game_obj
-        self._game.clear()
+        self._game.start()
 
         self._name = name
         self._version = version
@@ -194,14 +194,14 @@ class Engine(object):
             size = int(arguments)
             if MIN_BOARD_SIZE <= size <= MAX_BOARD_SIZE:
                 self.size = size
-                self._game.clear(size)
+                self._game.set_size(size)
             else:
                 raise ValueError("unacceptable size")
         else:
             raise ValueError("non digit size")
 
     def cmd_clear_board(self, arguments):
-        self._game.clear()
+        self._game.set_size(self.size)
 
     def cmd_komi(self, arguments):
         try:

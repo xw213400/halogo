@@ -215,12 +215,44 @@
 				{
 					"class": "WtButton",
 					"children": [],
+					"name": "last10",
+					"zIndex": 10,
+					"offsetX": "10",
+					"offsetY": "0",
+					"sizeX": "100",
+					"sizeY": "100",
+					"states": {
+						"click": {
+							"name": "click",
+							"restart": false,
+							"logics": [
+								{
+									"start": 0,
+									"duration": 0,
+									"reset": false,
+									"replay": false,
+									"js": "EnterState.js",
+									"params": {
+										"type": "W",
+										"target": "debug",
+										"enter": "main",
+										"flag": "last10"
+									}
+								}]
+						}
+					},
+					"image": "go_map.png",
+					"sprite": "add_png"
+				},
+				{
+					"class": "WtButton",
+					"children": [],
 					"name": "last_step",
 					"zIndex": 10,
-					"offsetX": "0",
-					"offsetY": "5",
-					"sizeX": "50",
-					"sizeY": "50",
+					"offsetX": "120",
+					"offsetY": "0",
+					"sizeX": "100",
+					"sizeY": "100",
 					"states": {
 						"click": {
 							"name": "click",
@@ -247,12 +279,44 @@
 				{
 					"class": "WtButton",
 					"children": [],
+					"name": "next10",
+					"zIndex": 10,
+					"offsetX": "670",
+					"offsetY": "0",
+					"sizeX": "100",
+					"sizeY": "100",
+					"states": {
+						"click": {
+							"name": "click",
+							"restart": false,
+							"logics": [
+								{
+									"start": 0,
+									"duration": 0,
+									"reset": false,
+									"replay": false,
+									"js": "EnterState.js",
+									"params": {
+										"type": "W",
+										"target": "debug",
+										"enter": "main",
+										"flag": "next10"
+									}
+								}]
+						}
+					},
+					"image": "go_map.png",
+					"sprite": "sub_png"
+				},
+				{
+					"class": "WtButton",
+					"children": [],
 					"name": "next_step",
 					"zIndex": 10,
-					"offsetX": "385",
-					"offsetY": "5",
-					"sizeX": "50",
-					"sizeY": "50",
+					"offsetX": "560",
+					"offsetY": "0",
+					"sizeX": "100",
+					"sizeY": "100",
 					"states": {
 						"click": {
 							"name": "click",
@@ -281,19 +345,20 @@
 					"children": [],
 					"name": "board_info",
 					"zIndex": 10,
-					"offsetX": "55",
-					"offsetY": "5",
+					"offsetX": "230",
+					"offsetY": "0",
 					"sizeX": "320",
-					"sizeY": "50",
+					"sizeY": "100",
 					"text": "{1} in {2}",
 					"font": "40px Arial",
 					"color": 16777215,
+					"auto_break": true,
 					"text_align": 2
 				}],
 			"name": "debug",
 			"zIndex": 10,
 			"offsetX": "w>h?h:0",
-			"offsetY": "w>h?0:w",
+			"offsetY": "w>h?0:w+10",
 			"sizeX": "w>h?w-h:w",
 			"sizeY": "w>h?h:h-w",
 			"states": {
