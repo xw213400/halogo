@@ -10,11 +10,10 @@ from randmove import Policy
 def main(count):
     sys.setrecursionlimit(500000)
     go.init(9)
-    engineB = Engine(20, Policy(30))
-    engineW = Engine(20, Policy(20))
+    engineB = Engine(2, Policy(15))
+    engineW = Engine(2, Policy(20))
 
-    move = None
-    legal = None
+    vertex = None
     caps = None
 
     black_win = 0
@@ -31,25 +30,23 @@ def main(count):
         pass_num = 0
         i = 0
 
-        print('ready: %d in %d' % (c, count))
+        print('ready: %d in %d, POSPOOL: %d' % (c, count, len(go.POSITION_POOL)))
 
         while pass_num < 2:
             i += 1
 
             if i % 2 == 1:
-                move = engineB.get_move('b')
-                legal, caps = engineB.make_move('b', move)
+                vertex, caps = engineB.move('b')
             else:
-                move = engineW.get_move('w')
-                legal, caps = engineW.make_move('w', move)
+                vertex, caps = engineW.move('w')
             
-            print(i, move, caps)
+            print(i, vertex, caps)
 
-            if not legal:
+            if vertex is None:
                 print('Illegal move!')
                 break
 
-            if move == (0, 0):
+            if vertex == (0, 0):
                 pass_num += 1
             else:
                 pass_num = 0

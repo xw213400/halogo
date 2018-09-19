@@ -11,7 +11,7 @@ class MCTSNode():
         self.parent = parent # pointer to another MCTSNode
         self.position = position # the move that led to this node
 
-        if position.pass_num == 2:
+        if position.pass_count() == 2:
             self.positions = []
         else:
             self.positions = POLICY.get(position) # list of Move resonable, sort by prior, PASS is always at first
@@ -68,25 +68,20 @@ class MCTSNode():
         return node
 
     def simulate(self):
-        pos = self.position
-
         if len(self.positions) > 0:
-            pos = self.positions[-1] #last node is best node, PASS is always at first
+            pos = sim_root = self.positions[-1] #last node is best node, PASS is always at first
 
-        if pos.hash_code in go.HASH_SIM:
-            return go.HASH_SIM[pos.hash_code]
-        
-        go.BRANCH_SIM.clear()
-        go.SIM_POS.copy(pos)
-        while go.SIM_POS.pass_num < 2:
-            go.BRANCH_SIM.add(POLICY.sim())
+            while pos.pass_count() < 2:
+                pos = POLICY.sim(pos)
 
-        score = go.SIM_POS.score()
-        # go.SIM_POS.debug()
-        # print('@@@@@@@@:%d', score)
-        go.HASH_SIM[go.SIM_POS.hash_code] = score
+            score = pos.score()
+            while pos is not sim_root:
+                go.POSITION_POOL.append(pos)
+                pos = pos.parent
 
-        return score
+            return score
+        else: # 2 pass
+            return self.position.score()
         
     def backpropagation(self, value):
         score = value
@@ -105,7 +100,8 @@ class MCTSNode():
         self.action_score = self.Q + self.U
 
     def release(self, recursive=True):
-        go.POSITION_POOL.append(self.position)
+        if self.position.hash_code not in go.TRUNK:        
+            go.POSITION_POOL.append(self.position)
 
         while len(self.positions) > 0:
             go.POSITION_POOL.append(self.positions.pop())
@@ -131,12 +127,12 @@ class MCTSPlayer():
             self.best_node.release()
             self.best_node = None
 
-    def suggest_move(self):
+    def move(self):
         global POLICY
         POLICY = self.policy
-        
         root_node = None
-        self.debug_info = ""
+        go.update_trunk()
+        # self.debug_info = ""
         # print("==============================")
         if self.best_node is not None:
             if self.best_node.position.next == go.POSITION.next:
@@ -154,12 +150,10 @@ class MCTSPlayer():
                 self.best_node = None
 
         if root_node is None:
-            pos = go.POSITION_POOL.pop()
-            pos.copy(go.POSITION)
-            root_node = MCTSNode(None, pos)
+            root_node = MCTSNode(None, go.POSITION)
 
         # print(root_node.position.text())
-        self.debug_info += 'ROOT_LEAF:%d; ' % (root_node.leaves)
+        # self.debug_info += 'ROOT_LEAF:%d; ' % (root_node.leaves)
 
         start = time.time()
         while time.time() - start < self.seconds_per_move:
@@ -185,22 +179,24 @@ class MCTSPlayer():
         if len(root_node.children) > 0:
             self.best_node = max(root_node.children, key=lambda node:node.N)
 
+            vertex = self.best_node.position.vertex
+            go.POSITION = go.POSITION.move(vertex)
+
+            go.update_trunk()
+
             sim_count = 0
             for node in root_node.children:
                 sim_count += node.N
-                # self.debug_info += 'V:%d; N:%d; SCORE:%f\n' % (node.position.vertex, node.N, node.action_score)
-                # self.debug_info += '[%d:%d:%d],' % (node.position.vertex, node.N, node.leaves)
                 if node != self.best_node:
                     node.release()
-                # j, i = go.toXY(node.position.vertex)
 
             root_node.release(False)
-            self.debug_info += 'MOVE:%d; BEST_LEAF:%d; SIM_COUNT:%d\n' % (self.best_node.position.vertex, self.best_node.leaves, sim_count)
 
-            # self.policy.train(go.POSITION, self.best_node.position.vertex)
+            # self.debug_info += 'MOVE:%d; BEST_LEAF:%d; SIM_COUNT:%d\n' % (self.best_node.position.vertex, self.best_node.leaves, sim_count)
 
-            return self.best_node.position.vertex
+            return True
         else:
+            go.update_trunk()
             root_node.release()
-            return 0
+            return False
 

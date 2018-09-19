@@ -35,12 +35,8 @@ EMPTY_BOARD = None
 COORDS = None
 FRONTIER = None
 POSITION = None
-SIM_POS = None
-MOVE_POS = None
 POSITION_POOL = None
 
-BRANCH_SIM = None # only this simulation branch positions
-HASH_SIM = None # only history expanded node positions
 CODE_WHITE = None
 CODE_BLACK = None
 CODE_KO = None
@@ -48,7 +44,7 @@ CODE_SWAP = random.getrandbits(64)
 
 INPUT_BOARD = None
 FLAG_BOARD = None #用于标记是否resonable
-HASH_BOARD = None #标记该位置是否为下过的局面,用于避免循环局面，模拟开始时记录局面估值
+TRUNK = None
 
 
 class Position:
@@ -59,7 +55,7 @@ class Position:
         self.prior = 0
         self.vertex = 0
         self.hash_code = 0
-        self.pass_num = 0
+        self.parent = None
 
     # prepare input plane for resnet
     # INPUT_BOARD[0]: enemy:1, empty:2, self:3
@@ -71,14 +67,16 @@ class Position:
             i -= 1
             p = 1
             FLAG_BOARD[v] = False
-            HASH_BOARD[v] = False
-            if self.resonable(v) and self.move2(MOVE_POS, v):
-                p = 2
-                FLAG_BOARD[v] = True
+
+            if self.resonable(v):
+                pos = self.move(v)
+                if pos is not None:
+                    p = 2
+                    FLAG_BOARD[v] = True
+                    POSITION_POOL.append(pos)
             if v == self.ko:
                 p = 3
-            if MOVE_POS.hash_code in BRANCH_SIM:
-                HASH_BOARD[v] = True
+
             INPUT_BOARD[0, 0, i, j] = self.board[v] * self.next + 2
             INPUT_BOARD[0, 1, i, j] = p
 
@@ -184,16 +182,8 @@ class Position:
         for v in COORDS:
             self.board[v] = board[v]
 
-    def copy(self, pos):
-        self.next = pos.next
-        self.ko = pos.ko
-        self.hash_code = pos.hash_code
-        self.vertex = pos.vertex
-        self.pass_num = pos.pass_num
-        self.copy_board(pos.board)
-
     def toJSON(self):
-        JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex, 'pass_num':self.pass_num}
+        JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex}
         return json.dumps(JSON)
 
     def fromJSON(self, JSON):
@@ -201,32 +191,35 @@ class Position:
         self.next = JSON['next']
         self.ko = JSON['ko']
         self.vertex = JSON['vertex']
-        self.pass_num = JSON['pass_num']
         self.init_hash_code()
 
-    def move2(self, pos, v):
-        global KO, NEXT
+    def move(self, v):
+        global KO, NEXT, POSITION_POOL
 
         if v == 0:
+            pos = POSITION_POOL.pop()
+
+            pos.parent = self
             pos.ko = 0
             pos.next = -self.next
             pos.vertex = v
             pos.hash_code = self.hash_code ^ CODE_KO[self.ko] ^ CODE_SWAP
-            pos.pass_num = self.pass_num + 1
-            if pos is not self:
-                pos.copy_board(self.board)
-            return True
+            pos.copy_board(self.board)
+
+            return pos
 
         if v == self.ko or self.board[v] != EMPTY:
-            return False
+            return None
 
-        if pos is not self:
-            pos.copy_board(self.board)
+        pos = POSITION_POOL.pop()
+        pos.copy_board(self.board)
         pos.board[v] = self.next
+
         if self.next == BLACK:
             pos.hash_code = self.hash_code ^ CODE_BLACK[v]
         else:
             pos.hash_code = self.hash_code ^ CODE_WHITE[v]
+
         enemy = -self.next
 
         # clear captures
@@ -268,7 +261,8 @@ class Position:
 
         #suicide
         if pos.is_suicide(self.next, v):
-            return False
+            POSITION_POOL.append(pos)
+            return None
 
         if n != 1 or kov < 4:
             pos.ko = 0
@@ -277,9 +271,18 @@ class Position:
         pos.hash_code ^= CODE_KO[pos.ko]
         pos.hash_code ^= CODE_SWAP
         pos.vertex = v
-        pos.pass_num = 0
 
-        return True
+        parent = self
+        while parent is not None:
+            if parent.hash_code == pos.hash_code:
+                POSITION_POOL.append(pos)
+                return None
+            else:
+                parent = parent.parent
+
+        pos.parent = self
+
+        return pos
 
     def is_suicide(self, c, v):
         global FLAG
@@ -330,8 +333,13 @@ class Position:
 
         return True
 
-    def play(self, j, i):
-        return self.move2(self, i * M + j)
+    def pass_count(self):
+        pc = 0
+        if self.vertex == 0:
+            pc += 1
+        if self.parent is not None and self.parent.vertex == 0:
+            pc += 1
+        return pc
 
     def find_empties_group(self, v):
         FRONTIER[0] = v
@@ -444,8 +452,8 @@ class Position:
 
 def init(n):
     global N, M, LN, LM, UP, DOWN, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN, FLAGS, EMPTY_BOARD, COORDS, FRONTIER, FLAG
-    global POSITION, POSITION_POOL, SIM_POS, MOVE_POS, BRANCH_SIM, HASH_SIM, CODE_WHITE, CODE_BLACK, CODE_KO
-    global INPUT_BOARD, FLAG_BOARD, HASH_BOARD
+    global POSITION, POSITION_POOL, CODE_WHITE, CODE_BLACK, CODE_KO
+    global INPUT_BOARD, FLAG_BOARD
     N = n
     M = N + 1
     LN = N * N
@@ -468,8 +476,6 @@ def init(n):
         EMPTY_BOARD[LM - 1 - i] = WALL
         EMPTY_BOARD[(i + 1) * M] = WALL
 
-    HASH_SIM = {}
-    BRANCH_SIM = set()
     vlen = M * M
     CODE_WHITE = [0] * vlen
     CODE_BLACK = [0] * vlen
@@ -486,49 +492,63 @@ def init(n):
 
     INPUT_BOARD = torch.zeros(1, 2, N, N)
     FLAG_BOARD = [True] * LM
-    HASH_BOARD = [False] * LM
 
-    POSITION = Position()
-    SIM_POS = Position()
-    MOVE_POS = Position()
     POSITION_POOL = []
     i = 0
     while i < 500000:
         POSITION_POOL.append(Position())
         i += 1
 
+    POSITION = POSITION_POOL.pop()
+
 def clear():
+    global POSITION, TRUNK
     POSITION.copy_board(EMPTY_BOARD)
     POSITION.next = BLACK
     POSITION.ko = 0
-    SIM_POS.copy(POSITION)
-    MOVE_POS.copy(POSITION)
-    HASH_SIM = {}
-    BRANCH_SIM.clear()
+    POSITION.vertex = 0
+    POSITION.hash_code = 0
 
+    parent = POSITION.parent
+    while parent is not None:
+        POSITION_POOL.append(parent)
+        parent = parent.parent
+
+    POSITION.parent = None
+    TRUNK = set()
+
+def update_trunk():
+    global TRUNK
+    TRUNK = set()
+    pos = POSITION
+    while pos is not None:
+        TRUNK.add(pos.hash_code)
+        pos = pos.parent
 
 def toXY(vertex):
     j = vertex % M
     i = int(vertex / M)
     return j, i
 
+def toV(i, j):
+    return i * M + j
+
 def get_positions(position):
     positions = []
 
-    pos = POSITION_POOL.pop()
     for v in COORDS:
-        if position.resonable(v) and position.move2(pos, v):
-            positions.append(pos)
-            pos = POSITION_POOL.pop()
-    POSITION_POOL.append(pos)
+        if position.resonable(v):
+            pos = position.move(v)
+            if pos is not None:
+                positions.append(pos)
     
     return positions
 
-def get_captures(last_pos, next_pos):
+def get_captures(position):
     captures = []
     for v in COORDS:
-        c1 = last_pos.board[v]
-        c2 = next_pos.board[v]
+        c1 = position.parent.board[v]
+        c2 = position.board[v]
         if c1 != EMPTY and c2 == EMPTY:
             captures.append(v)
     return captures

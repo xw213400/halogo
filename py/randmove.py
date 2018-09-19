@@ -14,8 +14,7 @@ class Policy():
         for pos in positions:
             pos.prior = random.random()
 
-        pos = go.POSITION_POOL.pop()
-        position.move2(pos, 0)
+        pos = position.move(0)
         pos.prior = 0
         positions.append(pos)
 
@@ -23,29 +22,16 @@ class Policy():
 
         return positions
 
-    def sim(self):
-        positions = go.get_positions(go.SIM_POS)
-
-        # n = len(positions)
-        # i = random.randint(0, n)
-
-        # if i == n:
-        #     go.SIM_POS.move2(go.SIM_POS, 0)
-        # else:
-        #     go.SIM_POS.copy(positions[i])
+    def sim(self, position):
+        positions = go.get_positions(position)
 
         n = len(positions)
         if n >= 1:
             i = random.randint(0, n-1)
-            go.SIM_POS.copy(positions[i])
+            pos = positions.pop(i)
+            for p in positions:
+                go.POSITION_POOL.append(p)
+            return pos
         else:
-            go.SIM_POS.move2(go.SIM_POS, 0)
-
-
-        i = 0
-        while i < n:
-            go.POSITION_POOL.append(positions[i])
-            i += 1
-
-        return go.SIM_POS.hash_code
+            return position.move(0)
 

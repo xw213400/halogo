@@ -80,8 +80,7 @@ class Policy():
 
         positions = []
 
-        pos = go.POSITION_POOL.pop()
-        position.move2(pos, 0)
+        pos = position.move(0)
         pos.prior = y[0, go.LN]
         positions.append(pos)
 
@@ -89,8 +88,7 @@ class Policy():
         while i < go.LN:
             v = go.COORDS[i]
             if go.FLAG_BOARD[v]:
-                pos = go.POSITION_POOL.pop()
-                position.move2(pos, v)
+                pos = position.move(v)
                 pos.prior = y[0, i]
                 positions.append(pos)
             i += 1
@@ -119,14 +117,14 @@ class Policy():
             v = go.COORDS[i]
             if go.FLAG_BOARD[v]:
                 score = y[0, i]
-                if not go.HASH_BOARD[v] and score > best_score:
+                if score > best_score:
                     best_score = score
                     best_move = v
             i += 1
 
-        # TODO: add y[0, go.LN] as PASS score if pass_num == 1 ?
-
-        go.SIM_POS.move2(go.SIM_POS, best_move)
+        pos = go.SIM_POS.move(best_move)
+        go.SIM_POS.copy(pos)
+        go.POSITION_POOL.append(pos)
 
         return go.SIM_POS.hash_code
 

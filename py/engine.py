@@ -14,25 +14,27 @@ class Engine():
     def start(self):
         self.player.clear()
 
-    def make_move(self, color, vertex):
-        j, i = vertex
-        go.MOVE_POS.copy(go.POSITION)
-        legal = go.MOVE_POS.play(j, i)
-        if legal:
-            captures = go.get_captures(go.POSITION, go.MOVE_POS)
-            go.POSITION.copy(go.MOVE_POS)
-            return True, {go.toXY(v) for v in captures }
-        else:
-            return False, {}
-
     def debug(self):
         info = self.player.debug_info
         info += go.POSITION.text()
         return info
 
-    def get_move(self, color):
-        move = self.player.suggest_move()
-        return go.toXY(move)
+    def move(self, color, vertex=None):
+        if vertex is None:
+            legal = self.player.move()
+            if legal:
+                captures = go.get_captures(go.POSITION)
+                return go.toXY(go.POSITION.vertex), {go.toXY(v) for v in captures}
+            else:
+                return None, {}
+        else:
+            pos = go.POSITION.move(vertex)
+            if pos is not None:
+                go.POSITION = pos
+                captures = go.get_captures(go.POSITION)
+                return go.toXY(vertex), {go.toXY(v) for v in captures}
+            else:
+                return None, {}
 
     def get_score(self):
         return go.POSITION.result()
