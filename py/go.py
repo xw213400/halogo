@@ -61,6 +61,7 @@ class Position:
     # INPUT_BOARD[0]: enemy:1, empty:2, self:3
     # INPUT_BOARD[1]: unresonable:1, resonable:2, ko:3
     def input_board(self):
+        global POSITION_POOL
         for v in COORDS:
             j, i = toXY(v)
             j -= 1
@@ -91,34 +92,35 @@ class Position:
             elif self.board[v] == WHITE:
                 self.hash_code ^= CODE_WHITE[v]
 
-
     def resonable(self, v):
-        if v == 0:
-            return True
-
         if self.board[v] != EMPTY or v == self.ko:
             return False
+
+        e = -self.next
 
         v1 = self.board[v + UP]
         v2 = self.board[v + DOWN]
         v3 = self.board[v + LEFT]
         v4 = self.board[v + RIGHT]
 
-        if v1 * v2 * v3 * v4 == 0:
+        if v1 * v2 * v3 * v4 * (v1-e) * (v2-e) * (v3-e) * (v4-e) == 0:
             return True
-
-        e = -self.next
 
         v5 = self.board[v + LEFTUP]
         v6 = self.board[v + LEFTDOWN]
         v7 = self.board[v + RIGHTUP]
         v8 = self.board[v + RIGHTDOWN]
-        eye = (v1-e) * (v2-e) * (v3-e) * (v4-e) * (v5-e) * (v6-e) * (v7-e) * (v8-e) * v5 * v6 * v7 * v8
 
-        if eye != 0:
-            return False
+        if (v5-WALL) * (v6-WALL) * (v7-WALL) * (v8-WALL) == 0: #edge
+            if v5 * v6 * v7 * v8 * (v5-e) * (v6-e) * (v7-e) * (v8-e) == 0:
+                return True   
+        else:
+            s = v5 + v6 + v7 + v8 - e * 4
+            s = s * s
+            if s < 36:
+                return True
         
-        return True
+        return False
 
     def capture(self, c, v, n):
         global FLAG
@@ -272,13 +274,13 @@ class Position:
         pos.hash_code ^= CODE_SWAP
         pos.vertex = v
 
-        parent = self
-        while parent is not None:
-            if parent.hash_code == pos.hash_code:
+        p = self
+        while p is not None:
+            if p.hash_code == pos.hash_code:
                 POSITION_POOL.append(pos)
                 return None
             else:
-                parent = parent.parent
+                p = p.parent
 
         pos.parent = self
 
@@ -452,7 +454,7 @@ class Position:
 
 def init(n):
     global N, M, LN, LM, UP, DOWN, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN, FLAGS, EMPTY_BOARD, COORDS, FRONTIER, FLAG
-    global POSITION, POSITION_POOL, CODE_WHITE, CODE_BLACK, CODE_KO
+    global POSITION, POSITION_POOL, CODE_WHITE, CODE_BLACK, CODE_KO, TRUNK
     global INPUT_BOARD, FLAG_BOARD
     N = n
     M = N + 1
@@ -500,30 +502,23 @@ def init(n):
         i += 1
 
     POSITION = POSITION_POOL.pop()
+    TRUNK = set([POSITION])
 
 def clear():
-    global POSITION, TRUNK
+    global POSITION, TRUNK, POSITION_POOL
     POSITION.copy_board(EMPTY_BOARD)
     POSITION.next = BLACK
     POSITION.ko = 0
     POSITION.vertex = 0
     POSITION.hash_code = 0
 
-    parent = POSITION.parent
-    while parent is not None:
-        POSITION_POOL.append(parent)
-        parent = parent.parent
+    p = POSITION.parent
+    while p is not None:
+        POSITION_POOL.append(p)
+        p = p.parent
 
     POSITION.parent = None
-    TRUNK = set()
-
-def update_trunk():
-    global TRUNK
-    TRUNK = set()
-    pos = POSITION
-    while pos is not None:
-        TRUNK.add(pos.hash_code)
-        pos = pos.parent
+    TRUNK = set([POSITION])
 
 def toXY(vertex):
     j = vertex % M
@@ -613,3 +608,18 @@ def print_input(self):
 
     s += "\n"
     print(s)
+
+def move(v):
+    global POSITION, TRUNK
+
+    pos = POSITION.move(v)
+    if pos is not None:
+        POSITION = pos
+        TRUNK = set()
+        while pos is not None:
+            TRUNK.add(pos)
+            pos = pos.parent
+        return True
+    else:
+        return False
+    

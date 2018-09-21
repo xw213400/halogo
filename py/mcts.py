@@ -100,11 +100,11 @@ class MCTSNode():
         self.action_score = self.Q + self.U
 
     def release(self, recursive=True):
-        if self.position.hash_code not in go.TRUNK:        
+        if self.position not in go.TRUNK:     
             go.POSITION_POOL.append(self.position)
 
-        while len(self.positions) > 0:
-            go.POSITION_POOL.append(self.positions.pop())
+        for p in self.positions:
+            go.POSITION_POOL.append(p)
         
         if recursive:
             for child in self.children:
@@ -131,9 +131,9 @@ class MCTSPlayer():
         global POLICY
         POLICY = self.policy
         root_node = None
-        go.update_trunk()
         # self.debug_info = ""
         # print("==============================")
+
         if self.best_node is not None:
             if self.best_node.position.next == go.POSITION.next:
                 if self.best_node.position.vertex == go.POSITION.vertex:
@@ -151,6 +151,13 @@ class MCTSPlayer():
 
         if root_node is None:
             root_node = MCTSNode(None, go.POSITION)
+        elif root_node.position is not go.POSITION:
+            go.POSITION_POOL.append(root_node.position)
+            root_node.position = go.POSITION
+            for node in root_node.children:
+                node.position.parent = go.POSITION
+            for pos in root_node.positions:
+                pos.parent = go.POSITION
 
         # print(root_node.position.text())
         # self.debug_info += 'ROOT_LEAF:%d; ' % (root_node.leaves)
@@ -180,9 +187,7 @@ class MCTSPlayer():
             self.best_node = max(root_node.children, key=lambda node:node.N)
 
             vertex = self.best_node.position.vertex
-            go.POSITION = go.POSITION.move(vertex)
-
-            go.update_trunk()
+            go.move(vertex)
 
             sim_count = 0
             for node in root_node.children:
@@ -194,9 +199,9 @@ class MCTSPlayer():
 
             # self.debug_info += 'MOVE:%d; BEST_LEAF:%d; SIM_COUNT:%d\n' % (self.best_node.position.vertex, self.best_node.leaves, sim_count)
 
-            return True
+            return vertex
         else:
-            go.update_trunk()
+            print('!!!!!!')
             root_node.release()
-            return False
+            return None
 

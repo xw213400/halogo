@@ -10,8 +10,8 @@ from randmove import Policy
 def main(count):
     sys.setrecursionlimit(500000)
     go.init(9)
-    engineB = Engine(2, Policy(15))
-    engineW = Engine(2, Policy(20))
+    engineB = Engine(3, Policy(25))
+    engineW = Engine(3, Policy(20))
 
     vertex = None
     caps = None
@@ -22,10 +22,6 @@ def main(count):
     
     c = 1
     while c <= count:
-        go.clear()
-        engineB.start()
-        engineW.start()
-
         records = '[\n'
         pass_num = 0
         i = 0
@@ -59,6 +55,10 @@ def main(count):
                 records += ',\n'
             else:
                 records += '\n]'
+                engineB.clear()
+                engineW.clear()
+                go.clear()
+                print('POSPOOL: %d' % len(go.POSITION_POOL))
         
         filename = '../data/record.json'
         if count > 1:

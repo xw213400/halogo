@@ -11,7 +11,7 @@ class Engine():
     def set_size(self, size):
         go.init(size)
 
-    def start(self):
+    def clear(self):
         self.player.clear()
 
     def debug(self):
@@ -20,21 +20,19 @@ class Engine():
         return info
 
     def move(self, color, vertex=None):
+        legal = True
+
         if vertex is None:
-            legal = self.player.move()
-            if legal:
-                captures = go.get_captures(go.POSITION)
-                return go.toXY(go.POSITION.vertex), {go.toXY(v) for v in captures}
-            else:
-                return None, {}
+            vertex = self.player.move()
+            legal = vertex is not None
         else:
-            pos = go.POSITION.move(vertex)
-            if pos is not None:
-                go.POSITION = pos
-                captures = go.get_captures(go.POSITION)
-                return go.toXY(vertex), {go.toXY(v) for v in captures}
-            else:
-                return None, {}
+            legal = go.move(vertex)
+
+        if legal:
+            captures = go.get_captures(go.POSITION)
+            return go.toXY(go.POSITION.vertex), {go.toXY(v) for v in captures}
+        else:
+            return None, {}
 
     def get_score(self):
         return go.POSITION.result()
