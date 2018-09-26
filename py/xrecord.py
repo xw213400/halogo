@@ -6,11 +6,13 @@ import torch
 import os.path
 from engine import Engine
 import randmove
+import resnet
 
 def main(count):
     sys.setrecursionlimit(500000)
     go.init(9)
-    engineB = Engine(30, randmove.Policy(40))
+    engineB = Engine(30, resnet.Policy(10, '../data/rand_40/resnet_pars.pkl'))
+    # engineB = Engine(30, randmove.Policy(40))
     engineW = engineB
     # engineW = Engine(10, randmove.Policy(40))
 

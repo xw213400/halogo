@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import torch.optim as optim
 import os.path
+import random
 
 
 def conv5x5(in_channel, out_channel):
@@ -97,11 +98,8 @@ class Policy():
 
         return positions
 
-    def sim(self):
-        go.SIM_POS.input_board()
-
-        best_move = 0
-        best_score = go.WORST_SCORE
+    def sim(self, position):
+        position.input_board()
 
         x = None
         y = None
@@ -113,20 +111,36 @@ class Policy():
             y = self.resnet(x).data.numpy()
 
         i = 0
+        best_score = go.WORST_SCORE
+        sum_score = 0
+        move = 0
+        moves = []
         while i < go.LN:
             v = go.COORDS[i]
             if go.FLAG_BOARD[v]:
                 score = y[0, i]
-                if score > best_score:
+                if score > 0:
+                    sum_score += score
+                    moves.append((v, sum_score))
+                elif best_score < score:
                     best_score = score
-                    best_move = v
+                    move = v
             i += 1
 
-        pos = go.SIM_POS.move(best_move)
-        go.SIM_POS.copy(pos)
-        go.POSITION_POOL.append(pos)
+        if sum_score > 0:
+            n = len(moves)
+            if n > 1:
+                rand = random.random() * sum_score
+                for v, s in moves:
+                    if s >= rand:
+                        move = v
+                        break
+            else:
+                move, s = moves[0]
 
-        return go.SIM_POS.hash_code
+        pos = position.move(move)
+
+        return pos
 
     def train(self, positions):
         n = len(positions)

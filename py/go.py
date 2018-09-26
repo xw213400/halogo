@@ -61,7 +61,7 @@ class Position:
     # INPUT_BOARD[0]: enemy:1, empty:2, self:3
     # INPUT_BOARD[1]: unresonable:1, resonable:2, ko:3
     def input_board(self):
-        global POSITION_POOL
+        global POSITION_POOL, FLAG_BOARD, INPUT_BOARD
         for v in COORDS:
             j, i = toXY(v)
             j -= 1
