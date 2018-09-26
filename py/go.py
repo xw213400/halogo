@@ -497,7 +497,7 @@ def init(n):
 
     POSITION_POOL = []
     i = 0
-    while i < 500000:
+    while i < 1000000:
         POSITION_POOL.append(Position())
         i += 1
 
@@ -622,4 +622,13 @@ def move(v):
         return True
     else:
         return False
+
+def get_step():
+    step = 0
+    p = POSITION.parent
+    while p is not None:
+        step += 1
+        p = p.parent
+    
+    return step
     

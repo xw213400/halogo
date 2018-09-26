@@ -15,9 +15,7 @@ class Engine():
         self.player.clear()
 
     def debug(self):
-        info = self.player.debug_info
-        info += go.POSITION.text()
-        return info
+        print(self.player.debug_info)
 
     def move(self, color, vertex=None):
         legal = True

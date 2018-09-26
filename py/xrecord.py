@@ -5,13 +5,14 @@ import go
 import torch
 import os.path
 from engine import Engine
-from randmove import Policy
+import randmove
 
 def main(count):
     sys.setrecursionlimit(500000)
     go.init(9)
-    engineB = Engine(3, Policy(25))
-    engineW = Engine(3, Policy(20))
+    engineB = Engine(30, randmove.Policy(40))
+    engineW = engineB
+    # engineW = Engine(10, randmove.Policy(40))
 
     vertex = None
     caps = None
@@ -33,10 +34,10 @@ def main(count):
 
             if i % 2 == 1:
                 vertex, caps = engineB.move('b')
+                engineB.debug()
             else:
                 vertex, caps = engineW.move('w')
-            
-            print(i, vertex, caps)
+                engineW.debug()
 
             if vertex is None:
                 print('Illegal move!')

@@ -6,7 +6,6 @@ import random
 class Policy():
     def __init__(self, PUCT=1):
         self.PUCT = PUCT
-        pass
 
     def get(self, position):
         positions = go.get_positions(position)

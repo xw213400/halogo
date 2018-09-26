@@ -62,7 +62,7 @@ class Policy():
         if torch.cuda.is_available():
             self.resnet.cuda()
             self.criterion = self.criterion.cuda()
-        self.optimizer = optim.SGD(self.resnet.parameters(), lr=0.001)
+        self.optimizer = optim.SGD(self.resnet.parameters(), lr=0.001, momentum=0.9)
         if os.path.isfile(pars):
             self.resnet.load_state_dict(torch.load(pars))
 
@@ -128,33 +128,46 @@ class Policy():
 
         return go.SIM_POS.hash_code
 
-    def train(position, best_move):
-        position.input_board()
+    def train(self, positions):
+        n = len(positions)
+        k = 0
+        c = 0
+        while k + c < n:
+            pos = positions[k+c]
+            v = None
 
-        target_data = torch.zeros(1, go.LN + 1)
-        if best_move == 0:
-            target_data[0, go.LN] = 1
-        else:
-            j, i = go.toXY(best_move)
-            j -= 1
-            i -= 1
-            v = i * go.N + j
-            target_data[0, v] = 1
+            if pos.vertex == 0:
+                c += 1
+                v = go.LN
+            else:
+                k += 1
+                j, i = go.toXY(pos.vertex)
+                j -= 1
+                i -= 1
+                v = i * go.N + j
 
-        self.optimizer.zero_grad()
+                ###########################
+                target_data = torch.zeros(1, go.LN + 1)
+                target_data[0, v] = 1
+                self.optimizer.zero_grad()
 
-        x = None
-        y = None
-        target = None
-        if torch.cuda.is_available():
-            x = Variable(go.INPUT_BOARD).cuda()
-            target = Variable(target_data).cuda()
-        else:
-            x = Variable(go.INPUT_BOARD)
-            target = Variable(target_data)
+                x = None
+                y = None
+                target = None
+                pos.input_board()
+                if torch.cuda.is_available():
+                    x = Variable(go.INPUT_BOARD).cuda()
+                    target = Variable(target_data).cuda()
+                else:
+                    x = Variable(go.INPUT_BOARD)
+                    target = Variable(target_data)
 
-        y = self.resnet(x)
+                y = self.resnet(x)
 
-        loss = self.criterion(y, target)
-        loss.backward()
-        self.optimizer.step()
+                loss = self.criterion(y, target)
+                loss.backward()
+                self.optimizer.step()
+                ###########################
+
+            if k % 100 == 0 or k + c == n:
+                print('%d: loss %.3f' % (k, loss))

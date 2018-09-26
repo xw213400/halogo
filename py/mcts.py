@@ -43,13 +43,9 @@ class MCTSNode():
         if len(self.positions) > 0:
             return self
         else:
-            n = len(self.children)
-            i = 0
             best_score = go.WORST_SCORE
             best_node = None
-            while i < n:
-                node = self.children[i]
-                i += 1
+            for node in self.children:
                 if node.leaves > 0 and node.action_score > best_score:
                     best_score = node.action_score
                     best_node = node
@@ -114,8 +110,8 @@ class MCTSNode():
 class MCTSPlayer():
     def __init__(self, seconds_per_move=5, policy=None):
         self.seconds_per_move = seconds_per_move
-        self.debug_info = ""
         self.best_node = None
+        self.debug_info = ''
 
         if policy == None:
             self.policy = resnet.Policy()
@@ -131,8 +127,6 @@ class MCTSPlayer():
         global POLICY
         POLICY = self.policy
         root_node = None
-        # self.debug_info = ""
-        # print("==============================")
 
         if self.best_node is not None:
             if self.best_node.position.next == go.POSITION.next:
@@ -143,7 +137,6 @@ class MCTSPlayer():
                 for node in self.best_node.children:
                     if node.position.vertex == go.POSITION.vertex:
                         root_node = node
-                        # print("V:", go.POSITION.vertex, node.position.vertex)
                     else:
                         node.release()
                 self.best_node.release(False)
@@ -159,9 +152,6 @@ class MCTSPlayer():
             for pos in root_node.positions:
                 pos.parent = go.POSITION
 
-        # print(root_node.position.text())
-        # self.debug_info += 'ROOT_LEAF:%d; ' % (root_node.leaves)
-
         start = time.time()
         while time.time() - start < self.seconds_per_move:
             #selection
@@ -169,7 +159,7 @@ class MCTSPlayer():
 
             #if every child node is exploid, find the best directly
             if current_node is None:
-                print("WARNING! ROOT has no leaves!")
+                print("Leaves is empty!")
                 break
             
             #expand
@@ -189,15 +179,18 @@ class MCTSPlayer():
             vertex = self.best_node.position.vertex
             go.move(vertex)
 
+            self.debug_info = 'STEP:%d [' % go.get_step()
             sim_count = 0
             for node in root_node.children:
                 sim_count += node.N
+                # self.debug_info += '%d,' % node.N
                 if node != self.best_node:
                     node.release()
 
             root_node.release(False)
 
-            # self.debug_info += 'MOVE:%d; BEST_LEAF:%d; SIM_COUNT:%d\n' % (self.best_node.position.vertex, self.best_node.leaves, sim_count)
+            i, j = go.toXY(vertex)
+            self.debug_info += '] SUM:%d POOL:%d V:[%d,%d]' % (sim_count, len(go.POSITION_POOL), i, j)
 
             return vertex
         else:
