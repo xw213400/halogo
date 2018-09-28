@@ -8,7 +8,7 @@ from os.path import isfile, join
 from os import listdir
 import json
 
-def main(path, epoch=1):
+def main(path):
     sys.setrecursionlimit(500000)
     go.init(9)
     policy = resnet.Policy(1, path+'resnet_pars.pkl')
@@ -20,7 +20,7 @@ def main(path, epoch=1):
             record = json.load(json_data)
             s = 0
             parent = go.Position()
-            while s < len(record) and s < 81:
+            while s < len(record) and s < go.LN:
                 position = go.Position()
                 position.fromJSON(record[s])
                 position.parent = parent
@@ -29,19 +29,15 @@ def main(path, epoch=1):
                     positions.append(position)
                 s += 1
 
-    policy.train(positions, epoch)
-    torch.save(policy.resnet.state_dict(), path+'resnet_pars.pkl')
+    policy.test(positions)
     
 
 if __name__ == '__main__':
     path = '../data/'
-    epoch = 1
     if len(sys.argv) >= 2:
         path += sys.argv[1] + '/'
-    if len(sys.argv) >= 3:
-        epoch = int(sys.argv[2])
 
     if path != '../data/':
-        main(path, epoch)
+        main(path)
     else:
         print('Data is not exist!')

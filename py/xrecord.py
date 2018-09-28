@@ -8,12 +8,15 @@ from engine import Engine
 import randmove
 import resnet
 
-def main(count):
+def main(count, path):
     sys.setrecursionlimit(500000)
     go.init(9)
     engineB = Engine(90, resnet.Policy(32, '../data/rand_40/resnet_pars.pkl'))
     # engineB = Engine(30, randmove.Policy(40))
     engineW = Engine(30, randmove.Policy(40))
+
+    records = [f for f in listdir(path) if f[-4:] == 'json' and f[:6] == 'record']
+    fcount = len(records)
 
     vertex = None
     caps = None
@@ -54,7 +57,7 @@ def main(count):
             records += '  '
             records += record
 
-            if pass_num < 2 and i <= 81:
+            if pass_num < 2 and i <= go.LN:
                 records += ',\n'
             else:
                 records += '\n]'
@@ -64,9 +67,8 @@ def main(count):
                 go.clear()
                 print('POSPOOL: %d' % len(go.POSITION_POOL))
         
-        filename = '../data/record.json'
-        if count > 1:
-            filename = '../data/record_%d.json' % c
+        fcount += 1
+        filename = path + 'record_%d.json' % fcount
 
         f = open(filename, 'w')
         f.write(records)
@@ -87,8 +89,12 @@ def main(count):
 
 if __name__ == '__main__':
     count = 1
+    path = '../data/'
 
     if len(sys.argv) >= 2:
         count = int(sys.argv[1])
 
-    main(count)
+    if len(sys.argv) >= 3:
+        path += sys.argv[1] + '/'
+
+    main(count, path)
