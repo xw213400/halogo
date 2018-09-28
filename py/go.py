@@ -43,7 +43,6 @@ CODE_KO = None
 CODE_SWAP = random.getrandbits(64)
 
 INPUT_BOARD = None
-FLAG_BOARD = None #用于标记是否resonable
 TRUNK = None
 
 
@@ -58,28 +57,34 @@ class Position:
         self.parent = None
 
     # prepare input plane for resnet
-    # INPUT_BOARD[0]: enemy:1, empty:2, self:3
-    # INPUT_BOARD[1]: unresonable:1, resonable:2, ko:3
+    # INPUT_BOARD[0]: enemy:-1, empty:0, self:1
+    # INPUT_BOARD[1]: unresonable:0, resonable:1, ko:-1
     def input_board(self):
-        global POSITION_POOL, FLAG_BOARD, INPUT_BOARD
-        for v in COORDS:
-            j, i = toXY(v)
-            j -= 1
-            i -= 1
-            p = 1
-            FLAG_BOARD[v] = False
+        global POSITION_POOL, INPUT_BOARD
+
+        c = 0
+        x = 0
+        y = 0
+        while c < LN:
+            v = COORDS[c]
+            p = 0
 
             if self.resonable(v):
                 pos = self.move(v)
                 if pos is not None:
-                    p = 2
-                    FLAG_BOARD[v] = True
+                    p = 1
                     POSITION_POOL.append(pos)
             if v == self.ko:
-                p = 3
+                p = -1
 
-            INPUT_BOARD[0, 0, i, j] = self.board[v] * self.next + 2
-            INPUT_BOARD[0, 1, i, j] = p
+            INPUT_BOARD[0, 0, y, x] = self.board[v] * self.next
+            INPUT_BOARD[0, 1, y, x] = p
+
+            x += 1
+            if x == N:
+                y += 1
+                x = 0
+            c = y * N + x
 
     def init_hash_code(self):
         self.hash_code = 0
@@ -455,7 +460,7 @@ class Position:
 def init(n):
     global N, M, LN, LM, UP, DOWN, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN, FLAGS, EMPTY_BOARD, COORDS, FRONTIER, FLAG
     global POSITION, POSITION_POOL, CODE_WHITE, CODE_BLACK, CODE_KO, TRUNK
-    global INPUT_BOARD, FLAG_BOARD
+    global INPUT_BOARD
     N = n
     M = N + 1
     LN = N * N
@@ -493,7 +498,6 @@ def init(n):
             CODE_KO[v] = random.getrandbits(64)
 
     INPUT_BOARD = torch.zeros(1, 2, N, N)
-    FLAG_BOARD = [True] * LM
 
     POSITION_POOL = []
     i = 0
@@ -520,13 +524,21 @@ def clear():
     POSITION.parent = None
     TRUNK = set([POSITION])
 
-def toXY(vertex):
-    j = vertex % M
-    i = int(vertex / M)
+def toJI(v):
+    j = v % M
+    i = int(v / M)
     return j, i
 
 def toV(i, j):
     return i * M + j
+
+def toXY(c):
+    x = c % N
+    y = int(c / N)
+    return x, y
+
+def toC(x, y):
+    return y * N + x
 
 def get_positions(position):
     positions = []
@@ -547,31 +559,6 @@ def get_captures(position):
         if c1 != EMPTY and c2 == EMPTY:
             captures.append(v)
     return captures
-
-
-def text_flag_board():
-    i = N
-    s = "\n"
-    while i > 0:
-        s += str(i).zfill(2) + " "
-        i -= 1
-        j = 0
-        while j < N:
-            if FLAG_BOARD[COORDS[i*N+j]]:
-                s += "O "
-            else:
-                s += ". "
-            j += 1
-        s += "\n"
-
-    s += "   "
-    while i < N:
-        s += "{} ".format("ABCDEFGHJKLMNOPQRSTYVWYZ"[i])
-        i += 1
-        
-    s += "\n"
-    
-    return s
 
 def print_input(self):
     i = N

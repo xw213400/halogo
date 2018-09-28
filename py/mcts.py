@@ -189,8 +189,8 @@ class MCTSPlayer():
 
             root_node.release(False)
 
-            i, j = go.toXY(vertex)
-            self.debug_info += '] SUM:%d POOL:%d V:[%d,%d]' % (sim_count, len(go.POSITION_POOL), i, j)
+            i, j = go.toJI(vertex)
+            self.debug_info += '] SUM:%d Q:%.1f V:[%d,%d]' % (sim_count, self.best_node.Q, i, j)
 
             return vertex
         else:

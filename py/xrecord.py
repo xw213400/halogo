@@ -11,10 +11,9 @@ import resnet
 def main(count):
     sys.setrecursionlimit(500000)
     go.init(9)
-    engineB = Engine(30, resnet.Policy(10, '../data/rand_40/resnet_pars.pkl'))
+    engineB = Engine(90, resnet.Policy(32, '../data/rand_40/resnet_pars.pkl'))
     # engineB = Engine(30, randmove.Policy(40))
-    engineW = engineB
-    # engineW = Engine(10, randmove.Policy(40))
+    engineW = Engine(30, randmove.Policy(40))
 
     vertex = None
     caps = None
@@ -26,6 +25,7 @@ def main(count):
     c = 1
     while c <= count:
         records = '[\n'
+        score = 0
         pass_num = 0
         i = 0
 
@@ -54,10 +54,11 @@ def main(count):
             records += '  '
             records += record
 
-            if pass_num < 2:
+            if pass_num < 2 and i <= 81:
                 records += ',\n'
             else:
                 records += '\n]'
+                score = go.POSITION.score()
                 engineB.clear()
                 engineW.clear()
                 go.clear()
@@ -71,7 +72,6 @@ def main(count):
         f.write(records)
         f.close()
 
-        score = go.POSITION.score()
         if score > 0:
             black_win += 1
         elif score < 0:

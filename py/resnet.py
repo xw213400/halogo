@@ -7,7 +7,9 @@ from torch.autograd import Variable
 import torch.optim as optim
 import os.path
 import random
+import math
 
+MOVES = [0] * go.LN
 
 def conv5x5(in_channel, out_channel):
     return nn.Conv2d(in_channel, out_channel, 5, stride=1, padding=2, bias=False)
@@ -39,6 +41,8 @@ class Resnet(nn.Module):
             Residual_block(num_planes, num_planes),
             Residual_block(num_planes, num_planes),
             Residual_block(num_planes, num_planes),
+            # Residual_block(num_planes, num_planes),
+            # Residual_block(num_planes, num_planes),
             Residual_block(num_planes, num_planes)
         )
 
@@ -58,8 +62,8 @@ class Resnet(nn.Module):
 class Policy():
     def __init__(self, PUCT=1, pars='../data/resnet_pars.pkl'):
         self.PUCT = PUCT
-        self.resnet = Resnet(30)
-        self.criterion = nn.MSELoss()
+        self.resnet = Resnet(32)
+        self.criterion = nn.CrossEntropyLoss()
         if torch.cuda.is_available():
             self.resnet.cuda()
             self.criterion = self.criterion.cuda()
@@ -71,34 +75,42 @@ class Policy():
         position.input_board()
 
         x = None
-        y = None
+        out = None
         if torch.cuda.is_available():
             x = Variable(go.INPUT_BOARD).cuda()
-            y = self.resnet(x).data.cpu().numpy()
+            out = self.resnet(x).data.cpu().numpy()
         else:
             x = Variable(go.INPUT_BOARD)
-            y = self.resnet(x).data.numpy()
+            out = self.resnet(x).data.numpy()
 
         positions = []
 
         pos = position.move(0)
-        pos.prior = y[0, go.LN]
+        pos.prior = out[0, go.LN]
         positions.append(pos)
 
-        i = 0
-        while i < go.LN:
-            v = go.COORDS[i]
-            if go.FLAG_BOARD[v]:
+        c = 0
+        x = 0
+        y = 0
+        while c < go.LN:
+            if go.INPUT_BOARD[0, 1, y, x] == 1:
+                v = go.COORDS[c]
                 pos = position.move(v)
-                pos.prior = y[0, i]
+                pos.prior = out[0, c]
                 positions.append(pos)
-            i += 1
+
+            x += 1
+            if x == go.N:
+                y += 1
+                x = 0
+            c = y * go.N + x
 
         positions = sorted(positions, key=lambda pos: pos.prior)
 
         return positions
 
     def sim(self, position):
+        global MOVES
         position.input_board()
 
         x = None
@@ -110,78 +122,97 @@ class Policy():
             x = Variable(go.INPUT_BOARD)
             y = self.resnet(x).data.numpy()
 
-        i = 0
-        best_score = go.WORST_SCORE
-        sum_score = 0
+        cs = np.argsort(y[0])
         move = 0
-        moves = []
-        while i < go.LN:
-            v = go.COORDS[i]
-            if go.FLAG_BOARD[v]:
-                score = y[0, i]
-                if score > 0:
-                    sum_score += score
-                    moves.append((v, sum_score))
-                elif best_score < score:
-                    best_score = score
-                    move = v
-            i += 1
+        n = 0
+        i = go.LN
 
-        if sum_score > 0:
-            n = len(moves)
-            if n > 1:
-                rand = random.random() * sum_score
-                for v, s in moves:
-                    if s >= rand:
-                        move = v
-                        break
-            else:
-                move, s = moves[0]
+        while i >= 0:
+            c = cs[i]
+            if c < go.LN:
+                x, y = go.toXY(c)
+                if go.INPUT_BOARD[0, 1, y, x] == 1:
+                    MOVES[n] = go.COORDS[c]
+                    n += 1
+            i -= 1
 
+        if n > 0:
+            r = random.random()
+            r = int(r * r * n)
+            move = MOVES[r]
+        
         pos = position.move(move)
 
         return pos
 
-    def train(self, positions):
-        n = len(positions)
-        k = 0
-        c = 0
-        while k + c < n:
-            pos = positions[k+c]
-            v = None
+    def train(self, positions, epoch=1):
+        for e in range(epoch):
+            batch = 10
+            n = math.floor(len(positions)/batch)
+            i = 0
+            running_loss = 0.0
+            while i < n:
+                j = 0
+                target_data = torch.LongTensor(batch)
+                input_data = torch.zeros(batch, 2, go.N, go.N)
+                while j < batch:
+                    k = i * batch + j
+                    pos = positions[k]
+                    v = go.LN
+                    if pos.vertex != 0:
+                        p, q = go.toJI(pos.vertex)
+                        v = q * go.N + p - go.N - 1
 
-            if pos.vertex == 0:
-                c += 1
-                v = go.LN
-            else:
-                k += 1
-                j, i = go.toXY(pos.vertex)
-                j -= 1
-                i -= 1
-                v = i * go.N + j
+                    target_data[j] = v
 
-                ###########################
-                target_data = torch.zeros(1, go.LN + 1)
-                target_data[0, v] = 1
+                    pos.parent.input_board()
+                    input_data[j].copy_(go.INPUT_BOARD[0])
+
+                    j += 1
+
                 self.optimizer.zero_grad()
 
-                x = None
-                y = None
-                target = None
-                pos.input_board()
+                x = Variable(input_data)
+                t = Variable(target_data)
                 if torch.cuda.is_available():
-                    x = Variable(go.INPUT_BOARD).cuda()
-                    target = Variable(target_data).cuda()
-                else:
-                    x = Variable(go.INPUT_BOARD)
-                    target = Variable(target_data)
+                    x = x.cuda()
+                    t = t.cuda()
 
                 y = self.resnet(x)
 
-                loss = self.criterion(y, target)
+                loss = self.criterion(y, t)
                 loss.backward()
                 self.optimizer.step()
-                ###########################
 
-            if k % 100 == 0 or k + c == n:
-                print('%d: loss %.3f' % (k, loss))
+                i += 1
+                running_loss += loss.data[0]
+                if i % 100 == 0 or i == n:
+                    print('epoch: %d, i:%d, loss %.3f' % (e, i*batch, running_loss / 100))
+                    running_loss = 0.0
+
+    def test(self, positions):
+        right = 0
+        for pos in positions:
+            v = go.LN
+            if pos.vertex != 0:
+                p, q = go.toJI(pos.vertex)
+                v = q * go.N + p - go.N - 1
+
+            pos.parent.input_board()
+
+            y = None
+            if torch.cuda.is_available():
+                x = Variable(go.INPUT_BOARD).cuda()
+                y = self.resnet(x).data.cpu()
+            else:
+                x = Variable(go.INPUT_BOARD)
+                y = self.resnet(x).data
+
+            _, predicted = torch.max(y, 1)
+
+            if v == predicted[0]:
+                right += 1
+        
+        n = len(positions)
+        print('Right:%d, N:%d, Rate: %.1f' % (right, n, right/n*100))
+
