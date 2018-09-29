@@ -62,12 +62,10 @@ class Resnet(nn.Module):
 class Policy():
     def __init__(self, PUCT=1, pars='../data/resnet_pars.pkl'):
         self.PUCT = PUCT
+        self.HASH = {}
         self.resnet = Resnet(32)
-        self.criterion = nn.CrossEntropyLoss()
         if torch.cuda.is_available():
             self.resnet.cuda()
-            self.criterion = self.criterion.cuda()
-        self.optimizer = optim.SGD(self.resnet.parameters(), lr=0.001, momentum=0.9)
         if os.path.isfile(pars):
             self.resnet.load_state_dict(torch.load(pars))
 
@@ -111,46 +109,85 @@ class Policy():
 
     def sim(self, position):
         global MOVES
-        position.input_board()
 
-        x = None
-        y = None
-        if torch.cuda.is_available():
-            x = Variable(go.INPUT_BOARD).cuda()
-            y = self.resnet(x).data.cpu().numpy()
-        else:
-            x = Variable(go.INPUT_BOARD)
-            y = self.resnet(x).data.numpy()
+        score = self.HASH.get(position.hash_code)
+        if score is not None:
+            return score
 
-        cs = np.argsort(y[0])
-        move = 0
-        n = 0
-        i = go.LN
+        pos = position
 
-        while i >= 0:
-            c = cs[i]
-            if c < go.LN:
-                x, y = go.toXY(c)
-                if go.INPUT_BOARD[0, 1, y, x] == 1:
-                    MOVES[n] = go.COORDS[c]
-                    n += 1
-            i -= 1
+        while pos.pass_count() < 2:    
+            pos.input_board()
 
-        if n > 0:
-            r = random.random()
-            r = int(r * r * n)
-            move = MOVES[r]
+            x = None
+            out = None
+            if torch.cuda.is_available():
+                x = Variable(go.INPUT_BOARD).cuda()
+                out = self.resnet(x)[0].data.cpu().numpy()
+            else:
+                x = Variable(go.INPUT_BOARD)
+                out = self.resnet(x)[0].data.numpy()
+
+            cs = np.argsort(out)
+            move = 0
+            i = go.LN
+
+            while i >= 0:
+                c = cs[i]
+                if c < go.LN:
+                    x, y = go.toXY(c)
+                    if go.INPUT_BOARD[0, 1, y, x] == 1:
+                        move = go.COORDS[c]
+                        break
+                i -= 1
+            
+            pos = pos.move(move)
+
+            # cs = np.argsort(y[0])
+            # move = 0
+            # n = 0
+            # i = go.LN
+
+            # while i >= 0:
+            #     c = cs[i]
+            #     if c < go.LN:
+            #         x, y = go.toXY(c)
+            #         if go.INPUT_BOARD[0, 1, y, x] == 1:
+            #             MOVES[n] = go.COORDS[c]
+            #             n += 1
+            #     i -= 1
+
+            # if n > 0:
+            #     r = random.random()
+            #     r = int(r * r * n)
+            #     move = MOVES[r]
+            
+            # pos = pos.move(move)
+
+        score = pos.score()
+        while pos is not position:
+            go.POSITION_POOL.append(pos)
+            pos = pos.parent
         
-        pos = position.move(move)
+        self.HASH[position.hash_code] = score
 
-        return pos
+        return score
+
+    def clear(self):
+        self.HASH = {}
 
     def train(self, positions, epoch=1):
+        self.criterion = nn.CrossEntropyLoss()
+        self.optimizer = optim.SGD(self.resnet.parameters(), lr=0.001, momentum=0.9)
+        if torch.cuda.is_available():
+            self.criterion = self.criterion.cuda()
+
         for e in range(epoch):
             batch = 10
             n = math.floor(len(positions)/batch)
             i = 0
             running_loss = 0.0
+            random.shuffle(positions)
             while i < n:
                 j = 0
                 target_data = torch.LongTensor(batch)

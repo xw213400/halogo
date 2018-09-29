@@ -4,6 +4,7 @@ import sys
 import go
 import torch
 import os.path
+from os import listdir
 from engine import Engine
 import randmove
 import resnet
@@ -11,9 +12,10 @@ import resnet
 def main(count, path):
     sys.setrecursionlimit(500000)
     go.init(9)
-    engineB = Engine(90, resnet.Policy(32, '../data/rand_40/resnet_pars.pkl'))
-    # engineB = Engine(30, randmove.Policy(40))
-    engineW = Engine(30, randmove.Policy(40))
+    # engineB = Engine(85, resnet.Policy(40, '../data/rand/resnet_pars.pkl'))
+    # engineW = Engine(30, resnet.Policy(40, '../data/rand/resnet_pars.pkl'))
+    engineB = Engine(30, randmove.Policy(40))
+    engineW = Engine(60, randmove.Policy(40))
 
     records = [f for f in listdir(path) if f[-4:] == 'json' and f[:6] == 'record']
     fcount = len(records)
@@ -57,7 +59,10 @@ def main(count, path):
             records += '  '
             records += record
 
-            if pass_num < 2 and i <= go.LN:
+            if i > go.LN:
+                pass_num = 2
+
+            if pass_num < 2:
                 records += ',\n'
             else:
                 records += '\n]'
@@ -92,9 +97,9 @@ if __name__ == '__main__':
     path = '../data/'
 
     if len(sys.argv) >= 2:
-        count = int(sys.argv[1])
+        path += sys.argv[1] + '/'
 
     if len(sys.argv) >= 3:
-        path += sys.argv[1] + '/'
+        count = int(sys.argv[2])
 
     main(count, path)

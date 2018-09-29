@@ -407,7 +407,7 @@ class Position:
     def score(self):
         global FLAG
         FLAG += 1
-        score = -KOMI
+        score = 0 #-KOMI
         for i in COORDS:
             c = self.board[i]
             if c == EMPTY and FLAGS[i] != FLAG:
@@ -418,7 +418,7 @@ class Position:
         return score
 
     def result(self):
-        s = self.score()
+        s = self.score() - KOMI
         if s > 0:
             return 'B+' + '%.1f' % s
         elif s < 0:

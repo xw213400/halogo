@@ -65,17 +65,8 @@ class MCTSNode():
 
     def simulate(self):
         if len(self.positions) > 0:
-            pos = sim_root = self.positions[-1] #last node is best node, PASS is always at first
-
-            while pos.pass_count() < 2:
-                pos = POLICY.sim(pos)
-
-            score = pos.score()
-            while pos is not sim_root:
-                go.POSITION_POOL.append(pos)
-                pos = pos.parent
-
-            return score
+            #last node is best node, PASS is always at first
+            return POLICY.sim(self.positions[-1])
         else: # 2 pass
             return self.position.score()
         
@@ -119,6 +110,7 @@ class MCTSPlayer():
             self.policy = policy
 
     def clear(self):
+        self.policy.clear()
         if self.best_node is not None:
             self.best_node.release()
             self.best_node = None
