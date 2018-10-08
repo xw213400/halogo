@@ -51,7 +51,6 @@ class Position:
         self.next = BLACK
         self.ko = 0
         self.board = EMPTY_BOARD[:]
-        self.prior = 0
         self.vertex = 0
         self.hash_code = 0
         self.parent = None

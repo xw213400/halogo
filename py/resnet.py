@@ -76,34 +76,22 @@ class Policy():
         out = None
         if torch.cuda.is_available():
             x = Variable(go.INPUT_BOARD).cuda()
-            out = self.resnet(x).data.cpu().numpy()
+            out = self.resnet(x)[0].data.cpu().numpy()
         else:
             x = Variable(go.INPUT_BOARD)
-            out = self.resnet(x).data.numpy()
+            out = self.resnet(x)[0].data.numpy()
 
-        positions = []
+        positions = [position.move(0)]
 
-        pos = position.move(0)
-        pos.prior = out[0, go.LN]
-        positions.append(pos)
+        cs = np.argsort(out)
 
-        c = 0
-        x = 0
-        y = 0
-        while c < go.LN:
-            if go.INPUT_BOARD[0, 1, y, x] == 1:
-                v = go.COORDS[c]
-                pos = position.move(v)
-                pos.prior = out[0, c]
-                positions.append(pos)
-
-            x += 1
-            if x == go.N:
-                y += 1
-                x = 0
-            c = y * go.N + x
-
-        positions = sorted(positions, key=lambda pos: pos.prior)
+        for c in cs:
+            if c < go.LN:
+                x = c % go.N
+                y = int(c/go.N)
+                if go.INPUT_BOARD[0, 1, y, x] == 1:
+                    v = go.COORDS[c]
+                    positions.append(position.move(v))
 
         return positions
 

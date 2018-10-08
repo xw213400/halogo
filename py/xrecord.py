@@ -15,7 +15,7 @@ def main(count, path):
     # engineB = Engine(85, resnet.Policy(40, '../data/rand/resnet_pars.pkl'))
     # engineW = Engine(30, resnet.Policy(40, '../data/rand/resnet_pars.pkl'))
     engineB = Engine(30, randmove.Policy(40))
-    engineW = Engine(60, randmove.Policy(40))
+    engineW = Engine(30, randmove.Policy(40))
 
     records = [f for f in listdir(path) if f[-4:] == 'json' and f[:6] == 'record']
     fcount = len(records)
@@ -61,6 +61,8 @@ def main(count, path):
 
             if i > go.LN:
                 pass_num = 2
+            # if i >= 60:
+            #     pass_num = 2
 
             if pass_num < 2:
                 records += ',\n'
@@ -70,7 +72,6 @@ def main(count, path):
                 engineB.clear()
                 engineW.clear()
                 go.clear()
-                print('POSPOOL: %d' % len(go.POSITION_POOL))
         
         fcount += 1
         filename = path + 'record_%d.json' % fcount

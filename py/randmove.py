@@ -10,15 +10,9 @@ class Policy():
 
     def get(self, position):
         positions = go.get_positions(position)
-    
-        for pos in positions:
-            pos.prior = random.random()
 
-        pos = position.move(0)
-        pos.prior = 0
-        positions.append(pos)
-
-        positions = sorted(positions, key=lambda pos: pos.prior)
+        random.shuffle(positions)
+        positions.insert(0, position.move(0))
 
         return positions
 

@@ -25,7 +25,7 @@ class MCTSNode():
         self.children = [] # map of moves to resulting MCTSNode
 
         self.Q = 0 if parent is None else parent.Q # average of all outcomes involving this node
-        self.U = 0 #move.prior# monte carlo exploration bonus
+        self.U = 0 # monte carlo exploration bonus
         self.N = 0 # number of times node was visited
         self.action_score = 0
 
@@ -166,12 +166,13 @@ class MCTSPlayer():
                 current_node = current_node.parent
 
         if len(root_node.children) > 0:
+            poolsize = len(go.POSITION_POOL)
             self.best_node = max(root_node.children, key=lambda node:node.N)
 
             vertex = self.best_node.position.vertex
             go.move(vertex)
 
-            self.debug_info = 'STEP:%d [' % go.get_step()
+            self.debug_info = '%02d  ' % go.get_step()
             sim_count = 0
             for node in root_node.children:
                 sim_count += node.N
@@ -182,7 +183,7 @@ class MCTSPlayer():
             root_node.release(False)
 
             i, j = go.toJI(vertex)
-            self.debug_info += '] SUM:%d Q:%.1f V:[%d,%d]' % (sim_count, self.best_node.Q, i, j)
+            self.debug_info += 'V:[%d,%d]  POOL:%d  Q:%.1f  SIM:%d' % (i, j, poolsize, self.best_node.Q, sim_count)
 
             return vertex
         else:
