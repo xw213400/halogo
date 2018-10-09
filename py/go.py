@@ -8,8 +8,6 @@ WHITE, EMPTY, BLACK, WALL = range(-1, 3)
 LEFT = -1
 RIGHT = 1
 
-WORST_SCORE = -1000000000
-
 # # # # #
 # + + +
 # + + +
@@ -126,7 +124,7 @@ class Position:
         
         return False
 
-    def capture(self, c, v, n):
+    def take(self, c, v, n):
         global FLAG
         FLAG += 1
         FRONTIER[n] = v
@@ -228,13 +226,13 @@ class Position:
 
         enemy = -self.next
 
-        # clear captures
+        # clear take
         n = 0
         kov = 0
         mu = v + UP
         cu = pos.board[mu]
         if cu == enemy:
-            n = pos.capture(enemy, mu, n)
+            n = pos.take(enemy, mu, n)
             kov += 1
         elif cu == WALL:
             kov += 1
@@ -242,7 +240,7 @@ class Position:
         md = v + DOWN
         cd = pos.board[md]
         if cd == enemy:
-            n = pos.capture(enemy, md, n)
+            n = pos.take(enemy, md, n)
             kov += 1
         elif cd == WALL:
             kov += 1
@@ -250,7 +248,7 @@ class Position:
         ml = v + LEFT
         cl = pos.board[ml]
         if cl == enemy:
-            n = pos.capture(enemy, ml, n)
+            n = pos.take(enemy, ml, n)
             kov += 1
         elif cl == WALL:
             kov += 1
@@ -258,7 +256,7 @@ class Position:
         mr = v + RIGHT
         cr = pos.board[mr]
         if cr == enemy:
-            n = pos.capture(enemy, mr, n)
+            n = pos.take(enemy, mr, n)
             kov += 1
         elif cr == WALL:
             kov += 1
@@ -347,7 +345,7 @@ class Position:
             pc += 1
         return pc
 
-    def find_empties_group(self, v):
+    def territory(self, v):
         FRONTIER[0] = v
         FLAGS[v] = FLAG
         n = 1
@@ -403,6 +401,17 @@ class Position:
             else:
                 return 0
 
+    def get_positions(self):
+        positions = []
+
+        for v in COORDS:
+            if self.resonable(v):
+                pos = self.move(v)
+                if pos is not None:
+                    positions.append(pos)
+        
+        return positions
+
     def score(self):
         global FLAG
         FLAG += 1
@@ -410,7 +419,7 @@ class Position:
         for i in COORDS:
             c = self.board[i]
             if c == EMPTY and FLAGS[i] != FLAG:
-                score += self.find_empties_group(i)
+                score += self.territory(i)
             else:
                 score += c
 
@@ -539,25 +548,14 @@ def toXY(c):
 def toC(x, y):
     return y * N + x
 
-def get_positions(position):
-    positions = []
-
-    for v in COORDS:
-        if position.resonable(v):
-            pos = position.move(v)
-            if pos is not None:
-                positions.append(pos)
-    
-    return positions
-
-def get_captures(position):
-    captures = []
+def get_take(position):
+    take = []
     for v in COORDS:
         c1 = position.parent.board[v]
         c2 = position.board[v]
         if c1 != EMPTY and c2 == EMPTY:
-            captures.append(v)
-    return captures
+            take.append(v)
+    return take
 
 def print_input(self):
     i = N

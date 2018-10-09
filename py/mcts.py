@@ -5,6 +5,7 @@ import randmove
 import go
 
 POLICY = None
+WORST_SCORE = -1000000000
 
 class MCTSNode():
     def __init__(self, parent, position):
@@ -43,7 +44,7 @@ class MCTSNode():
         if len(self.positions) > 0:
             return self
         else:
-            best_score = go.WORST_SCORE
+            best_score = WORST_SCORE
             best_node = None
             for node in self.children:
                 if node.leaves > 0 and node.action_score > best_score:

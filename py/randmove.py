@@ -9,7 +9,7 @@ class Policy():
         self.HASH = {}
 
     def get(self, position):
-        positions = go.get_positions(position)
+        positions = position.get_positions()
 
         random.shuffle(positions)
         positions.insert(0, position.move(0))
@@ -24,7 +24,7 @@ class Policy():
         pos = position
 
         while pos.pass_count() < 2:
-            positions = go.get_positions(pos)
+            positions = pos.get_positions()
             n = len(positions)
             if n >= 2:
                 i = random.randint(0, n-1)

@@ -27,8 +27,8 @@ class Engine():
             legal = go.move(vertex)
 
         if legal:
-            captures = go.get_captures(go.POSITION)
-            return go.toJI(go.POSITION.vertex), {go.toJI(v) for v in captures}
+            take = go.get_take(go.POSITION)
+            return go.toJI(go.POSITION.vertex), {go.toJI(v) for v in take}
         else:
             return None, {}
 
