@@ -48,7 +48,7 @@ function debug_play() {
         board = new Board();
 
         var file = getQueryString('data').replace('-', '/') || 'record';
-        Halo.httpRequest('res/record.json'.replace('record', file), 'text').then((data) => {
+        Halo.httpRequest('data/record.json'.replace('record', file), 'text').then((data) => {
             records = JSON.parse(data);
             for (var i = 0; i !== records.length; ++i) {
                 var record = records[i];

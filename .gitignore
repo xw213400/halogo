@@ -10,4 +10,5 @@ package-lock.json
 
 # Folders
 node_modules
+data
 __pycache__
