@@ -146,6 +146,7 @@ class MCTSPlayer():
                 pos.parent = go.POSITION
 
         start = time.time()
+        sim_count = 0
         while time.time() - start < self.seconds_per_move:
             #selection
             current_node = root_node.select()
@@ -166,6 +167,10 @@ class MCTSPlayer():
                 current_node.backpropagation(R)
                 current_node = current_node.parent
 
+            sim_count += 1
+            if sim_count >= 10000:
+                break
+
         if len(root_node.children) > 0:
             poolsize = len(go.POSITION_POOL)
             self.best_node = max(root_node.children, key=lambda node:node.N)
@@ -174,9 +179,7 @@ class MCTSPlayer():
             go.move(vertex)
 
             self.debug_info = '%02d  ' % go.get_step()
-            sim_count = 0
             for node in root_node.children:
-                sim_count += node.N
                 # self.debug_info += '%d,' % node.N
                 if node != self.best_node:
                     node.release()

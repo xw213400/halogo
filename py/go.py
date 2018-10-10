@@ -26,6 +26,8 @@ LEFTDOWN = LEFT + DOWN
 RIGHTUP = RIGHT + UP
 RIGHTDOWN = RIGHT + DOWN
 
+NEIGHBORS = [UP, DOWN, LEFT, RIGHT]
+
 KOMI = 5.5
 FLAG = 0
 FLAGS = None
@@ -43,12 +45,39 @@ CODE_SWAP = random.getrandbits(64)
 INPUT_BOARD = None
 TRUNK = None
 
+class Group:
+    def __init__(self, v):
+        self.stones = [v]
+        self.liberty = -1
+
+    def get_liberty(self, board):
+        global FLAG
+
+        if self.liberty != -1:
+            return self.liberty
+
+        FLAG += 1
+        self.liberty = 0
+        for s in self.stones:
+            for n in NEIGHBORS:
+                v = s + n
+                c = board[v]
+                if c == EMPTY and FLAGS[v] != FLAG:
+                    FLAGS[v] = FLAG
+                    self.liberty = self.liberty + 1
+                    if self.liberty >= 2:
+                        return self.liberty
+
+        return self.liberty
+
+
 
 class Position:
     def __init__(self):
         self.next = BLACK
         self.ko = 0
         self.board = EMPTY_BOARD[:]
+        self.group = [None] * LM
         self.vertex = 0
         self.hash_code = 0
         self.parent = None
@@ -95,103 +124,73 @@ class Position:
                 self.hash_code ^= CODE_WHITE[v]
 
     def resonable(self, v):
+        if v == 0:
+            return True
+
         if self.board[v] != EMPTY or v == self.ko:
             return False
 
-        e = -self.next
+        vu = v + UP
+        vd = v + DOWN
+        vl = v + LEFT
+        vr = v + RIGHT
 
-        v1 = self.board[v + UP]
-        v2 = self.board[v + DOWN]
-        v3 = self.board[v + LEFT]
-        v4 = self.board[v + RIGHT]
+        cu = self.board[vu]
+        cd = self.board[vd]
+        cl = self.board[vl]
+        cr = self.board[vr]
 
-        if v1 * v2 * v3 * v4 * (v1-e) * (v2-e) * (v3-e) * (v4-e) == 0:
+        if cu * cd * cl * cr == 0: #neighbor empty
             return True
 
-        v5 = self.board[v + LEFTUP]
-        v6 = self.board[v + LEFTDOWN]
-        v7 = self.board[v + RIGHTUP]
-        v8 = self.board[v + RIGHTDOWN]
+        gs = []
 
-        if (v5-WALL) * (v6-WALL) * (v7-WALL) * (v8-WALL) == 0: #edge
-            if v5 * v6 * v7 * v8 * (v5-e) * (v6-e) * (v7-e) * (v8-e) == 0:
-                return True   
-        else:
-            s = v5 + v6 + v7 + v8 - e * 4
-            s = s * s
-            if s < 36:
+        gu = self.group[vu]
+        if gu is not None:
+            gs.append(gu)
+            
+        gd = self.group[vd]
+        if gd is not None and gd != gu:
+            gs.append(gd)
+
+        gl = self.group[vl]
+        if gl is not None and gl != gu and gl != gd:
+            gs.append(gl)
+
+        gr = self.group[vr]
+        if gr is not None and gr != gu and gr != gd and gr != gl:
+            gs.append(gr)
+
+        ee = -self.next
+        if (cu-ee)*(cd-ee)*(cl-ee)*(cr-ee) != 0 and len(gs) == 1: #eye
+            return False
+
+        nTakes = 0
+
+        for g in gs:
+            liberty = g.get_liberty(self.board)
+            color = self.board[g.stones[0]]
+            if liberty > 1 and color == self.next:
                 return True
+            elif liberty == 1 and color == ee:
+                nTakes += len(g.stones)
+
+        if nTakes > 0:
+            # check loop position
+            # if nTakes == 1 and (cu+ee)*(cd+ee)*(cl+ee)*(cr+ee) != 0: # KO
+
+            return True
         
         return False
-
-    def take(self, c, v, n):
-        global FLAG
-        FLAG += 1
-        FRONTIER[n] = v
-        FLAGS[v] = FLAG
-        n1 = n
-        n2 = n + 1
-
-        while n2 > n1:
-            i = FRONTIER[n1]
-            n1 += 1
-
-            m = i + UP
-            s = self.board[m]
-            if s == EMPTY:
-                return n
-            elif s == c and FLAGS[m] != FLAG:
-                FLAGS[m] = FLAG
-                FRONTIER[n2] = m
-                n2 += 1
-
-            m = i + DOWN
-            s = self.board[m]
-            if s == EMPTY:
-                return n
-            elif s == c and FLAGS[m] != FLAG:
-                FLAGS[m] = FLAG
-                FRONTIER[n2] = m
-                n2 += 1
-
-            m = i + LEFT
-            s = self.board[m]
-            if s == EMPTY:
-                return n
-            elif s == c and FLAGS[m] != FLAG:
-                FLAGS[m] = FLAG
-                FRONTIER[n2] = m
-                n2 += 1
-
-            m = i + RIGHT
-            s = self.board[m]
-            if s == EMPTY:
-                return n
-            elif s == c and FLAGS[m] != FLAG:
-                FLAGS[m] = FLAG
-                FRONTIER[n2] = m
-                n2 += 1
-
-        i = n
-        codes = CODE_BLACK if c == BLACK else CODE_WHITE
-        while i < n2:
-            coord = FRONTIER[i]
-            self.board[coord] = EMPTY
-            self.hash_code ^= codes[coord]
-            i += 1
-
-        return n2
-
-    def copy_board(self, board):
-        for v in COORDS:
-            self.board[v] = board[v]
 
     def toJSON(self):
         JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex}
         return json.dumps(JSON)
 
     def fromJSON(self, JSON):
-        self.copy_board(JSON['board'])
+        board = JSON['board']
+        for v in COORDS:
+            self.board[v] = board[v]
         self.next = JSON['next']
         self.ko = JSON['ko']
         self.vertex = JSON['vertex']
@@ -208,15 +207,14 @@ class Position:
             pos.next = -self.next
             pos.vertex = v
             pos.hash_code = self.hash_code ^ CODE_KO[self.ko] ^ CODE_SWAP
-            pos.copy_board(self.board)
+            for s in COORDS:
+                pos.board[s] = self.board[s]
 
             return pos
 
-        if v == self.ko or self.board[v] != EMPTY:
-            return None
-
         pos = POSITION_POOL.pop()
-        pos.copy_board(self.board)
+        for s in COORDS:
+            pos.board[s] = self.board[s]
         pos.board[v] = self.next
 
         if self.next == BLACK:
@@ -224,57 +222,42 @@ class Position:
         else:
             pos.hash_code = self.hash_code ^ CODE_WHITE[v]
 
-        enemy = -self.next
-
-        # clear take
-        n = 0
-        kov = 0
-        mu = v + UP
-        cu = pos.board[mu]
-        if cu == enemy:
-            n = pos.take(enemy, mu, n)
-            kov += 1
-        elif cu == WALL:
-            kov += 1
-
-        md = v + DOWN
-        cd = pos.board[md]
-        if cd == enemy:
-            n = pos.take(enemy, md, n)
-            kov += 1
-        elif cd == WALL:
-            kov += 1
-
-        ml = v + LEFT
-        cl = pos.board[ml]
-        if cl == enemy:
-            n = pos.take(enemy, ml, n)
-            kov += 1
-        elif cl == WALL:
-            kov += 1
-
-        mr = v + RIGHT
-        cr = pos.board[mr]
-        if cr == enemy:
-            n = pos.take(enemy, mr, n)
-            kov += 1
-        elif cr == WALL:
-            kov += 1
-
-        pos.ko = FRONTIER[0]
-
-        #suicide
-        if pos.is_suicide(self.next, v):
-            POSITION_POOL.append(pos)
-            return None
-
-        if n != 1 or kov < 4:
-            pos.ko = 0
-
-        pos.next = enemy
-        pos.hash_code ^= CODE_KO[pos.ko]
+        pos.next = -self.next
         pos.hash_code ^= CODE_SWAP
         pos.vertex = v
+
+        nTakes = 0
+        nEmpties = 0
+        nFriends = 0
+        codes = CODE_BLACK if pos.next == BLACK else CODE_WHITE
+
+        for n in NEIGHBORS:
+            m = v + n
+            if pos.board[m] == pos.next:
+                g = self.group[m]
+                try:
+                    if g.get_liberty(self.board) == 1:
+                        nTakes += len(g.stones)
+                        pos.ko = m
+                        for s in g.stones:
+                            pos.board[s] = EMPTY
+                            pos.hash_code ^= codes[s]
+                except AttributeError as e:
+                    print('AttributeError')
+                    pos.debug()
+                    self.debug()
+                    self.debug_group()
+                
+            if self.board[m] == EMPTY:
+                nEmpties += 1
+            elif self.board[m] == self.next:
+                nFriends += 1
+
+        if nTakes != 1 or nEmpties > 0 or nFriends > 0:
+            pos.ko = 0
+
+        pos.hash_code ^= CODE_KO[pos.ko]
+        pos.hash_code ^= CODE_KO[self.ko]
 
         p = self
         while p is not None:
@@ -287,55 +270,6 @@ class Position:
         pos.parent = self
 
         return pos
-
-    def is_suicide(self, c, v):
-        global FLAG
-        FLAG += 1
-        FRONTIER[0] = v
-        FLAGS[v] = FLAG
-        n = 1
-
-        while n > 0:
-            n -= 1
-            i = FRONTIER[n]
-
-            m = i + UP
-            s = self.board[m]
-            if s == EMPTY:
-                return False
-            elif s == c and FLAGS[m] != FLAG:
-                FLAGS[m] = FLAG
-                FRONTIER[n] = m
-                n += 1
-
-            m = i + DOWN
-            s = self.board[m]
-            if s == EMPTY:
-                return False
-            elif s == c and FLAGS[m] != FLAG:
-                FLAGS[m] = FLAG
-                FRONTIER[n] = m
-                n += 1
-
-            m = i + LEFT
-            s = self.board[m]
-            if s == EMPTY:
-                return False
-            elif s == c and FLAGS[m] != FLAG:
-                FLAGS[m] = FLAG
-                FRONTIER[n] = m
-                n += 1
-
-            m = i + RIGHT
-            s = self.board[m]
-            if s == EMPTY:
-                return False
-            elif s == c and FLAGS[m] != FLAG:
-                FLAGS[m] = FLAG
-                FRONTIER[n] = m
-                n += 1
-
-        return True
 
     def pass_count(self):
         pc = 0
@@ -401,8 +335,32 @@ class Position:
             else:
                 return 0
 
-    def get_positions(self):
+    def update_group(self):
+        parent = self.parent
+
+        if parent is not None:
+            for v in COORDS:
+                g = self.group[v] = parent.group[v]
+                if g is not None:
+                    self.group[v].liberty = -1
+
+            if self.vertex != 0:
+                g = self.group[self.vertex] = Group(self.vertex)
+                ns = [self.vertex+UP, self.vertex+DOWN, self.vertex+LEFT, self.vertex+RIGHT]
+                for n in ns:
+                    gg = self.group[n]
+                    if self.board[n] == parent.next and gg != g:
+                        for s in gg.stones:
+                            self.group[s] = g
+                        g.stones.extend(gg.stones)
+                    elif gg is not None and self.board[n] == EMPTY:
+                        for s in gg.stones:
+                            self.group[s] = None
+
+    def get_children(self):
         positions = []
+
+        self.update_group()
 
         for v in COORDS:
             if self.resonable(v):
@@ -464,9 +422,37 @@ class Position:
     def debug(self):
         print(self.text())
 
+    def debug_group(self):
+        i = N
+        s = "\n"
+        while i > 0:
+            s += str(i).zfill(2) + " "
+            i -= 1
+            j = 0
+            while j < N:
+                v = COORDS[i*N+j]
+                c = self.board[v]
+                g = self.group[v]
+                j += 1
+                if c == BLACK and g is not None:
+                    s += "X "
+                elif c == WHITE and g is not None:
+                    s += "O "
+                else:
+                    s += "+ "
+            s += "\n"
+
+        s += "   "
+        while i < N:
+            s += "{} ".format("ABCDEFGHJKLMNOPQRSTYVWYZ"[i])
+            i += 1
+            
+        s += "\n"
+        print(s)
+
 
 def init(n):
-    global N, M, LN, LM, UP, DOWN, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN, FLAGS, EMPTY_BOARD, COORDS, FRONTIER, FLAG
+    global N, M, LN, LM, UP, DOWN, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN, FLAGS, EMPTY_BOARD, COORDS, FRONTIER, FLAG, NEIGHBORS
     global POSITION, POSITION_POOL, CODE_WHITE, CODE_BLACK, CODE_KO, TRUNK
     global INPUT_BOARD
     N = n
@@ -479,6 +465,7 @@ def init(n):
     LEFTDOWN = LEFT + DOWN
     RIGHTUP = RIGHT + UP
     RIGHTDOWN = RIGHT + DOWN
+    NEIGHBORS = [UP, DOWN, LEFT, RIGHT]
 
     FLAGS = [0] * LM
     EMPTY_BOARD = [0] * LM
@@ -509,7 +496,7 @@ def init(n):
 
     POSITION_POOL = []
     i = 0
-    while i < 1000000:
+    while i < 300000:
         POSITION_POOL.append(Position())
         i += 1
 
@@ -518,7 +505,9 @@ def init(n):
 
 def clear():
     global POSITION, TRUNK, POSITION_POOL
-    POSITION.copy_board(EMPTY_BOARD)
+    for s in COORDS:
+        POSITION.board[s] = EMPTY_BOARD[s]
+        POSITION.group[s] = None
     POSITION.next = BLACK
     POSITION.ko = 0
     POSITION.vertex = 0
@@ -596,16 +585,19 @@ def print_input(self):
 def move(v):
     global POSITION, TRUNK
 
-    pos = POSITION.move(v)
-    if pos is not None:
-        POSITION = pos
-        TRUNK = set()
-        while pos is not None:
-            TRUNK.add(pos)
-            pos = pos.parent
-        return True
-    else:
-        return False
+    if POSITION.resonable(v):
+        pos = POSITION.move(v)
+        if pos is not None:
+            POSITION = pos
+            POSITION.update_group()
+            TRUNK = set()
+            while pos is not None:
+                TRUNK.add(pos)
+                pos = pos.parent
+
+            return True
+    
+    return False
 
 def get_step():
     step = 0

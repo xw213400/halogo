@@ -55,12 +55,17 @@ def main(count, path):
             else:
                 pass_num = 0
 
+            # go.POSITION.debug_group()
+            # go.POSITION.update_group()
+            # go.POSITION.debug_group()
+            # go.POSITION.debug_group()
+
             record = go.POSITION.toJSON()
             records += '  '
             records += record
 
-            if i > go.LN:
-                pass_num = 2
+            # if i > go.LN:
+            #     pass_num = 2
             # if i >= 60:
             #     pass_num = 2
 
