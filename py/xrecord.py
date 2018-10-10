@@ -14,8 +14,8 @@ def main(count, path):
     go.init(9)
     # engineB = Engine(85, resnet.Policy(40, '../data/rand/resnet_pars.pkl'))
     # engineW = Engine(30, resnet.Policy(40, '../data/rand/resnet_pars.pkl'))
-    engineB = Engine(30, randmove.Policy(40))
-    engineW = Engine(30, randmove.Policy(40))
+    engineW = engineB = Engine(90, randmove.Policy(40))
+    # engineW = Engine(30, randmove.Policy(40))
 
     records = [f for f in listdir(path) if f[-4:] == 'json' and f[:6] == 'record']
     fcount = len(records)
@@ -73,7 +73,7 @@ def main(count, path):
                 records += ',\n'
             else:
                 records += '\n]'
-                score = go.POSITION.score()
+                score = go.POSITION.score() - go.KOMI
                 engineB.clear()
                 engineW.clear()
                 go.clear()

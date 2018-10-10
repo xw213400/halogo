@@ -95,11 +95,11 @@ class Position:
             v = COORDS[c]
             p = 0
 
-            if self.resonable(v):
-                pos = self.move(v)
-                if pos is not None:
-                    p = 1
-                    POSITION_POOL.append(pos)
+            pos = self.move(v)
+            if pos is not None:
+                p = 1
+                POSITION_POOL.append(pos)
+
             if v == self.ko:
                 p = -1
 
@@ -123,12 +123,40 @@ class Position:
             elif self.board[v] == WHITE:
                 self.hash_code ^= CODE_WHITE[v]
 
-    def resonable(self, v):
+    def toJSON(self):
+        JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex}
+        return json.dumps(JSON)
+
+    def fromJSON(self, JSON):
+        board = JSON['board']
+        for v in COORDS:
+            self.board[v] = board[v]
+        self.next = JSON['next']
+        self.ko = JSON['ko']
+        self.vertex = JSON['vertex']
+        self.init_hash_code()
+
+    def move(self, v):
+        global KO, NEXT, POSITION_POOL, FRONTIER
+
         if v == 0:
-            return True
+            pos = POSITION_POOL.pop()
+
+            pos.parent = self
+            pos.ko = 0
+            pos.next = -self.next
+            pos.vertex = v
+            pos.hash_code = self.hash_code ^ CODE_KO[self.ko] ^ CODE_SWAP
+            for s in COORDS:
+                pos.board[s] = self.board[s]
+
+            return pos
 
         if self.board[v] != EMPTY or v == self.ko:
-            return False
+            return None
+
+        resonable = False
+        ko = 0
 
         vu = v + UP
         vd = v + DOWN
@@ -139,9 +167,6 @@ class Position:
         cd = self.board[vd]
         cl = self.board[vl]
         cr = self.board[vr]
-
-        if cu * cd * cl * cr == 0: #neighbor empty
-            return True
 
         gs = []
 
@@ -162,111 +187,72 @@ class Position:
             gs.append(gr)
 
         ee = -self.next
-        if (cu-ee)*(cd-ee)*(cl-ee)*(cr-ee) != 0 and len(gs) == 1: #eye
-            return False
+
+        if cu * cd * cl * cr == 0: #neighbor empty
+            resonable = True
 
         nTakes = 0
 
         for g in gs:
-            liberty = g.get_liberty(self.board)
             color = self.board[g.stones[0]]
-            if liberty > 1 and color == self.next:
-                return True
-            elif liberty == 1 and color == ee:
-                nTakes += len(g.stones)
+            if color == ee:
+                liberty = g.get_liberty(self.board)
+                if liberty == 1:
+                    for s in g.stones:
+                        FRONTIER[nTakes] = s
+                        nTakes += 1
+            else:
+                if not resonable: # around stone and wall
+                    liberty = g.get_liberty(self.board)
+                    if liberty > 1: # not suicide
+                        resonable = True
 
         if nTakes > 0:
-            # check loop position
-            # if nTakes == 1 and (cu+ee)*(cd+ee)*(cl+ee)*(cr+ee) != 0: # KO
+            if not resonable and nTakes == 1 and (cu+ee)*(cd+ee)*(cl+ee)*(cr+ee) != 0: # KO
+                ko = FRONTIER[0]
+            resonable = True
 
-            return True
-        
-        return False
+        if (cu-ee)*(cd-ee)*(cl-ee)*(cr-ee) != 0 and len(gs) == 1:#eye
+            resonable = False
 
-    def toJSON(self):
-        JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex}
-        return json.dumps(JSON)
+        if not resonable:
+            return None
 
-    def fromJSON(self, JSON):
-        board = JSON['board']
-        for v in COORDS:
-            self.board[v] = board[v]
-        self.next = JSON['next']
-        self.ko = JSON['ko']
-        self.vertex = JSON['vertex']
-        self.init_hash_code()
-
-    def move(self, v):
-        global KO, NEXT, POSITION_POOL
-
-        if v == 0:
-            pos = POSITION_POOL.pop()
-
-            pos.parent = self
-            pos.ko = 0
-            pos.next = -self.next
-            pos.vertex = v
-            pos.hash_code = self.hash_code ^ CODE_KO[self.ko] ^ CODE_SWAP
-            for s in COORDS:
-                pos.board[s] = self.board[s]
-
-            return pos
-
-        pos = POSITION_POOL.pop()
-        for s in COORDS:
-            pos.board[s] = self.board[s]
-        pos.board[v] = self.next
+        hash_code = self.hash_code
 
         if self.next == BLACK:
-            pos.hash_code = self.hash_code ^ CODE_BLACK[v]
+            hash_code ^= CODE_BLACK[v] ^ CODE_KO[self.ko] ^ CODE_SWAP ^ CODE_KO[ko]
         else:
-            pos.hash_code = self.hash_code ^ CODE_WHITE[v]
+            hash_code ^= CODE_WHITE[v] ^ CODE_KO[self.ko] ^ CODE_SWAP ^ CODE_KO[ko]
 
-        pos.next = -self.next
-        pos.hash_code ^= CODE_SWAP
-        pos.vertex = v
+        codes = CODE_BLACK if ee == BLACK else CODE_WHITE
+        i = 0
+        while i < nTakes:
+            hash_code ^= codes[FRONTIER[i]]
+            i += 1
 
-        nTakes = 0
-        nEmpties = 0
-        nFriends = 0
-        codes = CODE_BLACK if pos.next == BLACK else CODE_WHITE
-
-        for n in NEIGHBORS:
-            m = v + n
-            if pos.board[m] == pos.next:
-                g = self.group[m]
-                try:
-                    if g.get_liberty(self.board) == 1:
-                        nTakes += len(g.stones)
-                        pos.ko = m
-                        for s in g.stones:
-                            pos.board[s] = EMPTY
-                            pos.hash_code ^= codes[s]
-                except AttributeError as e:
-                    print('AttributeError')
-                    pos.debug()
-                    self.debug()
-                    self.debug_group()
-                
-            if self.board[m] == EMPTY:
-                nEmpties += 1
-            elif self.board[m] == self.next:
-                nFriends += 1
-
-        if nTakes != 1 or nEmpties > 0 or nFriends > 0:
-            pos.ko = 0
-
-        pos.hash_code ^= CODE_KO[pos.ko]
-        pos.hash_code ^= CODE_KO[self.ko]
-
+        # check loop position
         p = self
         while p is not None:
-            if p.hash_code == pos.hash_code:
-                POSITION_POOL.append(pos)
+            if p.hash_code == hash_code:
                 return None
             else:
                 p = p.parent
 
+        pos = POSITION_POOL.pop()
+
+        for s in COORDS:
+            pos.board[s] = self.board[s]
+        pos.board[v] = self.next
+        pos.next = -self.next
+        pos.vertex = v
+        pos.hash_code = hash_code
+        pos.ko = ko
+
+        i = 0
+        while i < nTakes:
+            pos.board[FRONTIER[i]] = EMPTY
+            i += 1
         pos.parent = self
 
         return pos
@@ -363,10 +349,9 @@ class Position:
         self.update_group()
 
         for v in COORDS:
-            if self.resonable(v):
-                pos = self.move(v)
-                if pos is not None:
-                    positions.append(pos)
+            pos = self.move(v)
+            if pos is not None:
+                positions.append(pos)
         
         return positions
 
@@ -496,7 +481,7 @@ def init(n):
 
     POSITION_POOL = []
     i = 0
-    while i < 300000:
+    while i < 1000000:
         POSITION_POOL.append(Position())
         i += 1
 
@@ -585,17 +570,16 @@ def print_input(self):
 def move(v):
     global POSITION, TRUNK
 
-    if POSITION.resonable(v):
-        pos = POSITION.move(v)
-        if pos is not None:
-            POSITION = pos
-            POSITION.update_group()
-            TRUNK = set()
-            while pos is not None:
-                TRUNK.add(pos)
-                pos = pos.parent
+    pos = POSITION.move(v)
+    if pos is not None:
+        POSITION = pos
+        POSITION.update_group()
+        TRUNK = set()
+        while pos is not None:
+            TRUNK.add(pos)
+            pos = pos.parent
 
-            return True
+        return True
     
     return False
 

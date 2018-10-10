@@ -25,16 +25,30 @@ class Policy():
 
         while pos.pass_count() < 2:
             positions = pos.get_children()
-            n = len(positions)
-            if n >= 2:
-                i = random.randint(0, n-1)
-                pos = positions.pop(i)
-                for p in positions:
-                    go.POSITION_POOL.append(p)
-            elif n == 1:
-                pos = positions[0]
+            if position.vertext == 0 and pos.next == -position.next:
+                n = len(positions)
+                if n >= 1:
+                    i = random.randint(0, n)
+                    if i == n:
+                        pos = pos.move(0)
+                    else:
+                        pos = positions.pop(i)
+                        for p in positions:
+                            go.POSITION_POOL.append(p)
+                else:
+                    pos = pos.move(0)
+
             else:
-                pos = pos.move(0)
+                n = len(positions)
+                if n >= 2:
+                    i = random.randint(0, n-1)
+                    pos = positions.pop(i)
+                    for p in positions:
+                        go.POSITION_POOL.append(p)
+                elif n == 1:
+                    pos = positions[0]
+                else:
+                    pos = pos.move(0)
 
         score = pos.score()
         while pos is not position:
