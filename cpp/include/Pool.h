@@ -5,16 +5,18 @@ template <class T>
 class Pool
 {
   public:
-    Pool(int size);
+    Pool(size_t size);
 
     T *pop();
 
     void push(T *t);
 
+    size_t size();
+
   private:
     T **pool;
-    int length;
-    int index;
+    size_t length;
+    size_t index;
 };
 
 #endif

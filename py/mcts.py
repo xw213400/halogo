@@ -18,7 +18,6 @@ class MCTSNode():
             self.positions = POLICY.get(position) # list of Move resonable, sort by prior, PASS is always at first
 
         self.leaves = len(self.positions)
-        self.PN = self.leaves
 
         if self.parent is not None:
             self.parent.add_leaf(self.leaves) 

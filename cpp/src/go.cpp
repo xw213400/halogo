@@ -1,106 +1,40 @@
 
-#include "include/go.h"
+#include "go.h"
 
 using namespace std;
 using namespace go;
 
-Group::Group(void) : length(0), liberty(-1)
+void init(int n, float komi)
 {
-    stones = new int[LN];
-}
+    N = n;
+    KOMI = komi;
 
-Group::~Group(void)
-{
-    delete stones;
-}
+    LN = N * N;
+    M = N + 1;
+    LM = M * (M + 1) + 1;
 
-int Group::getLiberty(uint8_t *board)
-{
-    if (liberty != -1)
+    LEFT = -1;
+    RIGHT = 1;
+    UP = M;
+    DOWN = -M;
+
+    LEFTUP = LEFT + UP;
+    LEFTDOWN = LEFT + DOWN;
+    RIGHTUP = RIGHT + UP;
+    RIGHTDOWN = RIGHT + DOWN;
+
+    FLAG = 0;
+    FLAGS = new int[LM];
+    EMPTY_BOARD = new uint8_t[LM];
+
+    CODE_SWAP = mt_rand();
+
+    if (POSITION == nullptr)
     {
-        return liberty;
+        POSITION = POSITION_POOL.pop();
     }
-
-    FLAG += 1;
-    liberty = 0;
-
-    for (int i = 0; i != length; ++i)
+    else
     {
-        int s = stones[i];
-
-        int v = s + UP;
-        uint8_t c = board[v];
-        if (c == EMPTY && FLAGS[v] != FLAG)
-        {
-            FLAGS[v] = FLAG;
-            ++liberty;
-            if (liberty >= 2)
-            {
-                return liberty;
-            }
-        }
-
-        v = s + DOWN;
-        c = board[v];
-        if (c == EMPTY && FLAGS[v] != FLAG)
-        {
-            FLAGS[v] = FLAG;
-            ++liberty;
-            if (liberty >= 2)
-            {
-                return liberty;
-            }
-        }
-
-        v = s + LEFT;
-        c = board[v];
-        if (c == EMPTY && FLAGS[v] != FLAG)
-        {
-            FLAGS[v] = FLAG;
-            ++liberty;
-            if (liberty >= 2)
-            {
-                return liberty;
-            }
-        }
-
-        v = s + RIGHT;
-        c = board[v];
-        if (c == EMPTY && FLAGS[v] != FLAG)
-        {
-            FLAGS[v] = FLAG;
-            ++liberty;
-            if (liberty >= 2)
-            {
-                return liberty;
-            }
-        }
-    }
-}
-
-Position::Position(void)
-{
-    board = new uint8_t[LM];
-    memcpy(board, EMPTY_BOARD, LM);
-    group = static_cast<Group**>(malloc(sizeof(nullptr) * LM));
-    memset(group, nullptr, LM);
-    mygroup = new Group();
-    vertex = PASS;
-    hash_code = 0;
-    parent = nullptr;
-}
-
-Position::~Position(void)
-{
-    delete board;
-    delete group;
-    delete mygroup;
-}
-
-Position* Position::move(int v)
-{
-    if (v == PASS)
-    {
-        Position* pos = POSITION_POOL.pop();
+        POSITION->clear();
     }
 }
