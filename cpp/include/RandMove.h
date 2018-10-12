@@ -11,7 +11,7 @@ class RandMove : public Policy
 
     ~RandMove();
 
-    Position **get(Position *);
+    void get(Position *, std::vector<Position*>&);
 
     float sim(Position *);
 

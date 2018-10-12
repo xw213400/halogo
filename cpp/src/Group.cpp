@@ -1,15 +1,16 @@
 #include "Group.h"
 #include "go.h"
 
-Group::Group(void) : stones(go::LN), liberty(-1)
+Group::Group(void) :liberty(-1)
 {
+    stones.reserve(go::LN);
 }
 
 Group::~Group(void)
 {
 }
 
-int Group::getLiberty(unsigned char *board)
+int Group::getLiberty(int8_t *board)
 {
     if (liberty != -1)
     {
@@ -25,7 +26,7 @@ int Group::getLiberty(unsigned char *board)
         int s = stones[i];
 
         int v = s + go::UP;
-        unsigned char c = board[v];
+        int8_t c = board[v];
 
         if (c == go::EMPTY && go::FLAGS[v] != go::FLAG)
         {

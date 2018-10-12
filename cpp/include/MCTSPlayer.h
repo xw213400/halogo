@@ -2,22 +2,28 @@
 #define __MCTSPLAYER_H__
 
 #include "Policy.h"
+#include "MCTSNode.h"
+#include "Pool.h"
 
 class MCTSPlayer
 {
-  public:
-    MCTSPlayer(float, Policy*);
+public:
+  MCTSPlayer(float, Policy *);
 
-    ~MCTSPlayer();
+  ~MCTSPlayer();
 
-    bool move();
+  bool move();
 
-    void clear();
+  void clear();
 
-  private:
-    float seconds_per_move;
+  static Pool<MCTSNode> pool;
 
-    Policy* policy;
+private:
+  float seconds;
+
+  Policy *policy;
+
+  MCTSNode *best;
 };
 
 #endif

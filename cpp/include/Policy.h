@@ -10,7 +10,7 @@ class Policy
 
     virtual ~Policy() = 0;
 
-    virtual Position **get(Position *) = 0;
+    virtual void get(Position *, std::vector<Position*>&) = 0;
 
     virtual float sim(Position *) = 0;
 

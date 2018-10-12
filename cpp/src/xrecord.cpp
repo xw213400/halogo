@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <chrono>
 #include <iomanip>
 #include "go.h"
@@ -55,11 +56,11 @@ int main(int argc, char *argv[])
             bool legal = player->move();
             if (!legal)
             {
-                cerr << 'Illegal move!' << endl;
+                cerr << "Illegal move!" << endl;
                 break;
             }
 
-            positions.PushBack(go::POSITION->toJSON(), allocator);
+            positions.PushBack(go::POSITION->toJSON(allocator), allocator);
 
             if (player == playerBlack)
             {

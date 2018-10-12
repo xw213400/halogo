@@ -24,7 +24,7 @@ class MCTSNode():
 
         self.children = [] # map of moves to resulting MCTSNode
 
-        self.Q = 0 if parent is None else parent.Q # average of all outcomes involving this node
+        self.Q = 0 #if parent is None else parent.Q # average of all outcomes involving this node
         self.U = 0 # monte carlo exploration bonus
         self.N = 0 # number of times node was visited
         self.action_score = 0

@@ -12,16 +12,36 @@ class Position
 
     Position *move(int);
 
+    float territory(int);
+
     float score();
 
     int passCount();
 
-    rapidjson::Value& toJSON();
+    void clear();
+
+    rapidjson::Value toJSON(rapidjson::Document::AllocatorType &);
+
+    inline int getVertex() {
+      return vertex;
+    }
+
+    inline int8_t getNext() {
+      return next;
+    }
+
+    inline void setParent(Position* pos) {
+      parent = pos;
+    }
+
+    inline Position* getParent() {
+      return parent;
+    }
 
   private:
-    int next;
+    int8_t next;
     int ko;
-    unsigned char *board;
+    int8_t *board;
     Group **group;
     Group *mygroup;
     int vertex;

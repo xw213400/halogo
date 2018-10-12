@@ -8,7 +8,7 @@ RandMove::~RandMove(void)
 {
 }
 
-Position **RandMove::get(Position *position)
+void RandMove::get(Position *position, std::vector<Position*>& positions)
 {
     
 }
