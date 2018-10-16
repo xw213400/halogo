@@ -7,10 +7,10 @@ using namespace std;
 
 MCTSNode::MCTSNode(void)
 {
-    positions.reserve(go::LN + 1);
-    children.reserve(go::LN + 1);
-    parent = nullptr;
-    position = nullptr;
+    _positions.reserve(go::LN + 1);
+    _children.reserve(go::LN + 1);
+    _parent = nullptr;
+    _position = nullptr;
     leaves = 0;
 }
 
@@ -18,40 +18,40 @@ MCTSNode::~MCTSNode(void)
 {
 }
 
-void MCTSNode::init(Policy *pPolicy, MCTSNode *pParent, Position *pPosition)
+void MCTSNode::init(Policy *policy, MCTSNode *pParent, Position *position)
 {
-    policy = pPolicy;
-    parent = pParent;
-    position = pPosition;
+    _policy = policy;
+    _parent = pParent;
+    _position = position;
 
-    positions.clear();
-    if (position->passCount() < 2)
+    _positions.clear();
+    if (_position->passCount() < 2)
     {
-        policy->get(position, positions);
+        policy->get(_position, _positions);
     }
 
-    leaves = positions.size();
+    leaves = _positions.size();
 
-    MCTSNode *p = parent;
+    MCTSNode *p = _parent;
     while (p != nullptr)
     {
         p->leaves += leaves;
-        p = p->parent;
+        p = p->_parent;
     }
 
-    children.clear();
+    _children.clear();
     score = U = 0.f;
     N = 0;
-    Q = 0.f;//parent == nullptr ? 0.f : parent->Q;
+    Q = 0.f; //parent == nullptr ? 0.f : parent->Q;
 }
 
 MCTSNode *MCTSNode::select(void)
 {
-    if (positions.empty())
+    if (_positions.empty())
     {
         float bestScore = -100000000.f;
         MCTSNode *bestNode = nullptr;
-        for (auto i = children.begin(); i != children.end(); ++i)
+        for (auto i = _children.begin(); i != _children.end(); ++i)
         {
             auto node = *i;
             if (node->leaves > 0 && node->score > bestScore)
@@ -77,18 +77,18 @@ MCTSNode *MCTSNode::select(void)
 
 MCTSNode *MCTSNode::expand(void)
 {
-    auto pos = positions.back();
-    positions.pop_back();
-    auto node = MCTSPlayer::pool.pop();
-    node->init(policy, this, pos);
-    children.push_back(node);
+    auto pos = _positions.back();
+    _positions.pop_back();
+    auto node = MCTSPlayer::POOL.pop();
+    node->init(_policy, this, pos);
+    _children.push_back(node);
 
     leaves--;
-    MCTSNode *p = parent;
+    MCTSNode *p = _parent;
     while (p != nullptr)
     {
         p->leaves--;
-        p = p->parent;
+        p = p->_parent;
     }
 
     return node;
@@ -96,49 +96,49 @@ MCTSNode *MCTSNode::expand(void)
 
 float MCTSNode::simulate(void)
 {
-    if (positions.empty())
+    if (_positions.empty())
     {
-        return position->score();
+        return _position->score();
     }
     else
     {
-        return policy->sim(positions.back());
+        return _policy->sim(_positions.back());
     }
 }
 
 void MCTSNode::backpropagation(float value)
 {
-    if (position->getNext() == go::BLACK)
+    if (_position->next() == go::BLACK)
     {
         value = -value;
     }
     ++N;
     float invN = 1.0f / N;
     Q += (value - Q) * invN;
-    if (parent != nullptr)
+    if (_parent != nullptr)
     {
-        U = policy->getPUCT() * sqrt(log(parent->getN() + 1) * invN);
+        U = _policy->PUCT() * sqrt(log(_parent->getN() + 1) * invN);
         score = Q + U;
     }
 }
 
 void MCTSNode::release(bool recursive)
 {
-    if (!go::isTrunk(position))
+    if (!go::isTrunk(_position))
     {
-        position->release();
+        _position->release();
     }
 
-    for (auto i = positions.begin(); i != positions.end(); ++i)
+    for (auto i = _positions.begin(); i != _positions.end(); ++i)
     {
         (*i)->release();
     }
 
-    positions.clear();
+    _positions.clear();
 
-    MCTSPlayer::pool.push(this);
+    MCTSPlayer::POOL.push(this);
 
-    for (auto i = children.begin(); i != children.end(); ++i)
+    for (auto i = _children.begin(); i != _children.end(); ++i)
     {
         if (recursive)
         {
@@ -146,7 +146,7 @@ void MCTSNode::release(bool recursive)
         }
         else
         {
-            (*i)->parent = nullptr;
+            (*i)->_parent = nullptr;
         }
     }
 }

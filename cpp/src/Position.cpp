@@ -7,22 +7,22 @@ using namespace rapidjson;
 
 Position::Position(void)
 {
-    board = new int8_t[go::LM];
-    memcpy(board, go::EMPTY_BOARD, sizeof(int8_t) * go::LM);
-    group = static_cast<Group **>(malloc(sizeof(nullptr) * go::LM));
-    memset(group, 0, sizeof(nullptr) * go::LM);
+    _board = new int8_t[go::LM];
+    memcpy(_board, go::EMPTY_BOARD, sizeof(int8_t) * go::LM);
+    _group = static_cast<Group **>(malloc(sizeof(nullptr) * go::LM));
+    memset(_group, 0, sizeof(nullptr) * go::LM);
     vertex = go::PASS;
     _hashCode = 0;
     _ko = 0;
-    next = go::BLACK;
-    parent = nullptr;
-    groupDirty = true;
+    _next = go::BLACK;
+    _parent = nullptr;
+    _dirty = false;
 }
 
 Position::~Position(void)
 {
-    delete board;
-    delete group;
+    delete _board;
+    delete _group;
 }
 
 Position *Position::move(int v)
@@ -30,17 +30,18 @@ Position *Position::move(int v)
     if (v == go::PASS)
     {
         Position *pos = go::POSITION_POOL.pop();
-        pos->parent = this;
+        pos->_parent = this;
         pos->_ko = 0;
-        pos->next = -next;
+        pos->_next = -_next;
         pos->vertex = v;
+        pos->_dirty = true;
         pos->_hashCode = _hashCode ^ go::CODE_KO[_ko] ^ go::CODE_SWAP;
-        memcpy(pos->board, board, sizeof(int8_t) * go::LV);
+        memcpy(pos->_board, _board, sizeof(int8_t) * go::LV);
 
         return pos;
     }
 
-    if (board[v] != go::EMPTY || v == _ko)
+    if (_board[v] != go::EMPTY || v == _ko)
     {
         return nullptr;
     }
@@ -52,39 +53,39 @@ Position *Position::move(int v)
     int vl = v + go::LEFT;
     int vr = v + go::RIGHT;
 
-    int8_t cu = board[vu];
-    int8_t cd = board[vd];
-    int8_t cl = board[vl];
-    int8_t cr = board[vr];
+    int8_t cu = _board[vu];
+    int8_t cd = _board[vd];
+    int8_t cl = _board[vl];
+    int8_t cr = _board[vr];
 
     Group *gs[4];
     int ngs = 0;
 
-    Group *gu = group[vu];
+    Group *gu = _group[vu];
     if (gu != nullptr)
     {
         gs[ngs++] = gu;
     }
 
-    Group *gd = group[vd];
+    Group *gd = _group[vd];
     if (gd != nullptr && gd != gu)
     {
         gs[ngs++] = gd;
     }
 
-    Group *gl = group[vl];
+    Group *gl = _group[vl];
     if (gl != nullptr && gl != gu && gl != gd)
     {
         gs[ngs++] = gl;
     }
 
-    Group *gr = group[vr];
+    Group *gr = _group[vr];
     if (gr != nullptr && gr != gu && gr != gd && gr != gl)
     {
         gs[ngs++] = gr;
     }
 
-    int8_t ee = -next;
+    int8_t ee = -_next;
 
     if (cu * cd * cl * cr == 0)
     {
@@ -96,15 +97,14 @@ Position *Position::move(int v)
     for (int i = 0; i != ngs; ++i)
     {
         Group *g = gs[i];
-        int8_t color = board[g->stones[0]];
+        int8_t color = g->color(_board);
         if (color == ee)
         {
-            int liberty = g->getLiberty(board);
+            int liberty = g->liberty(_board);
             if (liberty == 1)
             {
-                for (auto it = g->stones.begin(); it != g->stones.end(); ++it)
-                {
-                    go::FRONTIER[nTakes++] = *it;
+                for (int s = 0; s != g->n(); ++s) {
+                    go::FRONTIER[nTakes++] = g->getStone(s);
                 }
             }
         }
@@ -112,7 +112,7 @@ Position *Position::move(int v)
         {
             if (!resonable)
             {
-                int liberty = g->getLiberty(board);
+                int liberty = g->liberty(_board);
                 if (liberty > 1)
                 {
                     resonable = true;
@@ -141,7 +141,7 @@ Position *Position::move(int v)
     }
 
     uint64_t hashCode = _hashCode;
-    if (next == go::BLACK)
+    if (_next == go::BLACK)
     {
         hashCode ^= go::CODE_BLACK[v] ^ go::CODE_KO[_ko] ^ go::CODE_SWAP ^ go::CODE_KO[ko];
     }
@@ -165,23 +165,24 @@ Position *Position::move(int v)
         }
         else
         {
-            pos = pos->parent;
+            pos = pos->_parent;
         }
     }
 
     pos = go::POSITION_POOL.pop();
-    memcpy(pos->board, board, go::LV);
-    pos->board[v] = next;
-    pos->next = -next;
+    memcpy(pos->_board, _board, go::LV);
+    pos->_board[v] = _next;
+    pos->_next = -_next;
     pos->vertex = v;
     pos->_hashCode = hashCode;
     pos->_ko = ko;
+    pos->_dirty = true;
 
     for (int i = 0; i != nTakes; ++i)
     {
-        pos->board[go::FRONTIER[i]] = go::EMPTY;
+        pos->_board[go::FRONTIER[i]] = go::EMPTY;
     }
-    pos->parent = this;
+    pos->_parent = this;
 
     return pos;
 }
@@ -203,7 +204,7 @@ float Position::territory(int v)
         empties++;
 
         int i = m + go::UP;
-        int8_t c = board[i];
+        int8_t c = _board[i];
         colors[c] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
@@ -212,7 +213,7 @@ float Position::territory(int v)
         }
 
         i = m + go::DOWN;
-        c = board[i];
+        c = _board[i];
         colors[c] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
@@ -221,7 +222,7 @@ float Position::territory(int v)
         }
 
         i = m + go::LEFT;
-        c = board[i];
+        c = _board[i];
         colors[c] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
@@ -230,7 +231,7 @@ float Position::territory(int v)
         }
 
         i = m + go::RIGHT;
-        c = board[i];
+        c = _board[i];
         colors[c] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
@@ -270,7 +271,7 @@ float Position::score()
     for (int i = 0; i != go::LN; ++i)
     {
         int v = go::COORDS[i];
-        int8_t c = board[v];
+        int8_t c = _board[v];
         if (c == go::EMPTY && go::FLAGS[v] != go::FLAG)
         {
             score += territory(v);
@@ -285,123 +286,119 @@ float Position::score()
 
 void Position::updateGroup(void)
 {
-    if (parent != nullptr && groupDirty)
+    if (_parent != nullptr && _dirty)
     {
-        groupDirty = false;
+        _dirty = false;
 
         for (int i = 0; i != go::LN; ++i)
         {
             int v = go::COORDS[i];
-            Group *g = parent->group[v];
+            Group *g = _parent->_group[v];
             if (g != nullptr)
             {
-                group[v] = g;
-                g->rc++;
-                g->liberty = -1;
+                _group[v] = g;
+                g->reference(1);
+                g->resetLiberty();
             }
         }
 
         if (vertex != go::PASS)
         {
-            Group *g = group[vertex] = Group::get(vertex);
+            Group *g = _group[vertex] = Group::get(vertex);
 
             int n = vertex + go::UP;
-            Group *gg = group[n];
+            Group *gg = _group[n];
             if (gg != nullptr)
             {
-                if (board[n] == parent->next && gg != g)
+                if (_board[n] == _parent->_next && gg != g)
                 {
-                    g->rc += gg->stones.size();
-                    for (auto it = gg->stones.begin(); it != gg->stones.end(); ++it)
+                    g->reference(gg->n());
+                    g->merge(gg);
+                    for (int i = 0; i != gg->n(); ++i)
                     {
-                        int s = *it;
-                        group[s] = g;
-                        g->stones.push_back(s);
+                        _group[gg->getStone(i)] = g;
                     }
-                    gg->rc -= gg->stones.size();
+                    gg->reference(-gg->n());
                 }
-                else if (board[n] == go::EMPTY)
+                else if (_board[n] == go::EMPTY)
                 {
-                    for (auto it = gg->stones.begin(); it != gg->stones.end(); ++it)
+                    for (int i = 0; i != gg->n(); ++i)
                     {
-                        group[*it] = nullptr;
+                        _group[gg->getStone(i)] = nullptr;
                     }
-                    gg->rc -= gg->stones.size();
+                    gg->reference(-gg->n());
                 }
             }
 
             n = vertex + go::DOWN;
-            gg = group[n];
+            gg = _group[n];
             if (gg != nullptr)
             {
-                if (board[n] == parent->next && gg != g)
+                if (_board[n] == _parent->_next && gg != g)
                 {
-                    g->rc += gg->stones.size();
-                    for (auto it = gg->stones.begin(); it != gg->stones.end(); ++it)
+                    g->reference(gg->n());
+                    g->merge(gg);
+                    for (int i = 0; i != gg->n(); ++i)
                     {
-                        int s = *it;
-                        group[s] = g;
-                        g->stones.push_back(s);
+                        _group[gg->getStone(i)] = g;
                     }
-                    gg->rc -= gg->stones.size();
+                    gg->reference(-gg->n());
                 }
-                else if (board[n] == go::EMPTY)
+                else if (_board[n] == go::EMPTY)
                 {
-                    for (auto it = gg->stones.begin(); it != gg->stones.end(); ++it)
+                    for (int i = 0; i != gg->n(); ++i)
                     {
-                        group[*it] = nullptr;
+                        _group[gg->getStone(i)] = nullptr;
                     }
-                    gg->rc -= gg->stones.size();
+                    gg->reference(-gg->n());
                 }
             }
 
             n = vertex + go::LEFT;
-            gg = group[n];
+            gg = _group[n];
             if (gg != nullptr)
             {
-                if (board[n] == parent->next && gg != g)
+                if (_board[n] == _parent->_next && gg != g)
                 {
-                    g->rc += gg->stones.size();
-                    for (auto it = gg->stones.begin(); it != gg->stones.end(); ++it)
+                    g->reference(gg->n());
+                    g->merge(gg);
+                    for (int i = 0; i != gg->n(); ++i)
                     {
-                        int s = *it;
-                        group[s] = g;
-                        g->stones.push_back(s);
+                        _group[gg->getStone(i)] = g;
                     }
-                    gg->rc -= gg->stones.size();
+                    gg->reference(-gg->n());
                 }
-                else if (board[n] == go::EMPTY)
+                else if (_board[n] == go::EMPTY)
                 {
-                    for (auto it = gg->stones.begin(); it != gg->stones.end(); ++it)
+                    for (int i = 0; i != gg->n(); ++i)
                     {
-                        group[*it] = nullptr;
+                        _group[gg->getStone(i)] = nullptr;
                     }
-                    gg->rc -= gg->stones.size();
+                    gg->reference(-gg->n());
                 }
             }
 
             n = vertex + go::RIGHT;
-            gg = group[n];
+            gg = _group[n];
             if (gg != nullptr)
             {
-                if (board[n] == parent->next && gg != g)
+                if (_board[n] == _parent->_next && gg != g)
                 {
-                    g->rc += gg->stones.size();
-                    for (auto it = gg->stones.begin(); it != gg->stones.end(); ++it)
+                    g->reference(gg->n());
+                    g->merge(gg);
+                    for (int i = 0; i != gg->n(); ++i)
                     {
-                        int s = *it;
-                        group[s] = g;
-                        g->stones.push_back(s);
+                        _group[gg->getStone(i)] = g;
                     }
-                    gg->rc -= gg->stones.size();
+                    gg->reference(-gg->n());
                 }
-                else if (board[n] == go::EMPTY)
+                else if (_board[n] == go::EMPTY)
                 {
-                    for (auto it = gg->stones.begin(); it != gg->stones.end(); ++it)
+                    for (int i = 0; i != gg->n(); ++i)
                     {
-                        group[*it] = nullptr;
+                        _group[gg->getStone(i)] = nullptr;
                     }
-                    gg->rc -= gg->stones.size();
+                    gg->reference(-gg->n());
                 }
             }
         }
@@ -428,21 +425,21 @@ void Position::clear()
     for (int i = 0; i != go::LN; ++i)
     {
         int v = go::COORDS[i];
-        Group *g = group[v];
+        Group *g = _group[v];
         if (g != nullptr)
         {
-            g->rc--;
+            g->reference(-1);
             g->release();
-            group[v] = nullptr;
+            _group[v] = nullptr;
         }
     }
-    memcpy(board, go::EMPTY_BOARD, go::LV);
+    memcpy(_board, go::EMPTY_BOARD, go::LV);
     vertex = go::PASS;
     _hashCode = 0;
     _ko = 0;
-    next = go::BLACK;
-    parent = nullptr;
-    groupDirty = true;
+    _next = go::BLACK;
+    _parent = nullptr;
+    _dirty = false;
 }
 
 void Position::release()
@@ -450,15 +447,15 @@ void Position::release()
     for (int i = 0; i != go::LN; ++i)
     {
         int v = go::COORDS[i];
-        Group *g = group[v];
+        Group *g = _group[v];
         if (g != nullptr)
         {
-            g->rc--;
+            g->reference(-1);
             g->release();
-            group[v] = nullptr;
+            _group[v] = nullptr;
         }
     }
-    groupDirty = true;
+    _dirty = false;
     go::POSITION_POOL.push(this);
 }
 
@@ -469,7 +466,7 @@ int Position::passCount()
     {
         ++pc;
     }
-    if (parent != nullptr && parent->vertex == 0)
+    if (_parent != nullptr && _parent->vertex == 0)
     {
         ++pc;
     }
@@ -484,11 +481,11 @@ Value Position::toJSON(Document::AllocatorType &allocator)
 
     for (int i = 0; i != go::LN; ++i)
     {
-        BOARD.PushBack(board[go::COORDS[i]], allocator);
+        BOARD.PushBack(_board[go::COORDS[i]], allocator);
     }
 
     JSON.AddMember("board", BOARD, allocator);
-    JSON.AddMember("next", next, allocator);
+    JSON.AddMember("next", _next, allocator);
     JSON.AddMember("ko", _ko, allocator);
     JSON.AddMember("vertex", vertex, allocator);
 
@@ -506,7 +503,7 @@ void Position::debug()
         int j = 0;
         while (j < go::N)
         {
-            int8_t c = board[go::COORDS[i * go::N + j]];
+            int8_t c = _board[go::COORDS[i * go::N + j]];
             j += 1;
             if (c == go::BLACK)
             {
@@ -547,8 +544,8 @@ void Position::debugGroup()
         while (j < go::N)
         {
             int v = go::COORDS[i * go::N + j];
-            int8_t c = board[v];
-            Group *g = group[v];
+            int8_t c = _board[v];
+            Group *g = _group[v];
             j += 1;
             if (c == go::BLACK && g != nullptr)
             {

@@ -1,38 +1,39 @@
 #include "Group.h"
 #include "go.h"
 
-Pool<Group> Group::pool;
+Pool<Group> Group::POOL;
 
 Group* Group::get(int v) {
-    Group* g = pool.pop();
-    g->stones.push_back(v);
-    g->rc = 1;
+    Group* g = POOL.pop();
+
+    g->_stones[g->_n++] = v;
+    g->_rc = 1;
+
     return g;
 };
 
-Group::Group(void) :liberty(-1), rc(0)
+Group::Group(void) :_liberty(-1), _rc(0)
 {
-    stones.reserve(go::LN);
+    _stones = new int[go::LN];
 }
 
 Group::~Group(void)
 {
 }
 
-int Group::getLiberty(int8_t *board)
+int Group::liberty(int8_t *board)
 {
-    if (liberty != -1)
+    if (_liberty != -1)
     {
-        return liberty;
+        return _liberty;
     }
 
     go::FLAG++;
-    liberty = 0;
+    _liberty = 0;
 
-    size_t length = stones.size();
-    for (size_t i = 0; i != length; ++i)
+    for (size_t i = 0; i != _n; ++i)
     {
-        int s = stones[i];
+        int s = _stones[i];
 
         int v = s + go::UP;
         int8_t c = board[v];
@@ -40,10 +41,10 @@ int Group::getLiberty(int8_t *board)
         if (c == go::EMPTY && go::FLAGS[v] != go::FLAG)
         {
             go::FLAGS[v] = go::FLAG;
-            ++liberty;
-            if (liberty >= 2)
+            ++_liberty;
+            if (_liberty >= 2)
             {
-                return liberty;
+                return _liberty;
             }
         }
 
@@ -52,10 +53,10 @@ int Group::getLiberty(int8_t *board)
         if (c == go::EMPTY && go::FLAGS[v] != go::FLAG)
         {
             go::FLAGS[v] = go::FLAG;
-            ++liberty;
-            if (liberty >= 2)
+            ++_liberty;
+            if (_liberty >= 2)
             {
-                return liberty;
+                return _liberty;
             }
         }
 
@@ -64,10 +65,10 @@ int Group::getLiberty(int8_t *board)
         if (c == go::EMPTY && go::FLAGS[v] != go::FLAG)
         {
             go::FLAGS[v] = go::FLAG;
-            ++liberty;
-            if (liberty >= 2)
+            ++_liberty;
+            if (_liberty >= 2)
             {
-                return liberty;
+                return _liberty;
             }
         }
 
@@ -76,13 +77,13 @@ int Group::getLiberty(int8_t *board)
         if (c == go::EMPTY && go::FLAGS[v] != go::FLAG)
         {
             go::FLAGS[v] = go::FLAG;
-            ++liberty;
-            if (liberty >= 2)
+            ++_liberty;
+            if (_liberty >= 2)
             {
-                return liberty;
+                return _liberty;
             }
         }
     }
 
-    return liberty;
+    return _liberty;
 }

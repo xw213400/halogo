@@ -3,33 +3,67 @@
 
 #include <vector>
 #include <stdint.h>
+#include <cstring>
 #include "Pool.h"
 
 class Group
 {
-public:
-  Group();
-  ~Group();
+  public:
+    Group();
+    ~Group();
 
-  int getLiberty(int8_t *);
+    int liberty(int8_t *);
 
-  std::vector<int> stones;
-  int liberty;
-  int rc;
-
-  inline void release()
-  {
-    if (0 == rc)
+    inline void reference(int n)
     {
-      liberty = -1;
-      stones.clear();
-      pool.push(this);
+        _rc += n;
     }
-  }
 
-  static Group *get(int);
+    inline void release()
+    {
+        if (0 == _rc)
+        {
+            _liberty = -1;
+            _n = 0;
+            POOL.push(this);
+        }
+    }
 
-  static Pool<Group> pool;
+    inline void merge(Group *g)
+    {
+        memcpy(_stones + _n, g->_stones, sizeof(int) * g->_n);
+        _n += g->_n;
+    }
+
+    inline int8_t color(int8_t *board)
+    {
+        return board[_stones[0]];
+    }
+
+    inline int n()
+    {
+        return _n;
+    }
+
+    inline int getStone(int i)
+    {
+        return _stones[i];
+    }
+
+    inline void resetLiberty()
+    {
+        _liberty = -1;
+    }
+
+    static Group *get(int);
+
+    static Pool<Group> POOL;
+
+  private:
+    int *_stones;
+    int _liberty;
+    int _rc;
+    size_t _n;
 };
 
 #endif

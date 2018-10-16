@@ -9,10 +9,6 @@ RandMove::RandMove(float puct) : Policy(puct)
 {
 }
 
-RandMove::~RandMove(void)
-{
-}
-
 void RandMove::get(Position *position, vector<Position *> &positions)
 {
     positions.push_back(position->move(go::PASS));
@@ -23,8 +19,8 @@ void RandMove::get(Position *position, vector<Position *> &positions)
 
 float RandMove::sim(Position *position)
 {
-    auto it = hash.find(position->hashCode());
-    if (it != hash.end())
+    auto it = _hash.find(position->hashCode());
+    if (it != _hash.end())
     {
         return it->second;
     }
@@ -63,20 +59,20 @@ float RandMove::sim(Position *position)
             pos = pos->move(go::PASS);
         }
     }
-    
+
     float score = pos->score();
     while (pos != position)
     {
         pos->release();
-        pos = pos->getParent();
+        pos = pos->parent();
     }
 
-    hash.insert(make_pair(position->hashCode(), score));
+    _hash.insert(make_pair(position->hashCode(), score));
 
     return score;
 }
 
 void RandMove::clear(void)
 {
-    hash.clear();
+    _hash.clear();
 }

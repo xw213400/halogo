@@ -7,23 +7,23 @@
 
 class MCTSPlayer
 {
-public:
-  MCTSPlayer(float, Policy *);
+  public:
+    MCTSPlayer(float, Policy *);
 
-  ~MCTSPlayer();
+    ~MCTSPlayer();
 
-  bool move();
+    bool move();
 
-  void clear();
+    void clear();
 
-  static Pool<MCTSNode> pool;
+    static Pool<MCTSNode> POOL;
 
-private:
-  float seconds;
+  private:
+    float seconds;
 
-  Policy *policy;
+    Policy *policy;
 
-  MCTSNode *best;
+    MCTSNode *best;
 };
 
 #endif

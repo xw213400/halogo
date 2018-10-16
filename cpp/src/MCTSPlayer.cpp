@@ -4,7 +4,7 @@
 
 using namespace std;
 
-Pool<MCTSNode> MCTSPlayer::pool;
+Pool<MCTSNode> MCTSPlayer::POOL;
 
 MCTSPlayer::MCTSPlayer(float _seconds, Policy *_policy)
 {
@@ -19,19 +19,19 @@ bool MCTSPlayer::move()
 
     if (best != nullptr)
     {
-        if (best->getPosition()->getNext() == go::POSITION->getNext())
+        if (best->position()->next() == go::POSITION->next())
         {
-            if (best->getPosition()->getVertex() == go::POSITION->getVertex())
+            if (best->position()->getVertex() == go::POSITION->getVertex())
             {
                 root = best;
             }
         }
         else
         {
-            auto children = best->getChildren();
+            auto children = best->children();
             for (auto i = children.begin(); i != children.end(); ++i)
             {
-                if ((*i)->getPosition()->getVertex() == go::POSITION->getVertex())
+                if ((*i)->position()->getVertex() == go::POSITION->getVertex())
                 {
                     root = *i;
                 }
@@ -47,22 +47,22 @@ bool MCTSPlayer::move()
 
     if (root == nullptr)
     {
-        root = pool.pop();
+        root = POOL.pop();
         root->init(policy, nullptr, go::POSITION);
     }
-    else if (root->getPosition() != go::POSITION)
+    else if (root->position() != go::POSITION)
     {
-        root->getPosition()->release();
-        root->setPosition(go::POSITION);
-        auto children = root->getChildren();
+        root->position()->release();
+        root->position(go::POSITION);
+        auto children = root->children();
         for (auto i = children.begin(); i != children.end(); ++i)
         {
-            (*i)->getPosition()->setParent(go::POSITION);
+            (*i)->position()->parent(go::POSITION);
         }
-        auto positions = root->getPositions();
+        auto positions = root->positions();
         for (auto i = positions.begin(); i != positions.end(); ++i)
         {
-            (*i)->setParent(go::POSITION);
+            (*i)->parent(go::POSITION);
         }
     }
 
@@ -94,7 +94,7 @@ bool MCTSPlayer::move()
         ++sims;
     }
 
-    auto children = root->getChildren();
+    auto children = root->children();
     if (children.empty())
     {
         root->release();
@@ -112,10 +112,17 @@ bool MCTSPlayer::move()
             }
         }
 
-        int vertex = best->getPosition()->getVertex();
+        int vertex = best->position()->getVertex();
 
         go::POSITION = go::POSITION->move(vertex);
         go::POSITION->updateGroup();
+
+        auto ji = go::toJI(go::POSITION->getVertex());
+        cout << setw(3) << setfill('0') << go::POSITION->getSteps()
+             << " V:[" << ji.second << "," << ji.first << "] PP:"
+             << go::POSITION_POOL.size() << " GP:" << Group::POOL.size()
+             << " MP:" << MCTSPlayer::POOL.size() << " Q:" << setprecision(2)
+             << best->getQ() << " SIM:" << sims << endl;
 
         for (auto i = children.begin(); i != children.end(); ++i)
         {
@@ -126,13 +133,6 @@ bool MCTSPlayer::move()
         }
 
         root->release(false);
-
-        auto ji = go::toJI(go::POSITION->getVertex());
-        cout << setw(3) << setfill('0') << go::POSITION->getSteps()
-             << " V:[" << ji.second << "," << ji.first << "] PP:"
-             << go::POSITION_POOL.size() << " GP:" << Group::pool.size()
-             << " MP:" << MCTSPlayer::pool.size() << " Q:" << setprecision(2)
-             << best->getQ() << " SIM:" << sims << endl;
 
         return true;
     }

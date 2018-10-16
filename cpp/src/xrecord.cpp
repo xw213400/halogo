@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
         filename << put_time(localtime(&t), "%y%m%d%H%M%S") << ".json";
 
         cout << "ready: " << c << " in " << count << ", PP:" << go::POSITION_POOL.size()
-             << ", GP:" << Group::pool.size() << ", MP:" << MCTSPlayer::pool.size()
+             << ", GP:" << Group::POOL.size() << ", MP:" << MCTSPlayer::POOL.size()
              << ", File:" << filename.str() << endl;
 
         Document positions(kArrayType);

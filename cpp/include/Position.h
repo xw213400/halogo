@@ -6,78 +6,78 @@
 
 class Position
 {
-public:
-  Position();
-  ~Position();
+  public:
+    Position();
+    ~Position();
 
-  Position *move(int);
+    Position *move(int);
 
-  float territory(int);
+    float territory(int);
 
-  float score();
+    float score();
 
-  int passCount();
+    int passCount();
 
-  void clear();
+    void clear();
 
-  void release();
+    void release();
 
-  rapidjson::Value toJSON(rapidjson::Document::AllocatorType &);
+    rapidjson::Value toJSON(rapidjson::Document::AllocatorType &);
 
-  inline int getVertex()
-  {
-    return vertex;
-  }
-
-  inline int8_t getNext()
-  {
-    return next;
-  }
-
-  inline void setParent(Position *pos)
-  {
-    parent = pos;
-  }
-
-  inline Position *getParent()
-  {
-    return parent;
-  }
-
-  void getChildren(std::vector<Position *> &);
-
-  inline uint64_t hashCode()
-  {
-    return _hashCode;
-  }
-
-  inline int getSteps()
-  {
-    int step = 0;
-    Position *p = parent;
-    while (p != nullptr)
+    inline int getVertex()
     {
-      step++;
-      p = p->parent;
+        return vertex;
     }
-    return step;
-  }
 
-  void updateGroup();
+    inline int8_t next()
+    {
+        return _next;
+    }
 
-  void debug();
+    inline void parent(Position *pos)
+    {
+        _parent = pos;
+    }
 
-  void debugGroup();
+    inline Position *parent()
+    {
+        return _parent;
+    }
 
-private:
-  int8_t next;
-  int _ko;
-  int8_t *board;
-  Group **group;
-  int vertex;
-  uint64_t _hashCode;
-  Position *parent;
-  bool groupDirty;
+    void getChildren(std::vector<Position *> &);
+
+    inline uint64_t hashCode()
+    {
+        return _hashCode;
+    }
+
+    inline int getSteps()
+    {
+        int step = 0;
+        Position *p = _parent;
+        while (p != nullptr)
+        {
+            step++;
+            p = p->_parent;
+        }
+        return step;
+    }
+
+    void updateGroup();
+
+    void debug();
+
+    void debugGroup();
+
+  private:
+    int8_t _next;
+    int _ko;
+    int8_t *_board;
+    Group **_group;
+    int vertex;
+    uint64_t _hashCode;
+    Position *_parent;
+    bool _dirty;
 };
 
 #endif

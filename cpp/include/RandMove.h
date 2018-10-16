@@ -9,16 +9,16 @@ class RandMove : public Policy
   public:
     RandMove(float);
 
-    virtual ~RandMove();
+    virtual ~RandMove(){};
 
-    void get(Position *, std::vector<Position*>&);
+    void get(Position *, std::vector<Position *> &);
 
     float sim(Position *);
 
     void clear();
 
   private:
-    std::unordered_map<uint64_t, float> hash;
+    std::unordered_map<uint64_t, float> _hash;
 };
 
 #endif

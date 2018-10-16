@@ -77,9 +77,9 @@ void go::init()
         }
     }
 
-    POSITION_POOL.resize(1000000);
-    MCTSPlayer::pool.resize(1000000);
-    Group::pool.resize(1000000);
+    POSITION_POOL.resize(1200000);
+    MCTSPlayer::POOL.resize(30000);
+    Group::POOL.resize(50000);
     POSITION = POSITION_POOL.pop();
 }
 
@@ -99,18 +99,18 @@ bool go::isTrunk(Position *position)
         {
             return true;
         }
-        trunk = trunk->getParent();
+        trunk = trunk->parent();
     }
     return false;
 }
 
 void go::clear(void)
 {
-    Position *p = POSITION->getParent();
+    Position *p = POSITION->parent();
     while (p != nullptr)
     {
         p->release();
-        p = p->getParent();
+        p = p->parent();
     }
 
     POSITION->clear();

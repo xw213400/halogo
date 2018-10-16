@@ -7,71 +7,71 @@
 
 class MCTSNode
 {
-public:
-  MCTSNode();
-  ~MCTSNode();
+  public:
+    MCTSNode();
+    ~MCTSNode();
 
-  void init(Policy *, MCTSNode *, Position *);
+    void init(Policy *, MCTSNode *, Position *);
 
-  MCTSNode *select();
+    MCTSNode *select();
 
-  MCTSNode *expand();
+    MCTSNode *expand();
 
-  float simulate();
+    float simulate();
 
-  void backpropagation(float);
+    void backpropagation(float);
 
-  void release(bool recursive = true);
+    void release(bool recursive = true);
 
-  inline Position *getPosition()
-  {
-    return position;
-  }
+    inline Position *position()
+    {
+        return _position;
+    }
 
-  inline void setPosition(Position *pos)
-  {
-    position = pos;
-  }
+    inline void position(Position *position)
+    {
+        _position = position;
+    }
 
-  inline std::vector<MCTSNode *> &getChildren()
-  {
-    return children;
-  }
+    inline std::vector<MCTSNode *> &children()
+    {
+        return _children;
+    }
 
-  inline std::vector<Position *> &getPositions()
-  {
-    return positions;
-  }
+    inline std::vector<Position *> &positions()
+    {
+        return _positions;
+    }
 
-  inline MCTSNode *getParent()
-  {
-    return parent;
-  }
+    inline MCTSNode *getParent()
+    {
+        return _parent;
+    }
 
-  inline float getScore()
-  {
-    return score;
-  }
+    inline float getScore()
+    {
+        return score;
+    }
 
-  inline float getQ()
-  {
-    return Q;
-  }
+    inline float getQ()
+    {
+        return Q;
+    }
 
-  inline int getN()
-  {
-    return N;
-  }
+    inline int getN()
+    {
+        return N;
+    }
 
-private:
-  Policy *policy;
-  MCTSNode *parent;
-  Position *position;
-  std::vector<Position *> positions;
-  int leaves;
-  std::vector<MCTSNode *> children;
-  float Q, U, score;
-  int N;
+  private:
+    Policy *_policy;
+    MCTSNode *_parent;
+    Position *_position;
+    std::vector<Position *> _positions;
+    int leaves;
+    std::vector<MCTSNode *> _children;
+    float Q, U, score;
+    int N;
 };
 
 #endif

@@ -6,22 +6,23 @@
 class Policy
 {
   public:
-    Policy(float);
+    Policy(float PUCT) : _PUCT(PUCT){};
 
-    virtual ~Policy() = 0;
+    virtual ~Policy() {};
 
-    virtual void get(Position *, std::vector<Position*>&) = 0;
+    virtual void get(Position *, std::vector<Position *> &) = 0;
 
     virtual float sim(Position *) = 0;
 
-    virtual void clear();
+    virtual void clear() = 0;
 
-    inline float getPUCT() {
-        return PUCT;
+    inline float PUCT()
+    {
+        return _PUCT;
     }
 
-private:
-    float PUCT;
+  private:
+    float _PUCT;
 };
 
 #endif

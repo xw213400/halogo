@@ -1,68 +1,68 @@
 #ifndef __POOL_H__
 #define __POOL_H__
 
-#include <malloc.h>
+#include <cstring>
 #include <iostream>
 
 template <class T>
 class Pool
 {
-public:
-  Pool()
-  {
-    pool = nullptr;
-    index = length = 0;
-  }
-
-  void resize(std::size_t size)
-  {
-    if (pool != nullptr)
+  public:
+    Pool()
     {
-      T **oldPool = pool;
-      pool = new T*[size];//static_cast<T **>(malloc(sizeof(nullptr) * size));
-      memcpy(pool, oldPool, sizeof(T *) * length);
-      delete oldPool;
-    }
-    else
-    {
-      pool = static_cast<T **>(malloc(sizeof(nullptr) * size));
+        _pool = nullptr;
+        _index = _length = 0;
     }
 
-    for (size_t i = length; i != size; ++i)
+    void resize(std::size_t size)
     {
-      pool[i] = new T();
+        if (_pool != nullptr)
+        {
+            T **temp = _pool;
+            _pool = new T *[size];
+            memcpy(_pool, temp, sizeof(T *) * _length);
+            delete temp;
+        }
+        else
+        {
+            _pool = new T *[size];
+        }
+
+        for (size_t i = _length; i != size; ++i)
+        {
+            _pool[i] = new T();
+        }
+
+        _index = _length = size;
     }
 
-    index = length = size;
-  }
-
-  T *pop()
-  {
-    if (index <= 0)
+    T *pop()
     {
-      std::cerr << "Pool is empty." << std::endl;
+        if (_index <= 0)
+        {
+            std::cerr << "Pool is empty." << std::endl;
+        }
+        return _pool[--_index];
     }
-    return pool[--index];
-  }
 
-  void push(T *t)
-  {
-    if (index >= length)
+    void push(T *t)
     {
-      std::cerr << "Pool can not push any more." << std::endl;
+        if (_index >= _length)
+        {
+            std::cerr << "Pool can not push any more." << std::endl;
+        }
+        _pool[_index++] = t;
     }
-    pool[index++] = t;
-  }
 
-  std::size_t size()
-  {
-    return index;
-  }
+    std::size_t size()
+    {
+        return _index;
+    }
 
-private:
-  T **pool;
-  std::size_t length;
-  std::size_t index;
+  private:
+    T **_pool;
+    std::size_t _length;
+    std::size_t _index;
 };
 
 #endif
