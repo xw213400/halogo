@@ -1,7 +1,16 @@
 #include "Group.h"
 #include "go.h"
 
-Group::Group(void) :liberty(-1)
+Pool<Group> Group::pool;
+
+Group* Group::get(int v) {
+    Group* g = pool.pop();
+    g->stones.push_back(v);
+    g->rc = 1;
+    return g;
+};
+
+Group::Group(void) :liberty(-1), rc(0)
 {
     stones.reserve(go::LN);
 }
@@ -17,7 +26,7 @@ int Group::getLiberty(int8_t *board)
         return liberty;
     }
 
-    go::FLAG += 1;
+    go::FLAG++;
     liberty = 0;
 
     size_t length = stones.size();
@@ -74,4 +83,6 @@ int Group::getLiberty(int8_t *board)
             }
         }
     }
+
+    return liberty;
 }

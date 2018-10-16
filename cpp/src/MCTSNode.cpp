@@ -3,10 +3,12 @@
 #include "go.h"
 #include "MCTSPlayer.h"
 
+using namespace std;
+
 MCTSNode::MCTSNode(void)
 {
-    positions.reserve(go::LN);
-    children.reserve(go::LN);
+    positions.reserve(go::LN + 1);
+    children.reserve(go::LN + 1);
     parent = nullptr;
     position = nullptr;
     leaves = 0;
@@ -23,21 +25,24 @@ void MCTSNode::init(Policy *pPolicy, MCTSNode *pParent, Position *pPosition)
     position = pPosition;
 
     positions.clear();
-    if (position->passCount() <= 2)
+    if (position->passCount() < 2)
     {
         policy->get(position, positions);
     }
 
     leaves = positions.size();
 
-    if (parent != nullptr)
+    MCTSNode *p = parent;
+    while (p != nullptr)
     {
-        parent->addLeaf(leaves);
+        p->leaves += leaves;
+        p = p->parent;
     }
 
     children.clear();
-    score = Q = U = 0;
+    score = U = 0.f;
     N = 0;
+    Q = 0.f;//parent == nullptr ? 0.f : parent->Q;
 }
 
 MCTSNode *MCTSNode::select(void)
@@ -76,7 +81,15 @@ MCTSNode *MCTSNode::expand(void)
     positions.pop_back();
     auto node = MCTSPlayer::pool.pop();
     node->init(policy, this, pos);
-    subLeaf();
+    children.push_back(node);
+
+    leaves--;
+    MCTSNode *p = parent;
+    while (p != nullptr)
+    {
+        p->leaves--;
+        p = p->parent;
+    }
 
     return node;
 }
@@ -113,23 +126,27 @@ void MCTSNode::release(bool recursive)
 {
     if (!go::isTrunk(position))
     {
-        go::POSITION_POOL.push(position);
+        position->release();
     }
 
     for (auto i = positions.begin(); i != positions.end(); ++i)
     {
-        go::POSITION_POOL.push(*i);
+        (*i)->release();
     }
 
     positions.clear();
 
     MCTSPlayer::pool.push(this);
 
-    if (recursive)
+    for (auto i = children.begin(); i != children.end(); ++i)
     {
-        for (auto i = children.begin(); i != children.end(); ++i)
+        if (recursive)
         {
             (*i)->release();
+        }
+        else
+        {
+            (*i)->parent = nullptr;
         }
     }
 }

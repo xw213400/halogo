@@ -4,7 +4,7 @@
 
 using namespace std;
 
-Pool<MCTSNode> MCTSPlayer::pool(100000);
+Pool<MCTSNode> MCTSPlayer::pool;
 
 MCTSPlayer::MCTSPlayer(float _seconds, Policy *_policy)
 {
@@ -52,7 +52,7 @@ bool MCTSPlayer::move()
     }
     else if (root->getPosition() != go::POSITION)
     {
-        go::POSITION_POOL.push(root->getPosition());
+        root->getPosition()->release();
         root->setPosition(go::POSITION);
         auto children = root->getChildren();
         for (auto i = children.begin(); i != children.end(); ++i)
@@ -112,8 +112,10 @@ bool MCTSPlayer::move()
             }
         }
 
-        go::POSITION_POOL.push(go::POSITION);
-        go::POSITION = best->getPosition();
+        int vertex = best->getPosition()->getVertex();
+
+        go::POSITION = go::POSITION->move(vertex);
+        go::POSITION->updateGroup();
 
         for (auto i = children.begin(); i != children.end(); ++i)
         {
@@ -126,17 +128,21 @@ bool MCTSPlayer::move()
         root->release(false);
 
         auto ji = go::toJI(go::POSITION->getVertex());
-        cout << "V:[" << ji.second << "," << ji.first << "] POOL:"
-             << go::POSITION_POOL.size() << " Q:" << setprecision(2)
+        cout << setw(3) << setfill('0') << go::POSITION->getSteps()
+             << " V:[" << ji.second << "," << ji.first << "] PP:"
+             << go::POSITION_POOL.size() << " GP:" << Group::pool.size()
+             << " MP:" << MCTSPlayer::pool.size() << " Q:" << setprecision(2)
              << best->getQ() << " SIM:" << sims << endl;
 
         return true;
     }
 }
 
-void MCTSPlayer::clear(void) {
+void MCTSPlayer::clear(void)
+{
     policy->clear();
-    if (best != nullptr) {
+    if (best != nullptr)
+    {
         best->release();
         best = nullptr;
     }

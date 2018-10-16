@@ -1,6 +1,7 @@
 
 #include <random>
 #include "go.h"
+#include "MCTSPlayer.h"
 
 using namespace std;
 
@@ -13,47 +14,42 @@ const int8_t BLACK = 1;
 const int8_t WALL = 2;
 const int PASS = 0;
 
-int N, LN, M, LM, UP, DOWN, LEFT, RIGHT, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN;
-float KOMI = 5.5f;
-int FLAG = 0;
-int *FLAGS = nullptr;
-int8_t *EMPTY_BOARD = nullptr;
-int *COORDS = nullptr;
-int *FRONTIER = nullptr;
+const int N = 9;
+const float KOMI = 5.5f;
+const int LN = N * N;
+const int M = N + 1;
+const int LM = M * (M + 1) + 1;
+const int LV = M * M;
 
-uint64_t *CODE_WHITE = nullptr;
-uint64_t *CODE_BLACK = nullptr;
-uint64_t *CODE_KO = nullptr;
+const int LEFT = -1;
+const int RIGHT = 1;
+const int UP = M;
+const int DOWN = -M;
+
+const int LEFTUP = LEFT + UP;
+const int LEFTDOWN = LEFT + DOWN;
+const int IGHTUP = RIGHT + UP;
+const int RIGHTDOWN = RIGHT + DOWN;
+
+int FLAG = 0;
+int *FLAGS = new int[LM];
+int8_t *EMPTY_BOARD = new int8_t[LM];
+int *COORDS = new int[LN];
+int *FRONTIER = new int[LN];
+
+uint64_t *CODE_WHITE = new uint64_t[LV];
+uint64_t *CODE_BLACK = new uint64_t[LV];
+uint64_t *CODE_KO = new uint64_t[LV];
 uint64_t CODE_SWAP = 0;
 
-Pool<Position> POSITION_POOL(1000000);
+Pool<Position> POSITION_POOL;
 Position *POSITION = nullptr;
 
 } // namespace go
 
-void go::init(int n, float komi)
+void go::init()
 {
-    N = n;
-    KOMI = komi;
-
-    LN = N * N;
-    M = N + 1;
-    LM = M * (M + 1) + 1;
-
-    LEFT = -1;
-    RIGHT = 1;
-    UP = M;
-    DOWN = -M;
-
-    LEFTUP = LEFT + UP;
-    LEFTDOWN = LEFT + DOWN;
-    RIGHTUP = RIGHT + UP;
-    RIGHTDOWN = RIGHT + DOWN;
-
-    FLAG = 0;
-    FLAGS = new int[LM];
     memset(FLAGS, 0, sizeof(int) * LM);
-    EMPTY_BOARD = new int8_t[LM];
     memset(EMPTY_BOARD, 0, sizeof(int8_t) * LM);
 
     for (int i = 0; i != M; ++i)
@@ -63,17 +59,10 @@ void go::init(int n, float komi)
         EMPTY_BOARD[(i + 1) * M] = WALL;
     }
 
-    int vlen = M * M;
-
-    CODE_WHITE = new uint64_t[vlen];
-    CODE_BLACK = new uint64_t[vlen];
-    CODE_KO = new uint64_t[vlen];
-
+    srand((unsigned)time(NULL));
     mt19937_64 mt_rand(time(0));
 
     CODE_SWAP = mt_rand();
-
-    COORDS = new int[LN];
 
     for (int i = 0; i != N; ++i)
     {
@@ -88,14 +77,10 @@ void go::init(int n, float komi)
         }
     }
 
-    if (POSITION == nullptr)
-    {
-        POSITION = POSITION_POOL.pop();
-    }
-    else
-    {
-        POSITION->clear();
-    }
+    POSITION_POOL.resize(1000000);
+    MCTSPlayer::pool.resize(1000000);
+    Group::pool.resize(1000000);
+    POSITION = POSITION_POOL.pop();
 }
 
 pair<int, int> go::toJI(int v)
@@ -124,7 +109,7 @@ void go::clear(void)
     Position *p = POSITION->getParent();
     while (p != nullptr)
     {
-        POSITION_POOL.push(p);
+        p->release();
         p = p->getParent();
     }
 

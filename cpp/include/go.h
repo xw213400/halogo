@@ -17,8 +17,8 @@ extern const int PASS;
 // # + + +
 // # + + +
 // # # # #
-extern int N, LN, M, LM, UP, DOWN, LEFT, RIGHT, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN;
-extern float KOMI;
+extern const int N, LN, M, LM, LV, UP, DOWN, LEFT, RIGHT, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN;
+extern const float KOMI;
 extern int FLAG;
 extern int *FLAGS;
 extern int8_t *EMPTY_BOARD;
@@ -33,7 +33,7 @@ extern uint64_t CODE_SWAP;
 extern Pool<Position> POSITION_POOL;
 extern Position *POSITION;
 
-void init(int, float komi = 5.5f);
+void init();
 
 void clear();
 

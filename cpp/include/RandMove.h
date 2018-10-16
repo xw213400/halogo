@@ -1,7 +1,7 @@
 #ifndef __RANDMOVE_H__
 #define __RANDMOVE_H__
 
-#include <map>
+#include <unordered_map>
 #include "Policy.h"
 
 class RandMove : public Policy
@@ -9,7 +9,7 @@ class RandMove : public Policy
   public:
     RandMove(float);
 
-    ~RandMove();
+    virtual ~RandMove();
 
     void get(Position *, std::vector<Position*>&);
 
@@ -18,7 +18,7 @@ class RandMove : public Policy
     void clear();
 
   private:
-    std::map<unsigned long long, float> hash;
+    std::unordered_map<uint64_t, float> hash;
 };
 
 #endif

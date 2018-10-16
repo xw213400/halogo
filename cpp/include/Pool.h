@@ -8,22 +8,39 @@ template <class T>
 class Pool
 {
 public:
-  Pool(std::size_t size)
+  Pool()
   {
-    pool = static_cast<T **>(malloc(sizeof(nullptr) * size));
-    index = length = size;
+    pool = nullptr;
+    index = length = 0;
+  }
 
-    for (size_t i = 0; i != length; ++i)
+  void resize(std::size_t size)
+  {
+    if (pool != nullptr)
+    {
+      T **oldPool = pool;
+      pool = new T*[size];//static_cast<T **>(malloc(sizeof(nullptr) * size));
+      memcpy(pool, oldPool, sizeof(T *) * length);
+      delete oldPool;
+    }
+    else
+    {
+      pool = static_cast<T **>(malloc(sizeof(nullptr) * size));
+    }
+
+    for (size_t i = length; i != size; ++i)
     {
       pool[i] = new T();
     }
+
+    index = length = size;
   }
 
   T *pop()
   {
     if (index <= 0)
     {
-      std::cerr << "Pool is empty.\n";
+      std::cerr << "Pool is empty." << std::endl;
     }
     return pool[--index];
   }
@@ -32,9 +49,9 @@ public:
   {
     if (index >= length)
     {
-      std::cerr << "Pool can not push any more.\n";
+      std::cerr << "Pool can not push any more." << std::endl;
     }
-    pool[++index] = t;
+    pool[index++] = t;
   }
 
   std::size_t size()

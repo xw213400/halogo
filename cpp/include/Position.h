@@ -6,47 +6,78 @@
 
 class Position
 {
-  public:
-    Position();
-    ~Position();
+public:
+  Position();
+  ~Position();
 
-    Position *move(int);
+  Position *move(int);
 
-    float territory(int);
+  float territory(int);
 
-    float score();
+  float score();
 
-    int passCount();
+  int passCount();
 
-    void clear();
+  void clear();
 
-    rapidjson::Value toJSON(rapidjson::Document::AllocatorType &);
+  void release();
 
-    inline int getVertex() {
-      return vertex;
+  rapidjson::Value toJSON(rapidjson::Document::AllocatorType &);
+
+  inline int getVertex()
+  {
+    return vertex;
+  }
+
+  inline int8_t getNext()
+  {
+    return next;
+  }
+
+  inline void setParent(Position *pos)
+  {
+    parent = pos;
+  }
+
+  inline Position *getParent()
+  {
+    return parent;
+  }
+
+  void getChildren(std::vector<Position *> &);
+
+  inline uint64_t hashCode()
+  {
+    return _hashCode;
+  }
+
+  inline int getSteps()
+  {
+    int step = 0;
+    Position *p = parent;
+    while (p != nullptr)
+    {
+      step++;
+      p = p->parent;
     }
+    return step;
+  }
 
-    inline int8_t getNext() {
-      return next;
-    }
+  void updateGroup();
 
-    inline void setParent(Position* pos) {
-      parent = pos;
-    }
+  void debug();
 
-    inline Position* getParent() {
-      return parent;
-    }
+  void debugGroup();
 
-  private:
-    int8_t next;
-    int ko;
-    int8_t *board;
-    Group **group;
-    Group *mygroup;
-    int vertex;
-    unsigned long long hash_code;
-    Position *parent;
+private:
+  int8_t next;
+  int _ko;
+  int8_t *board;
+  Group **group;
+  int vertex;
+  uint64_t _hashCode;
+  Position *parent;
+  bool groupDirty;
 };
 
 #endif

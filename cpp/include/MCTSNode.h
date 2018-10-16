@@ -64,24 +64,6 @@ public:
   }
 
 private:
-  inline void addLeaf(int n)
-  {
-    leaves += n;
-    if (parent != nullptr)
-    {
-      parent->addLeaf(n);
-    }
-  }
-
-  inline void subLeaf()
-  {
-    --leaves;
-    if (parent != nullptr)
-    {
-      parent->subLeaf();
-    }
-  }
-
   Policy *policy;
   MCTSNode *parent;
   Position *position;

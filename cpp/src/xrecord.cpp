@@ -17,22 +17,23 @@ using namespace rapidjson;
 int main(int argc, char *argv[])
 {
     int count = 1;
-    string path = "../data/";
+    string path = "../../data/";
 
     if (argc >= 2)
     {
         path += argv[1];
+        path += "/";
     }
 
     if (argc >= 3)
     {
-        count += atoi(argv[2]);
+        count = atoi(argv[2]);
     }
 
-    go::init(9);
+    go::init();
 
-    MCTSPlayer *playerBlack = new MCTSPlayer(30.f, new RandMove(40));
-    MCTSPlayer *playerWhite = new MCTSPlayer(30.f, new RandMove(40));
+    MCTSPlayer *playerBlack = new MCTSPlayer(5.f, new RandMove(40));
+    MCTSPlayer *playerWhite = new MCTSPlayer(5.f, new RandMove(40));
 
     int black_win = 0;
     int white_win = 0;
@@ -43,7 +44,8 @@ int main(int argc, char *argv[])
         stringstream filename;
         filename << put_time(localtime(&t), "%y%m%d%H%M%S") << ".json";
 
-        cout << "ready: " << c << " in " << count << ", POSPOOL: " << go::POSITION_POOL.size()
+        cout << "ready: " << c << " in " << count << ", PP:" << go::POSITION_POOL.size()
+             << ", GP:" << Group::pool.size() << ", MP:" << MCTSPlayer::pool.size()
              << ", File:" << filename.str() << endl;
 
         Document positions(kArrayType);
@@ -87,12 +89,18 @@ int main(int argc, char *argv[])
         go::clear();
 
         StringBuffer buffer;
-        PrettyWriter<StringBuffer> writer(buffer);
+        Writer<StringBuffer> writer(buffer);
         positions.Accept(writer);
 
-        ofstream fs(path + filename.str());
-        fs << buffer.GetString() << endl;
-        fs.close();
+        string fullpath = path + filename.str();
+        ofstream fs(fullpath);
+        if (fs)
+        {
+            fs << buffer.GetString() << endl;
+            fs.close();
+        } else {
+            cerr << "create file '" << fullpath << "' failed" << endl;
+        }
     }
 
     cout << "black win: " << black_win << ", white win: " << white_win
