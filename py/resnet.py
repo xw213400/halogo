@@ -34,7 +34,7 @@ class Resnet(nn.Module):
     def __init__(self, num_planes):
         super(Resnet, self).__init__()
 
-        self.entry_block = conv5x5(2, num_planes)
+        self.entry_block = conv5x5(1, num_planes)
 
         self.residual_layers = nn.Sequential(
             Residual_block(num_planes, num_planes),
@@ -87,11 +87,10 @@ class Policy():
 
         for c in cs:
             if c < go.LN:
-                x = c % go.N
-                y = int(c/go.N)
-                if go.INPUT_BOARD[0, 1, y, x] == 1:
-                    v = go.COORDS[c]
-                    positions.append(position.move(v))
+                v = go.COORDS[c]
+                pos = position.move(v)
+                if pos is not None:
+                    positions.append(pos)
 
         return positions
 
@@ -123,9 +122,10 @@ class Policy():
             while i >= 0:
                 c = cs[i]
                 if c < go.LN:
-                    x, y = go.toXY(c)
-                    if go.INPUT_BOARD[0, 1, y, x] == 1:
-                        move = go.COORDS[c]
+                    v = go.COORDS[c]
+                    pos = position.move(v)
+                    if pos is not None:
+                        move = v
                         break
                 i -= 1
             
@@ -179,7 +179,7 @@ class Policy():
             while i < n:
                 j = 0
                 target_data = torch.LongTensor(batch)
-                input_data = torch.zeros(batch, 2, go.N, go.N)
+                input_data = torch.zeros(batch, 1, go.N, go.N)
                 while j < batch:
                     k = i * batch + j
                     pos = positions[k]

@@ -83,8 +83,7 @@ class Position:
         self.parent = None
 
     # prepare input plane for resnet
-    # INPUT_BOARD[0]: enemy:-1, empty:0, self:1
-    # INPUT_BOARD[1]: unresonable:0, resonable:1, ko:-1
+    # INPUT_BOARD[0]: enemy:-1, empty:0, self:1, ko: 2
     def input_board(self):
         global POSITION_POOL, INPUT_BOARD
 
@@ -93,18 +92,11 @@ class Position:
         y = 0
         while c < LN:
             v = COORDS[c]
-            p = 0
-
-            pos = self.move(v)
-            if pos is not None:
-                p = 1
-                POSITION_POOL.append(pos)
 
             if v == self.ko:
-                p = -1
-
-            INPUT_BOARD[0, 0, y, x] = self.board[v] * self.next
-            INPUT_BOARD[0, 1, y, x] = p
+                INPUT_BOARD[0, 0, y, x] = 2
+            else:
+                INPUT_BOARD[0, 0, y, x] = self.board[v] * self.next
 
             x += 1
             if x == N:
@@ -482,7 +474,7 @@ def init(n):
             CODE_BLACK[v] = random.getrandbits(64)
             CODE_KO[v] = random.getrandbits(64)
 
-    INPUT_BOARD = torch.zeros(1, 2, N, N)
+    INPUT_BOARD = torch.zeros(1, 1, N, N)
 
     POSITION_POOL = []
     i = 0
@@ -545,22 +537,6 @@ def print_input(self):
         j = 0
         while j < N:
             s += str(int(INPUT_BOARD[0, 0, i, j])) + " "
-            j += 1
-        s += "\n"
-
-    s += "   "
-    while i < N:
-        s += "{} ".format("ABCDEFGHJKLMNOPQRSTYVWYZ"[i])
-        i += 1
-
-    i = N
-    s += "\n"
-    while i > 0:
-        s += str(i).zfill(2) + " "
-        i -= 1
-        j = 0
-        while j < N:
-            s += str(int(INPUT_BOARD[0, 1, i, j])) + " "
             j += 1
         s += "\n"
 
