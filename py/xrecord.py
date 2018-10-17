@@ -12,9 +12,9 @@ import resnet
 def main(count, path):
     sys.setrecursionlimit(500000)
     go.init(9)
-    # engineB = Engine(85, resnet.Policy(40, '../data/rand/resnet_pars.pkl'))
+    engineB = Engine(30, resnet.Policy(40, '../data/r1/resnet_pars.pkl'))
     # engineW = Engine(30, resnet.Policy(40, '../data/rand/resnet_pars.pkl'))
-    engineW = engineB = Engine(10, randmove.Policy(40))
+    engineW = Engine(30, randmove.Policy(40))
     # engineW = Engine(30, randmove.Policy(40))
 
     records = [f for f in listdir(path) if f[-4:] == 'json' and f[:6] == 'record']

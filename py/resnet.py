@@ -103,7 +103,7 @@ class Policy():
 
         pos = position
 
-        while pos.pass_count() < 2:    
+        while pos.pass_count() < 2:
             pos.input_board()
 
             x = None
@@ -116,20 +116,22 @@ class Policy():
                 out = self.resnet(x)[0].data.numpy()
 
             cs = np.argsort(out)
-            move = 0
+            ppp = None
             i = go.LN
 
             while i >= 0:
                 c = cs[i]
                 if c < go.LN:
                     v = go.COORDS[c]
-                    pos = position.move(v)
-                    if pos is not None:
-                        move = v
+                    ppp = pos.move(v)
+                    if ppp is not None:
                         break
                 i -= 1
             
-            pos = pos.move(move)
+            if ppp is None:
+                pos = pos.move(0)
+            else:
+                pos = ppp
 
             # cs = np.argsort(y[0])
             # move = 0

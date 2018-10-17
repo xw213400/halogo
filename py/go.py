@@ -118,7 +118,7 @@ class Position:
     def toJSON(self):
         BOARD = []
         for v in COORDS:
-            BOARD.append(board[v])
+            BOARD.append(self.board[v])
         JSON = {'board':BOARD, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex}
         return json.dumps(JSON)
 
@@ -185,8 +185,11 @@ class Position:
 
         ee = -self.next
 
-        if cu * cd * cl * cr == 0: #neighbor empty
-            resonable = True
+        bNeighborEmpty = cu * cd * cl * cr == 0
+        bNeighborNoEnemy = (cu - ee) * (cd - ee) * (cl - ee) * (cr - ee) != 0
+        bNeighborNoFriend = (cu + ee) * (cd + ee) * (cl + ee) * (cr + ee) != 0
+
+        resonable = bNeighborEmpty
 
         nTakes = 0
 
@@ -205,11 +208,11 @@ class Position:
                         resonable = True
 
         if nTakes > 0:
-            if not resonable and nTakes == 1 and (cu+ee)*(cd+ee)*(cl+ee)*(cr+ee) != 0: # KO
+            if not bNeighborEmpty and bNeighborNoFriend and nTakes == 1: # KO
                 ko = FRONTIER[0]
             resonable = True
 
-        if (cu-ee)*(cd-ee)*(cl-ee)*(cr-ee) != 0 and len(gs) == 1:#eye
+        if not bNeighborEmpty and bNeighborNoEnemy and len(gs) == 1:#eye
             resonable = False
 
         if not resonable:
@@ -318,6 +321,12 @@ class Position:
             else:
                 return 0
 
+    def reset_liberty(self):
+        for v in COORDS:
+            g = self.group[v]
+            if g is not None:
+                g.liberty = -1
+
     def update_group(self):
         parent = self.parent
 
@@ -332,13 +341,14 @@ class Position:
                 ns = [self.vertex+UP, self.vertex+DOWN, self.vertex+LEFT, self.vertex+RIGHT]
                 for n in ns:
                     gg = self.group[n]
-                    if self.board[n] == parent.next and gg != g:
-                        for s in gg.stones:
-                            self.group[s] = g
-                        g.stones.extend(gg.stones)
-                    elif gg is not None and self.board[n] == EMPTY:
-                        for s in gg.stones:
-                            self.group[s] = None
+                    if gg is not None:
+                        if self.board[n] == parent.next and gg != g:
+                            for s in gg.stones:
+                                self.group[s] = g
+                            g.stones.extend(gg.stones)
+                        elif self.board[n] == EMPTY:
+                            for s in gg.stones:
+                                self.group[s] = None
 
     def get_children(self):
         positions = []
@@ -551,6 +561,7 @@ def print_input(self):
 def move(v):
     global POSITION, TRUNK
 
+    POSITION.reset_liberty()
     pos = POSITION.move(v)
     if pos is not None:
         POSITION = pos
