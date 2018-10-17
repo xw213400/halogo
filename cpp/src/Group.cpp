@@ -1,7 +1,7 @@
 #include "Group.h"
 #include "go.h"
 
-Pool<Group> Group::POOL;
+Pool<Group> Group::POOL("GROUP");
 
 Group* Group::get(int v) {
     Group* g = POOL.pop();

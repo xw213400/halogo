@@ -42,7 +42,7 @@ uint64_t *CODE_BLACK = new uint64_t[LV];
 uint64_t *CODE_KO = new uint64_t[LV];
 uint64_t CODE_SWAP = 0;
 
-Pool<Position> POSITION_POOL;
+Pool<Position> POSITION_POOL("POSITION");
 Position *POSITION = nullptr;
 
 } // namespace go
@@ -79,7 +79,7 @@ void go::init()
 
     POSITION_POOL.resize(1000000);
     MCTSPlayer::POOL.resize(100000);
-    Group::POOL.resize(50000);
+    Group::POOL.resize(100000);
     POSITION = POSITION_POOL.pop();
     POSITION->clear();
 }

@@ -8,8 +8,9 @@ template <class T>
 class Pool
 {
   public:
-    Pool()
+    Pool(const std::string& name)
     {
+        _name = name;
         _pool = nullptr;
         _index = _length = 0;
     }
@@ -40,7 +41,7 @@ class Pool
     {
         if (_index <= 0)
         {
-            std::cerr << "Pool is empty." << std::endl;
+            std::cerr << "Pool '" << _name  << "' is empty." << std::endl;
         }
         return _pool[--_index];
     }
@@ -49,7 +50,7 @@ class Pool
     {
         if (_index >= _length)
         {
-            std::cerr << "Pool can not push any more." << std::endl;
+            std::cerr << "Pool '" << _name  << "' can not push any more." << std::endl;
         }
         _pool[_index++] = t;
     }
@@ -63,6 +64,7 @@ class Pool
     T **_pool;
     std::size_t _length;
     std::size_t _index;
+    std::string _name;
 };
 
 #endif

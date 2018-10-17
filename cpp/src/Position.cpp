@@ -284,6 +284,18 @@ float Position::score()
     return score;
 }
 
+void Position::resetLiberty()
+{
+    for (int i = 0; i != go::LN; ++i)
+    {
+        Group *g = _group[go::COORDS[i]];
+        if (g != nullptr)
+        {
+            g->resetLiberty();
+        }
+    }
+}
+
 void Position::updateGroup(void)
 {
     if (!_dirty)

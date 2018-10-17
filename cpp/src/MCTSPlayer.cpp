@@ -4,7 +4,7 @@
 
 using namespace std;
 
-Pool<MCTSNode> MCTSPlayer::POOL;
+Pool<MCTSNode> MCTSPlayer::POOL("MCTS");
 
 MCTSPlayer::MCTSPlayer(float _seconds, Policy *_policy)
 {
@@ -114,6 +114,7 @@ bool MCTSPlayer::move()
 
         int vertex = best->position()->vertex();
 
+        go::POSITION->resetLiberty();
         go::POSITION = go::POSITION->move(vertex);
         go::POSITION->updateGroup();
 

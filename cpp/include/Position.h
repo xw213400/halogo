@@ -51,6 +51,8 @@ class Position
         return _hashCode;
     }
 
+    void resetLiberty();
+
     inline int getSteps()
     {
         int step = 0;
