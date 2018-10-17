@@ -24,9 +24,9 @@ class Position
 
     rapidjson::Value toJSON(rapidjson::Document::AllocatorType &);
 
-    inline int getVertex()
+    inline int vertex()
     {
-        return vertex;
+        return _vertex;
     }
 
     inline int8_t next()
@@ -74,7 +74,7 @@ class Position
     int _ko;
     int8_t *_board;
     Group **_group;
-    int vertex;
+    int _vertex;
     uint64_t _hashCode;
     Position *_parent;
     bool _dirty;

@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
 
     go::init();
 
-    MCTSPlayer *playerBlack = new MCTSPlayer(5.f, new RandMove(40));
-    MCTSPlayer *playerWhite = new MCTSPlayer(5.f, new RandMove(40));
+    MCTSPlayer *playerBlack = new MCTSPlayer(5.f, new RandMove(20));
+    MCTSPlayer *playerWhite = new MCTSPlayer(5.f, new RandMove(20));
 
     int black_win = 0;
     int white_win = 0;
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
         stringstream filename;
         filename << put_time(localtime(&t), "%y%m%d%H%M%S") << ".json";
 
-        cout << "ready: " << c << " in " << count << ", PP:" << go::POSITION_POOL.size()
+        cout << "ready: " << c+1 << " in " << count << ", PP:" << go::POSITION_POOL.size()
              << ", GP:" << Group::POOL.size() << ", MP:" << MCTSPlayer::POOL.size()
              << ", File:" << filename.str() << endl;
 

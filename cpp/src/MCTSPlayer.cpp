@@ -21,7 +21,7 @@ bool MCTSPlayer::move()
     {
         if (best->position()->next() == go::POSITION->next())
         {
-            if (best->position()->getVertex() == go::POSITION->getVertex())
+            if (best->position()->vertex() == go::POSITION->vertex())
             {
                 root = best;
             }
@@ -31,7 +31,7 @@ bool MCTSPlayer::move()
             auto children = best->children();
             for (auto i = children.begin(); i != children.end(); ++i)
             {
-                if ((*i)->position()->getVertex() == go::POSITION->getVertex())
+                if ((*i)->position()->vertex() == go::POSITION->vertex())
                 {
                     root = *i;
                 }
@@ -112,12 +112,12 @@ bool MCTSPlayer::move()
             }
         }
 
-        int vertex = best->position()->getVertex();
+        int vertex = best->position()->vertex();
 
         go::POSITION = go::POSITION->move(vertex);
         go::POSITION->updateGroup();
 
-        auto ji = go::toJI(go::POSITION->getVertex());
+        auto ji = go::toJI(go::POSITION->vertex());
         cout << setw(3) << setfill('0') << go::POSITION->getSteps()
              << " V:[" << ji.second << "," << ji.first << "] PP:"
              << go::POSITION_POOL.size() << " GP:" << Group::POOL.size()

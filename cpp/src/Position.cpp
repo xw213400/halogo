@@ -11,12 +11,12 @@ Position::Position(void)
     memcpy(_board, go::EMPTY_BOARD, sizeof(int8_t) * go::LM);
     _group = static_cast<Group **>(malloc(sizeof(nullptr) * go::LM));
     memset(_group, 0, sizeof(nullptr) * go::LM);
-    vertex = go::PASS;
+    _vertex = go::PASS;
     _hashCode = 0;
     _ko = 0;
     _next = go::BLACK;
     _parent = nullptr;
-    _dirty = false;
+    _dirty = true;
 }
 
 Position::~Position(void)
@@ -33,8 +33,7 @@ Position *Position::move(int v)
         pos->_parent = this;
         pos->_ko = 0;
         pos->_next = -_next;
-        pos->vertex = v;
-        pos->_dirty = true;
+        pos->_vertex = v;
         pos->_hashCode = _hashCode ^ go::CODE_KO[_ko] ^ go::CODE_SWAP;
         memcpy(pos->_board, _board, sizeof(int8_t) * go::LV);
 
@@ -87,10 +86,11 @@ Position *Position::move(int v)
 
     int8_t ee = -_next;
 
-    if (cu * cd * cl * cr == 0)
-    {
-        resonable = true;
-    }
+    bool bNeighborEmpty = cu * cd * cl * cr == 0;
+    bool bNeighborNoEnemy = (cu - ee) * (cd - ee) * (cl - ee) * (cr - ee) != 0;
+    bool bNeighborNoFriend = (cu + ee) * (cd + ee) * (cl + ee) * (cr + ee) != 0;
+
+    resonable = bNeighborEmpty;
 
     int nTakes = 0;
 
@@ -103,7 +103,8 @@ Position *Position::move(int v)
             int liberty = g->liberty(_board);
             if (liberty == 1)
             {
-                for (int s = 0; s != g->n(); ++s) {
+                for (int s = 0; s != g->n(); ++s)
+                {
                     go::FRONTIER[nTakes++] = g->getStone(s);
                 }
             }
@@ -123,14 +124,14 @@ Position *Position::move(int v)
 
     if (nTakes > 0)
     {
-        if (!resonable && nTakes == 1 && (cu + ee) * (cd + ee) * (cl + ee) * (cr + ee) != 0)
+        if (!bNeighborEmpty && bNeighborNoFriend && nTakes == 1)
         {
             ko = go::FRONTIER[0];
         }
         resonable = true;
     }
 
-    if ((cu - ee) * (cd - ee) * (cl - ee) * (cr - ee) != 0 && ngs == 1)
+    if (!bNeighborEmpty && bNeighborNoEnemy && ngs == 1)
     {
         resonable = false;
     }
@@ -173,10 +174,9 @@ Position *Position::move(int v)
     memcpy(pos->_board, _board, go::LV);
     pos->_board[v] = _next;
     pos->_next = -_next;
-    pos->vertex = v;
+    pos->_vertex = v;
     pos->_hashCode = hashCode;
     pos->_ko = ko;
-    pos->_dirty = true;
 
     for (int i = 0; i != nTakes; ++i)
     {
@@ -286,7 +286,18 @@ float Position::score()
 
 void Position::updateGroup(void)
 {
-    if (_parent != nullptr && _dirty)
+    if (!_dirty)
+    {
+        for (int i = 0; i != go::LN; ++i)
+        {
+            Group *g = _group[go::COORDS[i]];
+            if (g != nullptr)
+            {
+                g->resetLiberty();
+            }
+        }
+    }
+    else if (_parent != nullptr)
     {
         _dirty = false;
 
@@ -302,11 +313,11 @@ void Position::updateGroup(void)
             }
         }
 
-        if (vertex != go::PASS)
+        if (_vertex != go::PASS)
         {
-            Group *g = _group[vertex] = Group::get(vertex);
+            Group *g = _group[_vertex] = Group::get(_vertex);
 
-            int n = vertex + go::UP;
+            int n = _vertex + go::UP;
             Group *gg = _group[n];
             if (gg != nullptr)
             {
@@ -330,7 +341,7 @@ void Position::updateGroup(void)
                 }
             }
 
-            n = vertex + go::DOWN;
+            n = _vertex + go::DOWN;
             gg = _group[n];
             if (gg != nullptr)
             {
@@ -354,7 +365,7 @@ void Position::updateGroup(void)
                 }
             }
 
-            n = vertex + go::LEFT;
+            n = _vertex + go::LEFT;
             gg = _group[n];
             if (gg != nullptr)
             {
@@ -378,7 +389,7 @@ void Position::updateGroup(void)
                 }
             }
 
-            n = vertex + go::RIGHT;
+            n = _vertex + go::RIGHT;
             gg = _group[n];
             if (gg != nullptr)
             {
@@ -434,7 +445,7 @@ void Position::clear()
         }
     }
     memcpy(_board, go::EMPTY_BOARD, go::LV);
-    vertex = go::PASS;
+    _vertex = go::PASS;
     _hashCode = 0;
     _ko = 0;
     _next = go::BLACK;
@@ -455,18 +466,18 @@ void Position::release()
             _group[v] = nullptr;
         }
     }
-    _dirty = false;
+    _dirty = true;
     go::POSITION_POOL.push(this);
 }
 
 int Position::passCount()
 {
     int pc = 0;
-    if (vertex == 0)
+    if (_vertex == 0)
     {
         ++pc;
     }
-    if (_parent != nullptr && _parent->vertex == 0)
+    if (_parent != nullptr && _parent->_vertex == 0)
     {
         ++pc;
     }
@@ -487,7 +498,7 @@ Value Position::toJSON(Document::AllocatorType &allocator)
     JSON.AddMember("board", BOARD, allocator);
     JSON.AddMember("next", _next, allocator);
     JSON.AddMember("ko", _ko, allocator);
-    JSON.AddMember("vertex", vertex, allocator);
+    JSON.AddMember("_vertex", _vertex, allocator);
 
     return JSON;
 }

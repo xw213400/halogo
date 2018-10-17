@@ -81,6 +81,7 @@ void go::init()
     MCTSPlayer::POOL.resize(100000);
     Group::POOL.resize(50000);
     POSITION = POSITION_POOL.pop();
+    POSITION->clear();
 }
 
 pair<int, int> go::toJI(int v)
