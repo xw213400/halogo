@@ -510,7 +510,7 @@ Value Position::toJSON(Document::AllocatorType &allocator)
     JSON.AddMember("board", BOARD, allocator);
     JSON.AddMember("next", _next, allocator);
     JSON.AddMember("ko", _ko, allocator);
-    JSON.AddMember("_vertex", _vertex, allocator);
+    JSON.AddMember("vertex", _vertex, allocator);
 
     return JSON;
 }

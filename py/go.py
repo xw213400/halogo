@@ -124,13 +124,18 @@ class Position:
                 self.hash_code ^= CODE_WHITE[v]
 
     def toJSON(self):
-        JSON = {'board':self.board, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex}
+        BOARD = []
+        for v in COORDS:
+            BOARD.append(board[v])
+        JSON = {'board':BOARD, 'next':self.next, 'ko':self.ko, 'vertex':self.vertex}
         return json.dumps(JSON)
 
     def fromJSON(self, JSON):
         board = JSON['board']
-        for v in COORDS:
-            self.board[v] = board[v]
+        i = 0
+        while i < LN:
+            self.board[COORDS[i]] = board[i]
+            i += 1
         self.next = JSON['next']
         self.ko = JSON['ko']
         self.vertex = JSON['vertex']
