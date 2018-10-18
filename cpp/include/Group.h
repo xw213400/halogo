@@ -12,7 +12,15 @@ class Group
     Group();
     ~Group();
 
-    int liberty(int8_t *);
+    inline int liberty()
+    {
+        return _liberty;
+    }
+
+    inline void liberty(int liberty)
+    {
+        _liberty = liberty;
+    }
 
     inline void reference(int n)
     {
@@ -50,10 +58,7 @@ class Group
         return _stones[i];
     }
 
-    inline void resetLiberty()
-    {
-        _liberty = -1;
-    }
+    void resetLiberty(int8_t *);
 
     static Group *get(int);
 

@@ -21,13 +21,8 @@ Group::~Group(void)
 {
 }
 
-int Group::liberty(int8_t *board)
+void Group::resetLiberty(int8_t *board)
 {
-    if (_liberty != -1)
-    {
-        return _liberty;
-    }
-
     go::FLAG++;
     _liberty = 0;
 
@@ -44,7 +39,7 @@ int Group::liberty(int8_t *board)
             ++_liberty;
             if (_liberty >= 2)
             {
-                return _liberty;
+                break;
             }
         }
 
@@ -56,7 +51,7 @@ int Group::liberty(int8_t *board)
             ++_liberty;
             if (_liberty >= 2)
             {
-                return _liberty;
+                break;
             }
         }
 
@@ -68,7 +63,7 @@ int Group::liberty(int8_t *board)
             ++_liberty;
             if (_liberty >= 2)
             {
-                return _liberty;
+                break;
             }
         }
 
@@ -80,10 +75,8 @@ int Group::liberty(int8_t *board)
             ++_liberty;
             if (_liberty >= 2)
             {
-                return _liberty;
+                break;
             }
         }
     }
-
-    return _liberty;
 }

@@ -100,8 +100,7 @@ Position *Position::move(int v)
         int8_t color = g->color(_board);
         if (color == ee)
         {
-            int liberty = g->liberty(_board);
-            if (liberty == 1)
+            if (g->liberty() == 1)
             {
                 for (int s = 0; s != g->n(); ++s)
                 {
@@ -113,8 +112,7 @@ Position *Position::move(int v)
         {
             if (!resonable)
             {
-                int liberty = g->liberty(_board);
-                if (liberty > 1)
+                if (g->liberty() > 1)
                 {
                     resonable = true;
                 }
@@ -291,25 +289,22 @@ void Position::resetLiberty()
         Group *g = _group[go::COORDS[i]];
         if (g != nullptr)
         {
-            g->resetLiberty();
+            g->liberty(-1);
+        }
+    }
+    for (int i = 0; i != go::LN; ++i)
+    {
+        Group *g = _group[go::COORDS[i]];
+        if (g != nullptr && g->liberty() == -1)
+        {
+            g->resetLiberty(_board);
         }
     }
 }
 
 void Position::updateGroup(void)
 {
-    if (!_dirty)
-    {
-        for (int i = 0; i != go::LN; ++i)
-        {
-            Group *g = _group[go::COORDS[i]];
-            if (g != nullptr)
-            {
-                g->resetLiberty();
-            }
-        }
-    }
-    else if (_parent != nullptr)
+    if (_parent != nullptr && _dirty)
     {
         _dirty = false;
 
@@ -321,7 +316,6 @@ void Position::updateGroup(void)
             {
                 _group[v] = g;
                 g->reference(1);
-                g->resetLiberty();
             }
         }
 
@@ -426,6 +420,8 @@ void Position::updateGroup(void)
             }
         }
     }
+
+    resetLiberty();
 }
 
 void Position::getChildren(vector<Position *> &positions)
