@@ -63,6 +63,11 @@ class MCTSNode
         return N;
     }
 
+    inline int getLeaves()
+    {
+        return leaves;
+    }
+
   private:
     Policy *_policy;
     MCTSNode *_parent;

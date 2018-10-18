@@ -37,14 +37,16 @@ float RandMove::sim(Position *position)
 
         size_t n = positions.size();
 
+        Position* pp = nullptr;
+
         if (n >= 2)
         {
             int i = rand() % n;
-            pos = positions[i];
+            pp = positions[i];
             for (auto it = positions.begin(); it != positions.end(); ++it)
             {
                 Position *p = *it;
-                if (p != pos)
+                if (p != pp)
                 {
                     p->release();
                 }
@@ -52,12 +54,19 @@ float RandMove::sim(Position *position)
         }
         else if (n == 1)
         {
-            pos = positions[0];
+            pp = positions[0];
         }
         else
         {
-            pos = pos->move(go::PASS);
+            pp = pos->move(go::PASS);
         }
+
+        // if (pp->isBad()) {
+        //     pp->release();
+        //     pp = pos->move(go::PASS);
+        // }
+
+        pos = pp;
     }
 
     float score = pos->score();

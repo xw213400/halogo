@@ -74,12 +74,6 @@ bool MCTSPlayer::move()
     {
         MCTSNode *currentNode = root->select();
 
-        if (currentNode == nullptr)
-        {
-            cout << "Leaves is empty!" << endl;
-            break;
-        }
-
         currentNode = currentNode->expand();
 
         float score = currentNode->simulate();

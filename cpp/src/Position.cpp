@@ -17,6 +17,7 @@ Position::Position(void)
     _next = go::BLACK;
     _parent = nullptr;
     _dirty = true;
+    _isBad = false;
 }
 
 Position::~Position(void)
@@ -91,6 +92,7 @@ Position *Position::move(int v)
     bool bNeighborNoFriend = (cu + ee) * (cd + ee) * (cl + ee) * (cr + ee) != 0;
 
     resonable = bNeighborEmpty;
+    bool isBad = false;
 
     int nTakes = 0;
 
@@ -110,12 +112,10 @@ Position *Position::move(int v)
         }
         else
         {
-            if (!resonable)
+            if (g->liberty() > 1)
             {
-                if (g->liberty() > 1)
-                {
-                    resonable = true;
-                }
+                resonable = true;
+                isBad = true;
             }
         }
     }
@@ -175,6 +175,7 @@ Position *Position::move(int v)
     pos->_vertex = v;
     pos->_hashCode = hashCode;
     pos->_ko = ko;
+    pos->_isBad = isBad;
 
     for (int i = 0; i != nTakes; ++i)
     {
@@ -289,7 +290,7 @@ void Position::resetLiberty()
         Group *g = _group[go::COORDS[i]];
         if (g != nullptr)
         {
-            g->liberty(-1);
+            g->setLiberty(-1);
         }
     }
     for (int i = 0; i != go::LN; ++i)
@@ -459,6 +460,7 @@ void Position::clear()
     _next = go::BLACK;
     _parent = nullptr;
     _dirty = false;
+    _isBad = false;
 }
 
 void Position::release()
@@ -475,6 +477,7 @@ void Position::release()
         }
     }
     _dirty = true;
+    _isBad = false;
     go::POSITION_POOL.push(this);
 }
 

@@ -17,9 +17,9 @@ class Group
         return _liberty;
     }
 
-    inline void liberty(int liberty)
+    inline void setLiberty(int n)
     {
-        _liberty = liberty;
+        _liberty = n;
     }
 
     inline void reference(int n)

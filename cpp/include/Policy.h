@@ -8,7 +8,7 @@ class Policy
   public:
     Policy(float PUCT) : _PUCT(PUCT){};
 
-    virtual ~Policy() {};
+    virtual ~Policy() {}
 
     virtual void get(Position *, std::vector<Position *> &) = 0;
 

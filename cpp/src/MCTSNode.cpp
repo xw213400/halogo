@@ -54,7 +54,7 @@ MCTSNode *MCTSNode::select(void)
         for (auto i = _children.begin(); i != _children.end(); ++i)
         {
             auto node = *i;
-            if (node->leaves > 0 && node->score > bestScore)
+            if (node->score > bestScore)
             {
                 bestScore = node->score;
                 bestNode = node;
@@ -62,7 +62,7 @@ MCTSNode *MCTSNode::select(void)
         }
         if (bestNode == nullptr)
         {
-            return nullptr;
+            return this;
         }
         else
         {
@@ -77,6 +77,10 @@ MCTSNode *MCTSNode::select(void)
 
 MCTSNode *MCTSNode::expand(void)
 {
+    if (_positions.empty()) {
+        return this;
+    }
+
     auto pos = _positions.back();
     _positions.pop_back();
     auto node = MCTSPlayer::POOL.pop();

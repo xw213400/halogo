@@ -71,6 +71,19 @@ class Position
 
     void debugGroup();
 
+    inline bool isBad()
+    {
+        if (_isBad)
+        {
+            updateGroup();
+            Group *g = _group[_vertex];
+
+            return g->liberty() == 1 && g->n() > 6;
+        }
+
+        return false;
+    }
+
   private:
     int8_t _next;
     int _ko;
@@ -80,6 +93,7 @@ class Position
     uint64_t _hashCode;
     Position *_parent;
     bool _dirty;
+    bool _isBad;
 };
 
 #endif
