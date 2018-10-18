@@ -87,11 +87,11 @@ class MCTSNode():
         self.action_score = self.Q + self.U
 
     def release(self, recursive=True):
-        if self.position not in go.TRUNK:     
-            go.POSITION_POOL.append(self.position)
+        if not go.is_trunk(self.position):     
+            self.position.release()
 
         for p in self.positions:
-            go.POSITION_POOL.append(p)
+            p.release()
         
         if recursive:
             for child in self.children:
@@ -137,7 +137,7 @@ class MCTSPlayer():
         if root_node is None:
             root_node = MCTSNode(None, go.POSITION)
         elif root_node.position is not go.POSITION:
-            go.POSITION_POOL.append(root_node.position)
+            root_node.position.release()
             root_node.position = go.POSITION
             for node in root_node.children:
                 node.position.parent = go.POSITION
@@ -175,7 +175,10 @@ class MCTSPlayer():
             self.best_node = max(root_node.children, key=lambda node:node.N)
 
             vertex = self.best_node.position.vertex
-            go.move(vertex)
+            
+            go.POSITION.reset_liberty()
+            go.POSITION = go.POSITION.move(vertex)
+            go.POSITION.update_group()
 
             self.debug_info = '%02d  ' % go.get_step()
             for node in root_node.children:
@@ -188,9 +191,10 @@ class MCTSPlayer():
             i, j = go.toJI(vertex)
             self.debug_info += 'V:[%d,%d]  POOL:%d  Q:%.1f  SIM:%d' % (i, j, poolsize, self.best_node.Q, sim_count)
 
-            return vertex
+            print(self.debug_info)
+
+            return True
         else:
-            print('!!!!!!')
             root_node.release()
-            return None
+            return False
 

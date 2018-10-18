@@ -43,18 +43,14 @@ CODE_KO = None
 CODE_SWAP = random.getrandbits(64)
 
 INPUT_BOARD = None
-TRUNK = None
 
 class Group:
     def __init__(self, v):
         self.stones = [v]
         self.liberty = -1
 
-    def get_liberty(self, board):
+    def reset_liberty(self, board):
         global FLAG
-
-        if self.liberty != -1:
-            return self.liberty
 
         FLAG += 1
         self.liberty = 0
@@ -71,7 +67,6 @@ class Group:
         return self.liberty
 
 
-
 class Position:
     def __init__(self):
         self.next = BLACK
@@ -81,6 +76,7 @@ class Position:
         self.vertex = 0
         self.hash_code = 0
         self.parent = None
+        self.dirty = True
 
     # prepare input plane for resnet
     # INPUT_BOARD[0]: enemy:-1, empty:0, self:1, ko: 2
@@ -196,15 +192,13 @@ class Position:
         for g in gs:
             color = self.board[g.stones[0]]
             if color == ee:
-                liberty = g.get_liberty(self.board)
-                if liberty == 1:
+                if g.liberty == 1:
                     for s in g.stones:
                         FRONTIER[nTakes] = s
                         nTakes += 1
             else:
                 if not resonable: # around stone and wall
-                    liberty = g.get_liberty(self.board)
-                    if liberty > 1: # not suicide
+                    if g.liberty > 1: # not suicide
                         resonable = True
 
         if nTakes > 0:
@@ -327,14 +321,17 @@ class Position:
             if g is not None:
                 g.liberty = -1
 
+        for v in COORDS:
+            g = self.group[v]
+            if g is not None and g.liberty == -1:
+                g.reset_liberty(self.board)
+            
     def update_group(self):
-        parent = self.parent
+        if self.parent is not None and self.dirty:
+            self.dirty = False
 
-        if parent is not None:
             for v in COORDS:
-                g = self.group[v] = parent.group[v]
-                if g is not None:
-                    self.group[v].liberty = -1
+                self.group[v] = self.parent.group[v]
 
             if self.vertex != 0:
                 g = self.group[self.vertex] = Group(self.vertex)
@@ -342,13 +339,14 @@ class Position:
                 for n in ns:
                     gg = self.group[n]
                     if gg is not None:
-                        if self.board[n] == parent.next and gg != g:
+                        if self.board[n] == self.parent.next and gg != g:
                             for s in gg.stones:
                                 self.group[s] = g
                             g.stones.extend(gg.stones)
                         elif self.board[n] == EMPTY:
                             for s in gg.stones:
                                 self.group[s] = None
+        self.reset_liberty()
 
     def get_children(self):
         positions = []
@@ -374,6 +372,22 @@ class Position:
                 score += c
 
         return score
+
+    def clear(self):
+        for s in COORDS:
+            self.board[s] = EMPTY_BOARD[s]
+            self.group[s] = None
+        self.next = BLACK
+        self.ko = 0
+        self.vertex = 0
+        self.hash_code = 0
+        self.parent = None
+        self.dirty = False
+
+    def release(self):
+        global POSITION_POOL
+        self.dirty = True
+        POSITION_POOL.append(self)
 
     def result(self):
         s = self.score() - KOMI
@@ -445,7 +459,7 @@ class Position:
 
 def init(n):
     global N, M, LN, LM, UP, DOWN, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN, FLAGS, EMPTY_BOARD, COORDS, FRONTIER, FLAG, NEIGHBORS
-    global POSITION, POSITION_POOL, CODE_WHITE, CODE_BLACK, CODE_KO, TRUNK
+    global POSITION, POSITION_POOL, CODE_WHITE, CODE_BLACK, CODE_KO
     global INPUT_BOARD
     N = n
     M = N + 1
@@ -493,41 +507,22 @@ def init(n):
         i += 1
 
     POSITION = POSITION_POOL.pop()
-    TRUNK = set([POSITION])
+    POSITION.clear()
 
 def clear():
-    global POSITION, TRUNK, POSITION_POOL
-    for s in COORDS:
-        POSITION.board[s] = EMPTY_BOARD[s]
-        POSITION.group[s] = None
-    POSITION.next = BLACK
-    POSITION.ko = 0
-    POSITION.vertex = 0
-    POSITION.hash_code = 0
+    global POSITION, POSITION_POOL
 
     p = POSITION.parent
     while p is not None:
-        POSITION_POOL.append(p)
+        p.release()
         p = p.parent
 
-    POSITION.parent = None
-    TRUNK = set([POSITION])
+    POSITION.clear()
 
 def toJI(v):
     j = v % M
     i = int(v / M)
     return j, i
-
-def toV(i, j):
-    return i * M + j
-
-def toXY(c):
-    x = c % N
-    y = int(c / N)
-    return x, y
-
-def toC(x, y):
-    return y * N + x
 
 def get_take(position):
     take = []
@@ -537,6 +532,14 @@ def get_take(position):
         if c1 != EMPTY and c2 == EMPTY:
             take.append(v)
     return take
+
+def is_trunk(position):
+    trunk = POSITION
+    while trunk is not None:
+        if trunk == position:
+            return True
+        trunk = trunk.parent
+    return False
 
 def print_input(self):
     i = N
@@ -557,23 +560,6 @@ def print_input(self):
 
     s += "\n"
     print(s)
-
-def move(v):
-    global POSITION, TRUNK
-
-    POSITION.reset_liberty()
-    pos = POSITION.move(v)
-    if pos is not None:
-        POSITION = pos
-        POSITION.update_group()
-        TRUNK = set()
-        while pos is not None:
-            TRUNK.add(pos)
-            pos = pos.parent
-
-        return True
-    
-    return False
 
 def get_step():
     step = 0

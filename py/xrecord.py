@@ -5,17 +5,15 @@ import go
 import torch
 import os.path
 from os import listdir
-from engine import Engine
 import randmove
 import resnet
+from mcts import MCTSPlayer
 
 def main(count, path):
     sys.setrecursionlimit(500000)
     go.init(9)
-    engineB = Engine(30, resnet.Policy(40, '../data/r1/resnet_pars.pkl'))
-    # engineW = Engine(30, resnet.Policy(40, '../data/rand/resnet_pars.pkl'))
-    engineW = Engine(30, randmove.Policy(40))
-    # engineW = Engine(30, randmove.Policy(40))
+    playerBlack = MCTSPlayer(30, resnet.Policy(40, '../data/r1/resnet_pars.pkl'))
+    playerWhite = MCTSPlayer(30, randmove.Policy(40))
 
     records = [f for f in listdir(path) if f[-4:] == 'json' and f[:6] == 'record']
     fcount = len(records)
@@ -30,54 +28,39 @@ def main(count, path):
     c = 1
     while c <= count:
         records = '[\n'
-        score = 0
-        pass_num = 0
         i = 0
 
         print('ready: %d in %d, POSPOOL: %d' % (c, count, len(go.POSITION_POOL)))
 
-        while pass_num < 2:
+        while go.POSITION.pass_count() < 2:
             i += 1
 
+            legal = True
             if i % 2 == 1:
-                vertex, caps = engineB.move('b')
-                engineB.debug()
+                legal = playerBlack.move()
             else:
-                vertex, caps = engineW.move('w')
-                engineW.debug()
+                legal = playerWhite.move()
 
-            if vertex is None:
+            if not legal:
                 print('Illegal move!')
                 break
 
-            if vertex == (0, 0):
-                pass_num += 1
-            else:
-                pass_num = 0
-
-            # go.POSITION.debug_group()
-            # go.POSITION.update_group()
-            # go.POSITION.debug_group()
-            # go.POSITION.debug_group()
+            go.POSITION.debug()
 
             record = go.POSITION.toJSON()
             records += '  '
             records += record
 
-            # if i > go.LN:
-            #     pass_num = 2
-            # if i >= 60:
-            #     pass_num = 2
-
-            if pass_num < 2:
+            if go.POSITION.pass_count() < 2:
                 records += ',\n'
             else:
                 records += '\n]'
-                score = go.POSITION.score() - go.KOMI
-                engineB.clear()
-                engineW.clear()
-                go.clear()
         
+        score = go.POSITION.score() - go.KOMI
+        playerBlack.clear()
+        playerWhite.clear()
+        go.clear()
+
         fcount += 1
         filename = path + 'record_%d.json' % fcount
 

@@ -81,6 +81,7 @@ class Policy():
             x = Variable(go.INPUT_BOARD)
             out = self.resnet(x)[0].data.numpy()
 
+        position.update_group()
         positions = [position.move(0)]
 
         cs = np.argsort(out)
@@ -117,8 +118,9 @@ class Policy():
 
             cs = np.argsort(out)
             ppp = None
-            i = go.LN
+            pos.update_group()
 
+            i = go.LN
             while i >= 0:
                 c = cs[i]
                 if c < go.LN:
@@ -133,30 +135,9 @@ class Policy():
             else:
                 pos = ppp
 
-            # cs = np.argsort(y[0])
-            # move = 0
-            # n = 0
-            # i = go.LN
-
-            # while i >= 0:
-            #     c = cs[i]
-            #     if c < go.LN:
-            #         x, y = go.toXY(c)
-            #         if go.INPUT_BOARD[0, 1, y, x] == 1:
-            #             MOVES[n] = go.COORDS[c]
-            #             n += 1
-            #     i -= 1
-
-            # if n > 0:
-            #     r = random.random()
-            #     r = int(r * r * n)
-            #     move = MOVES[r]
-            
-            # pos = pos.move(move)
-
         score = pos.score()
         while pos is not position:
-            go.POSITION_POOL.append(pos)
+            pos.release()
             pos = pos.parent
         
         self.HASH[position.hash_code] = score
