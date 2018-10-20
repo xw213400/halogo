@@ -189,7 +189,7 @@ float Position::territory(int v)
     int n = 1;
     int empties = 0;
 
-    // flags of EMPTY, BLACK, WALL, WHITE
+    // flags of WHITE, EMPTY, BLACK, WALL
     bool colors[4] = {false, false, false, false};
 
     while (n > 0)
@@ -200,7 +200,7 @@ float Position::territory(int v)
 
         int i = m + go::UP;
         int8_t c = _board[i];
-        colors[c] = true;
+        colors[c+1] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
             go::FLAGS[i] = go::FLAG;
@@ -209,7 +209,7 @@ float Position::territory(int v)
 
         i = m + go::DOWN;
         c = _board[i];
-        colors[c] = true;
+        colors[c+1] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
             go::FLAGS[i] = go::FLAG;
@@ -218,7 +218,7 @@ float Position::territory(int v)
 
         i = m + go::LEFT;
         c = _board[i];
-        colors[c] = true;
+        colors[c+1] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
             go::FLAGS[i] = go::FLAG;
@@ -227,7 +227,7 @@ float Position::territory(int v)
 
         i = m + go::RIGHT;
         c = _board[i];
-        colors[c] = true;
+        colors[c+1] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
             go::FLAGS[i] = go::FLAG;
@@ -235,9 +235,9 @@ float Position::territory(int v)
         }
     }
 
-    if (colors[go::BLACK])
+    if (colors[go::BLACK+1])
     {
-        if (colors[go::WHITE])
+        if (colors[go::WHITE+1])
         {
             return 0.f;
         }
@@ -248,7 +248,7 @@ float Position::territory(int v)
     }
     else
     {
-        if (colors[go::WHITE])
+        if (colors[go::WHITE+1])
         {
             return -empties;
         }
