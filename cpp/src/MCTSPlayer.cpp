@@ -116,8 +116,9 @@ bool MCTSPlayer::move()
         cout << setw(3) << setfill('0') << go::POSITION->getSteps()
              << " V:[" << ji.second << "," << ji.first << "] PP:"
              << go::POSITION_POOL.size() << " GP:" << Group::POOL.size()
-             << " MP:" << MCTSPlayer::POOL.size() << " DT:" << dt
-             << " Q:" << setprecision(2) << _best->getQ() << endl;
+             << " MP:" << MCTSPlayer::POOL.size()
+             << " Q:" << setprecision(2) << _best->getQ()
+             << " DT:" << dt << endl;
 
         for (auto i = children.begin(); i != children.end(); ++i)
         {

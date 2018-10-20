@@ -32,11 +32,12 @@ int main(int argc, char *argv[])
 
     go::init();
 
-    MCTSPlayer *playerA = new MCTSPlayer(6000, new RandMove(30));
-    MCTSPlayer *playerB = new MCTSPlayer(6000, new RandMove(40));
+    MCTSPlayer *playerA = new MCTSPlayer(6000, new RandMove(0.5, false));
+    MCTSPlayer *playerB = new MCTSPlayer(6000, new RandMove(30));
 
     int a_win = 0;
     int b_win = 0;
+    bool reverse = true;
 
     for (int c = 0; c != count; ++c)
     {
@@ -44,14 +45,18 @@ int main(int argc, char *argv[])
         stringstream filename;
         filename << put_time(localtime(&t), "%y%m%d%H%M%S") << ".json";
 
-        cout << "ready: " << c+1 << " in " << count << ", PP:" << go::POSITION_POOL.size()
-             << ", GP:" << Group::POOL.size() << ", MP:" << MCTSPlayer::POOL.size()
+        reverse = !reverse;
+
+        cout << "ready: " << c + 1 << " in " << count
+             << ", Reverse:" << reverse
+             << ", PP:" << go::POSITION_POOL.size()
+             << ", GP:" << Group::POOL.size()
+             << ", MP:" << MCTSPlayer::POOL.size()
              << ", File:" << filename.str() << endl;
 
         Document positions(kArrayType);
         Document::AllocatorType &allocator = positions.GetAllocator();
 
-        bool reverse = c*2 >= count;
         MCTSPlayer *player = reverse ? playerB : playerA;
 
         while (go::POSITION->passCount() < 2)
@@ -75,6 +80,9 @@ int main(int argc, char *argv[])
             }
         }
 
+        go::POSITION->debug();
+        cout << "Score: " << go::POSITION->score() << endl;
+
         float score = go::POSITION->score() - go::KOMI;
         if (score > 0)
         {
@@ -84,6 +92,8 @@ int main(int argc, char *argv[])
         {
             reverse ? ++a_win : ++b_win;
         }
+
+        cout << "A win: " << a_win << ", B win: " << b_win << endl;
 
         playerA->clear();
         playerB->clear();
@@ -99,11 +109,13 @@ int main(int argc, char *argv[])
         {
             fs << buffer.GetString() << endl;
             fs.close();
-        } else {
+        }
+        else
+        {
             cerr << "create file '" << fullpath << "' failed" << endl;
         }
     }
 
     cout << "A win: " << a_win << ", B win: " << b_win
-         << ", draw: " << count - a_win - b_win << endl;
+         << ", Draw: " << count - a_win - b_win << endl;
 }

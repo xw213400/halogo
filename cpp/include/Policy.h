@@ -16,6 +16,8 @@ class Policy
 
     virtual void clear() = 0;
 
+    virtual bool useScore() = 0;
+    
     inline float PUCT()
     {
         return _PUCT;
