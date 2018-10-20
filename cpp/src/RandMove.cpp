@@ -5,7 +5,7 @@
 
 using namespace std;
 
-RandMove::RandMove(float puct) : Policy(puct)
+RandMove::RandMove(float puct, bool useBad) : Policy(puct), _useBad(useBad)
 {
 }
 
@@ -61,10 +61,10 @@ float RandMove::sim(Position *position)
             pp = pos->move(go::PASS);
         }
 
-        // if (pp->isBad()) {
-        //     pp->release();
-        //     pp = pos->move(go::PASS);
-        // }
+        if (_useBad && pp->isBad()) {
+            pp->release();
+            pp = pos->move(go::PASS);
+        }
 
         pos = pp;
     }

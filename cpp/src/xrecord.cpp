@@ -32,11 +32,11 @@ int main(int argc, char *argv[])
 
     go::init();
 
-    MCTSPlayer *playerBlack = new MCTSPlayer(5.f, new RandMove(20));
-    MCTSPlayer *playerWhite = new MCTSPlayer(5.f, new RandMove(20));
+    MCTSPlayer *playerA = new MCTSPlayer(6000, new RandMove(30));
+    MCTSPlayer *playerB = new MCTSPlayer(6000, new RandMove(40));
 
-    int black_win = 0;
-    int white_win = 0;
+    int a_win = 0;
+    int b_win = 0;
 
     for (int c = 0; c != count; ++c)
     {
@@ -51,7 +51,8 @@ int main(int argc, char *argv[])
         Document positions(kArrayType);
         Document::AllocatorType &allocator = positions.GetAllocator();
 
-        MCTSPlayer *player = playerBlack;
+        bool reverse = c*2 >= count;
+        MCTSPlayer *player = reverse ? playerB : playerA;
 
         while (go::POSITION->passCount() < 2)
         {
@@ -64,28 +65,28 @@ int main(int argc, char *argv[])
 
             positions.PushBack(go::POSITION->toJSON(allocator), allocator);
 
-            if (player == playerBlack)
+            if (player == playerA)
             {
-                player = playerWhite;
+                player = playerB;
             }
             else
             {
-                player = playerBlack;
+                player = playerA;
             }
         }
 
         float score = go::POSITION->score() - go::KOMI;
         if (score > 0)
         {
-            ++black_win;
+            reverse ? ++b_win : ++a_win;
         }
         else if (score < 0)
         {
-            ++white_win;
+            reverse ? ++a_win : ++b_win;
         }
 
-        playerBlack->clear();
-        playerWhite->clear();
+        playerA->clear();
+        playerB->clear();
         go::clear();
 
         StringBuffer buffer;
@@ -103,6 +104,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    cout << "black win: " << black_win << ", white win: " << white_win
-         << ", draw: " << count - black_win - white_win << endl;
+    cout << "A win: " << a_win << ", B win: " << b_win
+         << ", draw: " << count - a_win - b_win << endl;
 }

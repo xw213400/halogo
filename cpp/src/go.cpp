@@ -77,9 +77,9 @@ void go::init()
         }
     }
 
-    POSITION_POOL.resize(1500000);
-    MCTSPlayer::POOL.resize(100000);
-    Group::POOL.resize(500000);
+    POSITION_POOL.resize(1000000);
+    MCTSPlayer::POOL.resize(30000);
+    Group::POOL.resize(60000);
     POSITION = POSITION_POOL.pop();
     POSITION->clear();
 }

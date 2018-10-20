@@ -8,7 +8,7 @@
 class MCTSPlayer
 {
   public:
-    MCTSPlayer(float, Policy *);
+    MCTSPlayer(int, Policy *);
 
     ~MCTSPlayer();
 
@@ -19,11 +19,11 @@ class MCTSPlayer
     static Pool<MCTSNode> POOL;
 
   private:
-    float seconds;
+    int _sims;
 
-    Policy *policy;
+    Policy *_policy;
 
-    MCTSNode *best;
+    MCTSNode *_best;
 };
 
 #endif
