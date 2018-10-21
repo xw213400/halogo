@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
 
     go::init();
 
-    MCTSPlayer *playerA = new MCTSPlayer(6000, new RandMove(0.5, false));
-    MCTSPlayer *playerB = new MCTSPlayer(6000, new RandMove(30));
+    MCTSPlayer *playerA = new MCTSPlayer(6000, new RandMove(0.5f, false));
+    MCTSPlayer *playerB = new MCTSPlayer(6000, new RandMove(0.1f, false));
 
     int a_win = 0;
     int b_win = 0;
