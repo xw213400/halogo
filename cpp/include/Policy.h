@@ -15,8 +15,6 @@ class Policy
     virtual float sim(Position *) = 0;
 
     virtual void clear() = 0;
-
-    virtual bool useScore() = 0;
     
     inline float PUCT()
     {

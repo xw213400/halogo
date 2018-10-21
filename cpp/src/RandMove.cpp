@@ -5,7 +5,7 @@
 
 using namespace std;
 
-RandMove::RandMove(float puct, bool useScore) : Policy(puct), _useScore(useScore)
+RandMove::RandMove(float puct) : Policy(puct)
 {
 }
 

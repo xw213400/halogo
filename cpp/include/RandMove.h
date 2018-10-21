@@ -7,7 +7,7 @@
 class RandMove : public Policy
 {
   public:
-    RandMove(float, bool useScore = true);
+    RandMove(float);
 
     virtual ~RandMove(){};
 
@@ -17,13 +17,8 @@ class RandMove : public Policy
 
     void clear();
 
-    inline bool useScore() {
-      return _useScore;
-    }
-
   private:
     std::unordered_map<uint64_t, float> _hash;
-    bool _useScore;
 };
 
 #endif
