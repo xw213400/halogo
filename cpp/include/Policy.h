@@ -15,7 +15,7 @@ class Policy
     virtual float sim(Position *) = 0;
 
     virtual void clear() = 0;
-
+    
     inline float PUCT()
     {
         return _PUCT;

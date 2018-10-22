@@ -6,29 +6,29 @@ using namespace std;
 
 Pool<MCTSNode> MCTSPlayer::POOL("MCTS");
 
-MCTSPlayer::MCTSPlayer(float _seconds, Policy *_policy)
+MCTSPlayer::MCTSPlayer(int sims, Policy *policy)
 {
-    seconds = _seconds;
-    policy = _policy;
-    best = nullptr;
+    _sims = sims;
+    _policy = policy;
+    _best = nullptr;
 }
 
 bool MCTSPlayer::move()
 {
     MCTSNode *root = nullptr;
 
-    if (best != nullptr)
+    if (_best != nullptr)
     {
-        if (best->position()->next() == go::POSITION->next())
+        if (_best->position()->next() == go::POSITION->next())
         {
-            if (best->position()->vertex() == go::POSITION->vertex())
+            if (_best->position()->vertex() == go::POSITION->vertex())
             {
-                root = best;
+                root = _best;
             }
         }
         else
         {
-            auto children = best->children();
+            auto children = _best->children();
             for (auto i = children.begin(); i != children.end(); ++i)
             {
                 if ((*i)->position()->vertex() == go::POSITION->vertex())
@@ -40,15 +40,15 @@ bool MCTSPlayer::move()
                     (*i)->release();
                 }
             }
-            best->release(false);
-            best = nullptr;
+            _best->release(false);
+            _best = nullptr;
         }
     }
 
     if (root == nullptr)
     {
         root = POOL.pop();
-        root->init(policy, nullptr, go::POSITION);
+        root->init(_policy, nullptr, go::POSITION);
     }
     else if (root->position() != go::POSITION)
     {
@@ -67,10 +67,9 @@ bool MCTSPlayer::move()
     }
 
     clock_t start = clock();
-    int dt = 0;
     int sims = 0;
 
-    while (dt < seconds && sims < 10000)
+    while (sims < _sims)
     {
         MCTSNode *currentNode = root->select();
 
@@ -84,7 +83,6 @@ bool MCTSPlayer::move()
             currentNode = currentNode->getParent();
         }
 
-        dt = (clock() - start) / CLOCKS_PER_SEC;
         ++sims;
     }
 
@@ -96,36 +94,35 @@ bool MCTSPlayer::move()
     }
     else
     {
-        best = children[0];
-        // cout << best->text() << endl;
+        _best = children[0];
         for (size_t i = 1; i < children.size(); ++i)
         {
             MCTSNode *node = children[i];
-            // cout << node->text() << endl;
-            if (node->getN() > best->getN())
+            if (node->getN() > _best->getN())
             {
-                best = node;
+                _best = node;
             }
         }
 
-        int vertex = best->position()->vertex();
+        int vertex = _best->position()->vertex();
 
         go::POSITION->resetLiberty();
         go::POSITION = go::POSITION->move(vertex);
         go::POSITION->updateGroup();
 
-        // go::POSITION->debug();
+        int dt = (clock() - start) * 1000 / CLOCKS_PER_SEC;
 
         auto ji = go::toJI(go::POSITION->vertex());
         cout << setw(3) << setfill('0') << go::POSITION->getSteps()
              << " V:[" << ji.second << "," << ji.first << "] PP:"
              << go::POSITION_POOL.size() << " GP:" << Group::POOL.size()
-             << " MP:" << MCTSPlayer::POOL.size() << " Q:" << setprecision(2)
-             << best->getQ() << " SIM:" << sims << endl;
+             << " MP:" << MCTSPlayer::POOL.size()
+             << " Q:" << setprecision(2) << _best->getQ()
+             << " DT:" << dt << endl;
 
         for (auto i = children.begin(); i != children.end(); ++i)
         {
-            if (*i != best)
+            if (*i != _best)
             {
                 (*i)->release();
             }
@@ -139,10 +136,10 @@ bool MCTSPlayer::move()
 
 void MCTSPlayer::clear(void)
 {
-    policy->clear();
-    if (best != nullptr)
+    _policy->clear();
+    if (_best != nullptr)
     {
-        best->release();
-        best = nullptr;
+        _best->release();
+        _best = nullptr;
     }
 }

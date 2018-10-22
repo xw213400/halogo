@@ -114,12 +114,14 @@ float MCTSNode::simulate(void)
 
 void MCTSNode::backpropagation(float value)
 {
+    value -= go::KOMI;
     if (_position->next() == go::BLACK)
     {
         value = -value;
     }
     ++N;
     float invN = 1.0f / N;
+    value = value > 0.f ? 1.f : -1.f;
     Q += (value - Q) * invN;
     if (_parent != nullptr)
     {

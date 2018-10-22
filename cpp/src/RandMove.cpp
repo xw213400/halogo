@@ -60,11 +60,6 @@ float RandMove::sim(Position *position)
             pp = pos->move(go::PASS);
         }
 
-        if (pp->isBad()) {
-            pp->release();
-            pp = pos->move(go::PASS);
-        }
-
         pos = pp;
     }
 

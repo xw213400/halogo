@@ -32,11 +32,12 @@ int main(int argc, char *argv[])
 
     go::init();
 
-    MCTSPlayer *playerBlack = new MCTSPlayer(5.f, new RandMove(40.0f));
-    MCTSPlayer *playerWhite = new MCTSPlayer(5.f, new RandMove(20.0f));
+    MCTSPlayer *playerA = new MCTSPlayer(6000, new RandMove(0.5f));
+    MCTSPlayer *playerB = new MCTSPlayer(6000, new RandMove(0.5f));
 
-    int black_win = 0;
-    int white_win = 0;
+    int a_win = 0;
+    int b_win = 0;
+    bool swap = true;
 
     for (int c = 0; c != count; ++c)
     {
@@ -44,14 +45,19 @@ int main(int argc, char *argv[])
         stringstream filename;
         filename << put_time(localtime(&t), "%y%m%d%H%M%S") << ".json";
 
-        cout << "ready: " << c+1 << " in " << count << ", PP:" << go::POSITION_POOL.size()
-             << ", GP:" << Group::POOL.size() << ", MP:" << MCTSPlayer::POOL.size()
+        swap = !swap;
+
+        cout << "ready: " << c + 1 << " in " << count
+             << ", Reverse:" << swap
+             << ", PP:" << go::POSITION_POOL.size()
+             << ", GP:" << Group::POOL.size()
+             << ", MP:" << MCTSPlayer::POOL.size()
              << ", File:" << filename.str() << endl;
 
         Document positions(kArrayType);
         Document::AllocatorType &allocator = positions.GetAllocator();
 
-        MCTSPlayer *player = playerBlack;
+        MCTSPlayer *player = swap ? playerB : playerA;
 
         while (go::POSITION->passCount() < 2)
         {
@@ -64,28 +70,33 @@ int main(int argc, char *argv[])
 
             positions.PushBack(go::POSITION->toJSON(allocator), allocator);
 
-            if (player == playerBlack)
+            if (player == playerA)
             {
-                player = playerWhite;
+                player = playerB;
             }
             else
             {
-                player = playerBlack;
+                player = playerA;
             }
         }
+
+        go::POSITION->debug();
+        cout << "Score: " << go::POSITION->score() << endl;
 
         float score = go::POSITION->score() - go::KOMI;
         if (score > 0)
         {
-            ++black_win;
+            swap ? ++b_win : ++a_win;
         }
         else if (score < 0)
         {
-            ++white_win;
+            swap ? ++a_win : ++b_win;
         }
 
-        playerBlack->clear();
-        playerWhite->clear();
+        cout << "A win: " << a_win << ", B win: " << b_win << endl;
+
+        playerA->clear();
+        playerB->clear();
         go::clear();
 
         StringBuffer buffer;
@@ -98,11 +109,13 @@ int main(int argc, char *argv[])
         {
             fs << buffer.GetString() << endl;
             fs.close();
-        } else {
+        }
+        else
+        {
             cerr << "create file '" << fullpath << "' failed" << endl;
         }
     }
 
-    cout << "black win: " << black_win << ", white win: " << white_win
-         << ", draw: " << count - black_win - white_win << endl;
+    cout << "A win: " << a_win << ", B win: " << b_win
+         << ", Draw: " << count - a_win - b_win << endl;
 }

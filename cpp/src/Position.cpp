@@ -16,8 +16,7 @@ Position::Position(void)
     _ko = 0;
     _next = go::BLACK;
     _parent = nullptr;
-    _dirty = true;
-    _isBad = false;
+    _group[0] = nullptr;
 }
 
 Position::~Position(void)
@@ -92,7 +91,6 @@ Position *Position::move(int v)
     bool bNeighborNoFriend = (cu + ee) * (cd + ee) * (cl + ee) * (cr + ee) != 0;
 
     resonable = bNeighborEmpty;
-    bool isBad = false;
 
     int nTakes = 0;
 
@@ -115,7 +113,6 @@ Position *Position::move(int v)
             if (g->liberty() > 1)
             {
                 resonable = true;
-                isBad = true;
             }
         }
     }
@@ -175,7 +172,6 @@ Position *Position::move(int v)
     pos->_vertex = v;
     pos->_hashCode = hashCode;
     pos->_ko = ko;
-    pos->_isBad = isBad;
 
     for (int i = 0; i != nTakes; ++i)
     {
@@ -193,7 +189,7 @@ float Position::territory(int v)
     int n = 1;
     int empties = 0;
 
-    // flags of EMPTY, BLACK, WALL, WHITE
+    // flags of WHITE, EMPTY, BLACK, WALL
     bool colors[4] = {false, false, false, false};
 
     while (n > 0)
@@ -204,7 +200,7 @@ float Position::territory(int v)
 
         int i = m + go::UP;
         int8_t c = _board[i];
-        colors[c] = true;
+        colors[c+1] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
             go::FLAGS[i] = go::FLAG;
@@ -213,7 +209,7 @@ float Position::territory(int v)
 
         i = m + go::DOWN;
         c = _board[i];
-        colors[c] = true;
+        colors[c+1] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
             go::FLAGS[i] = go::FLAG;
@@ -222,7 +218,7 @@ float Position::territory(int v)
 
         i = m + go::LEFT;
         c = _board[i];
-        colors[c] = true;
+        colors[c+1] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
             go::FLAGS[i] = go::FLAG;
@@ -231,7 +227,7 @@ float Position::territory(int v)
 
         i = m + go::RIGHT;
         c = _board[i];
-        colors[c] = true;
+        colors[c+1] = true;
         if (c == go::EMPTY && go::FLAGS[i] != go::FLAG)
         {
             go::FLAGS[i] = go::FLAG;
@@ -239,9 +235,9 @@ float Position::territory(int v)
         }
     }
 
-    if (colors[go::BLACK])
+    if (colors[go::BLACK+1])
     {
-        if (colors[go::WHITE])
+        if (colors[go::WHITE+1])
         {
             return 0.f;
         }
@@ -252,7 +248,7 @@ float Position::territory(int v)
     }
     else
     {
-        if (colors[go::WHITE])
+        if (colors[go::WHITE+1])
         {
             return -empties;
         }
@@ -305,9 +301,9 @@ void Position::resetLiberty()
 
 void Position::updateGroup(void)
 {
-    if (_parent != nullptr && _dirty)
+    if (_parent != nullptr && _group[0] == nullptr)
     {
-        _dirty = false;
+        _group[0] = go::GROUP_FLAG;
 
         for (int i = 0; i != go::LN; ++i)
         {
@@ -459,8 +455,7 @@ void Position::clear()
     _ko = 0;
     _next = go::BLACK;
     _parent = nullptr;
-    _dirty = false;
-    _isBad = false;
+    _group[0] = go::GROUP_FLAG;
 }
 
 void Position::release()
@@ -476,8 +471,7 @@ void Position::release()
             _group[v] = nullptr;
         }
     }
-    _dirty = true;
-    _isBad = false;
+    _group[0] = nullptr;
     go::POSITION_POOL.push(this);
 }
 

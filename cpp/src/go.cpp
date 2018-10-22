@@ -44,6 +44,7 @@ uint64_t CODE_SWAP = 0;
 
 Pool<Position> POSITION_POOL("POSITION");
 Position *POSITION = nullptr;
+Group *GROUP_FLAG = new Group();
 
 } // namespace go
 
@@ -77,9 +78,9 @@ void go::init()
         }
     }
 
-    POSITION_POOL.resize(1500000);
-    MCTSPlayer::POOL.resize(100000);
-    Group::POOL.resize(100000);
+    POSITION_POOL.resize(1000000);
+    MCTSPlayer::POOL.resize(50000);
+    Group::POOL.resize(50000);
     POSITION = POSITION_POOL.pop();
     POSITION->clear();
 }
