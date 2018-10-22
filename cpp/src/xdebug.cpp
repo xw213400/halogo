@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     }
 
     go::init();
-    MCTSPlayer *player = new MCTSPlayer(5000.f, new RandMove(80));
+    MCTSPlayer *player = new MCTSPlayer(5000.f, new RandMove(80.0f));
 
     Document doc;
     doc.Parse(record.c_str());

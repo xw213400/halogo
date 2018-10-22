@@ -27,6 +27,7 @@ void MCTSNode::init(Policy *policy, MCTSNode *pParent, Position *position)
     _positions.clear();
     if (_position->passCount() < 2)
     {
+        _positions.push_back(_position->move(go::PASS));
         policy->get(_position, _positions);
     }
 
@@ -42,7 +43,7 @@ void MCTSNode::init(Policy *policy, MCTSNode *pParent, Position *position)
     _children.clear();
     score = U = 0.f;
     N = 0;
-    Q = 0.f; //parent == nullptr ? 0.f : parent->Q;
+    Q = 0.f;
 }
 
 MCTSNode *MCTSNode::select(void)
@@ -77,7 +78,8 @@ MCTSNode *MCTSNode::select(void)
 
 MCTSNode *MCTSNode::expand(void)
 {
-    if (_positions.empty()) {
+    if (_positions.empty())
+    {
         return this;
     }
 

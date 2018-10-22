@@ -11,7 +11,6 @@ RandMove::RandMove(float puct) : Policy(puct)
 
 void RandMove::get(Position *position, vector<Position *> &positions)
 {
-    positions.push_back(position->move(go::PASS));
     position->getChildren(positions);
     auto seed = chrono::system_clock::now().time_since_epoch().count();
     shuffle(positions.begin() + 1, positions.end(), default_random_engine(seed));
@@ -61,10 +60,10 @@ float RandMove::sim(Position *position)
             pp = pos->move(go::PASS);
         }
 
-        // if (pp->isBad()) {
-        //     pp->release();
-        //     pp = pos->move(go::PASS);
-        // }
+        if (pp->isBad()) {
+            pp->release();
+            pp = pos->move(go::PASS);
+        }
 
         pos = pp;
     }

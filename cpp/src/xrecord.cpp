@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
 
     go::init();
 
-    MCTSPlayer *playerBlack = new MCTSPlayer(5.f, new RandMove(20));
-    MCTSPlayer *playerWhite = new MCTSPlayer(5.f, new RandMove(20));
+    MCTSPlayer *playerBlack = new MCTSPlayer(5.f, new RandMove(40.0f));
+    MCTSPlayer *playerWhite = new MCTSPlayer(5.f, new RandMove(20.0f));
 
     int black_win = 0;
     int white_win = 0;

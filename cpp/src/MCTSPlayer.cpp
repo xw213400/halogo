@@ -97,9 +97,11 @@ bool MCTSPlayer::move()
     else
     {
         best = children[0];
+        // cout << best->text() << endl;
         for (size_t i = 1; i < children.size(); ++i)
         {
             MCTSNode *node = children[i];
+            // cout << node->text() << endl;
             if (node->getN() > best->getN())
             {
                 best = node;
@@ -111,6 +113,8 @@ bool MCTSPlayer::move()
         go::POSITION->resetLiberty();
         go::POSITION = go::POSITION->move(vertex);
         go::POSITION->updateGroup();
+
+        // go::POSITION->debug();
 
         auto ji = go::toJI(go::POSITION->vertex());
         cout << setw(3) << setfill('0') << go::POSITION->getSteps()

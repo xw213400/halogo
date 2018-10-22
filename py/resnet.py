@@ -117,7 +117,7 @@ class Policy():
                 out = self.resnet(x)[0].data.numpy()
 
             cs = np.argsort(out)
-            ppp = None
+            ppp = [None]
             pos.update_group()
 
             i = go.LN
