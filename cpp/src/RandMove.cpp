@@ -12,8 +12,10 @@ RandMove::RandMove(float puct) : Policy(puct)
 void RandMove::get(Position *position, vector<Position *> &positions)
 {
     position->getChildren(positions);
-    auto seed = chrono::system_clock::now().time_since_epoch().count();
-    shuffle(positions.begin() + 1, positions.end(), default_random_engine(seed));
+    for (auto i = positions.size()-1; i > 1; --i)
+    {
+        swap(positions[i], positions[rand() % i + 1]);
+    }
 }
 
 float RandMove::sim(Position *position)
@@ -36,7 +38,7 @@ float RandMove::sim(Position *position)
 
         size_t n = positions.size();
 
-        Position* pp = nullptr;
+        Position *pp = nullptr;
 
         if (n >= 2)
         {

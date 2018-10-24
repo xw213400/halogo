@@ -28,7 +28,7 @@ const int DOWN = -M;
 
 const int LEFTUP = LEFT + UP;
 const int LEFTDOWN = LEFT + DOWN;
-const int IGHTUP = RIGHT + UP;
+const int RIGHTUP = RIGHT + UP;
 const int RIGHTDOWN = RIGHT + DOWN;
 
 int FLAG = 0;

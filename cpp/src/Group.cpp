@@ -12,7 +12,7 @@ Group* Group::get(int v) {
     return g;
 };
 
-Group::Group(void) :_liberty(-1), _rc(0)
+Group::Group(void) :_liberty(-1), _rc(0), _n(0)
 {
     _stones = new int[go::LN];
 }
