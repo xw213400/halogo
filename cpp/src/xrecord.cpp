@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         swap = !swap;
 
         cout << "ready: " << c + 1 << " in " << count
-             << ", Reverse:" << swap
+             << ", Swap:" << swap
              << ", PP:" << go::POSITION_POOL.size()
              << ", GP:" << Group::POOL.size()
              << ", MP:" << MCTSPlayer::POOL.size()
