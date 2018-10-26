@@ -9,8 +9,8 @@ LINK_DIRECTORIES(./lib)
 INCLUDE_DIRECTORIES (
     include 
     third_party
-    /home/xie/Documents/code/tensorflow
-    /home/xie/Documents/code/tensorflow/bazel-genfiles)
+    ../../tensorflow
+    ../../tensorflow/bazel-genfiles)
 
 AUX_SOURCE_DIRECTORY(src DIR_SRCS)
 
