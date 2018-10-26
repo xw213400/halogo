@@ -12,6 +12,8 @@
 # Folders
 bin
 data
+third_party
+lib
 
 # nodejs
 node_modules
