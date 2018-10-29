@@ -4,6 +4,7 @@
 #include "MCTSPlayer.h"
 
 using namespace std;
+using namespace tensorflow;
 
 namespace go
 {
@@ -45,6 +46,8 @@ uint64_t CODE_SWAP = 0;
 Pool<Position> POSITION_POOL("POSITION");
 Position *POSITION = nullptr;
 Group *GROUP_FLAG = new Group();
+
+Tensor INPUT_BOARD(DT_FLOAT, {1, go::N, go::N, 1});
 
 } // namespace go
 

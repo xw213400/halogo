@@ -37,4 +37,7 @@ ADD_EXECUTABLE (xtesttf ${xtesttf_sources})
 TARGET_LINK_LIBRARIES(xtesttf tensorflow_cc tensorflow_framework)
 
 ADD_EXECUTABLE (xrecord ${xrecord_sources})
+TARGET_LINK_LIBRARIES(xrecord tensorflow_cc tensorflow_framework)
+
 ADD_EXECUTABLE (xdebug ${xdebug_sources})
+TARGET_LINK_LIBRARIES(xdebug tensorflow_cc tensorflow_framework)

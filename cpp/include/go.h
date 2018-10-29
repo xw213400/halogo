@@ -3,6 +3,7 @@
 
 #include "Pool.h"
 #include "Position.h"
+#include "tensorflow/core/framework/tensor.h"
 
 namespace go
 {
@@ -33,6 +34,8 @@ extern uint64_t CODE_SWAP;
 extern Pool<Position> POSITION_POOL;
 extern Position *POSITION;
 extern Group *GROUP_FLAG;
+
+extern tensorflow::Tensor INPUT_BOARD;
 
 void init();
 
