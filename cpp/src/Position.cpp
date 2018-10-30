@@ -4,6 +4,7 @@
 
 using namespace std;
 using namespace rapidjson;
+using namespace tensorflow;
 
 Position::Position(void)
 {
@@ -180,6 +181,19 @@ Position *Position::move(int v)
     pos->_parent = this;
 
     return pos;
+}
+
+void Position::updateInputBoard() {
+    for (int i = 0; i != go::LN; ++i)
+    {
+        int v = go::COORDS[i];
+
+        if (v == _ko) {
+            go::INPUT_BOARD.flat<float>()(i) = 2.0f;
+        } else {
+            go::INPUT_BOARD.flat<float>()(i) = _board[v] * _next;
+        }
+    }
 }
 
 float Position::territory(int v)

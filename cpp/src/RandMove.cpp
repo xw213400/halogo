@@ -11,6 +11,7 @@ RandMove::RandMove(float puct) : Policy(puct)
 
 void RandMove::get(Position *position, vector<Position *> &positions)
 {
+    positions.push_back(position->move(go::PASS));
     position->getChildren(positions);
     for (auto i = positions.size()-1; i > 1; --i)
     {

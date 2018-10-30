@@ -45,6 +45,8 @@ std::pair<int, int> toJI(int);
 
 bool isTrunk(Position *);
 
+void debugInput();
+
 } // namespace go
 
 #endif

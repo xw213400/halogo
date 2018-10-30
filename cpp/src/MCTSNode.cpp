@@ -27,7 +27,6 @@ void MCTSNode::init(Policy *policy, MCTSNode *pParent, Position *position)
     _positions.clear();
     if (_position->passCount() < 2)
     {
-        _positions.push_back(_position->move(go::PASS));
         policy->get(_position, _positions);
     }
 

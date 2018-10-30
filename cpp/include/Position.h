@@ -12,6 +12,8 @@ class Position
 
     Position *move(int);
 
+    void updateInputBoard(void);
+
     float territory(int);
 
     float score();
