@@ -23,7 +23,8 @@ Output Resnet::residualBlock(Input x, int in_channel, int out_channel)
 
 void Resnet::resnet(int num_planes)
 {
-    Output x = ops::Const<float>(_scope.WithOpName("x"), DT_FLOAT, {1, go::N, go::N, 1});
+    auto x = ops::Placeholder(_scope.WithOpName("xx"), DT_FLOAT,
+                              ops::Placeholder::Shape(TensorShape({1, go::N, go::N, 1})));
 
     auto block0 = conv5x5(x, 1, num_planes);
 
@@ -36,11 +37,11 @@ void Resnet::resnet(int num_planes)
     auto filter = ops::Variable(_scope, {1, 1, num_planes, 4}, DT_FLOAT);
     auto classifier = ops::Conv2D(_scope, block5, filter, {1, 1, 1, 1}, "VALID");
 
-    // auto shape = ops::Variable(_scope, {go::LN * 4}, DT_FLOAT);
-    // auto flat = ops::Reshape(_scope, classifier, shape);
+    auto flat = ops::Reshape(_scope, classifier, {1, go::LN * 4});
 
-    // auto weight = ops::Variable(_scope, {go::LN * 4, go::LN + 1}, DT_FLOAT);
-    // auto fc = ops::MatMul(_scope.WithOpName("y"), flat, weight);
+    auto weight = ops::Variable(_scope, TensorShape({go::LN * 4, go::LN + 1}), DT_FLOAT);
+    auto assign_wieight = ops::Assign(_scope, weight, ops::RandomNormal(_scope, {go::LN * 4, go::LN + 1}, DT_FLOAT));
+    auto fc = ops::MatMul(_scope.WithOpName("fc"), flat, weight);
 }
 
 Resnet::Resnet(float puct) : Policy(puct), _scope(Scope::NewRootScope())
@@ -70,7 +71,8 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
 {
     position->updateInputBoard();
     std::vector<Tensor> outputs;
-    _session->Run({{"x", go::INPUT_BOARD}}, {"y"}, {}, &outputs);
+
+    TF_CHECK_OK(_session->Run({{"xx", go::INPUT_BOARD}}, {"fc"}, {}, &outputs));
 
     position->updateGroup();
 
@@ -109,7 +111,7 @@ float Resnet::sim(Position *position)
     {
         position->updateInputBoard();
         std::vector<Tensor> outputs;
-        _session->Run({{"input", go::INPUT_BOARD}}, {"output:0"}, {}, &outputs);
+        // _session->Run({ go::INPUT_BOARD}, {"output:0"}, {}, &outputs);
 
         position->updateGroup();
 
@@ -155,4 +157,37 @@ float Resnet::sim(Position *position)
 void Resnet::clear()
 {
     _hash.clear();
+}
+
+void Resnet::quickSort(float *arr, int l, int r, int *idx)
+{
+    float tempa;
+    int tempi;
+    int i, j, x;
+    if (l < r)
+    {
+        i = l;
+        j = r;
+        x = arr[(l + r) / 2];
+        while (1)
+        {
+            while (i <= r && arr[i] < x)
+                i++;
+            while (j >= 0 && arr[j] > x)
+                j--;
+            if (i >= j)
+                break;
+            else
+            {
+                tempa = arr[i];
+                arr[i] = arr[j];
+                arr[j] = tempa;
+                tempi = idx[i];
+                idx[i] = idx[j];
+                idx[j] = tempi;
+            }
+        }
+        quickSort(arr, l, i - 1, idx);
+        quickSort(arr, j + 1, r, idx);
+    }
 }

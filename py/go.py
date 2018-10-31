@@ -1,5 +1,4 @@
 
-import torch
 import random
 import json
 # Represent a board as a numpy array, with 0 empty, 1 is black, -1 is white.
@@ -42,8 +41,6 @@ CODE_BLACK = None
 CODE_KO = None
 CODE_SWAP = random.getrandbits(64)
 
-INPUT_BOARD = None
-
 class Group:
     def __init__(self, v):
         self.stones = [v]
@@ -77,28 +74,6 @@ class Position:
         self.hash_code = 0
         self.parent = None
         self.dirty = True
-
-    # prepare input plane for resnet
-    # INPUT_BOARD[0]: enemy:-1, empty:0, self:1, ko: 2
-    def input_board(self):
-        global POSITION_POOL, INPUT_BOARD
-
-        c = 0
-        x = 0
-        y = 0
-        while c < LN:
-            v = COORDS[c]
-
-            if v == self.ko:
-                INPUT_BOARD[0, 0, y, x] = 2
-            else:
-                INPUT_BOARD[0, 0, y, x] = self.board[v] * self.next
-
-            x += 1
-            if x == N:
-                y += 1
-                x = 0
-            c = y * N + x
 
     def init_hash_code(self):
         self.hash_code = 0
@@ -460,7 +435,6 @@ class Position:
 def init(n):
     global N, M, LN, LM, UP, DOWN, LEFTUP, LEFTDOWN, RIGHTUP, RIGHTDOWN, FLAGS, EMPTY_BOARD, COORDS, FRONTIER, FLAG, NEIGHBORS
     global POSITION, POSITION_POOL, CODE_WHITE, CODE_BLACK, CODE_KO
-    global INPUT_BOARD
     N = n
     M = N + 1
     LN = N * N
@@ -497,8 +471,6 @@ def init(n):
             CODE_WHITE[v] = random.getrandbits(64)
             CODE_BLACK[v] = random.getrandbits(64)
             CODE_KO[v] = random.getrandbits(64)
-
-    INPUT_BOARD = torch.zeros(1, 1, N, N)
 
     POSITION_POOL = []
     i = 0
@@ -540,26 +512,6 @@ def is_trunk(position):
             return True
         trunk = trunk.parent
     return False
-
-def print_input(self):
-    i = N
-    s = "\n"
-    while i > 0:
-        s += str(i).zfill(2) + " "
-        i -= 1
-        j = 0
-        while j < N:
-            s += str(int(INPUT_BOARD[0, 0, i, j])) + " "
-            j += 1
-        s += "\n"
-
-    s += "   "
-    while i < N:
-        s += "{} ".format("ABCDEFGHJKLMNOPQRSTYVWYZ"[i])
-        i += 1
-
-    s += "\n"
-    print(s)
 
 def get_step():
     step = 0

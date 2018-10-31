@@ -10,6 +10,7 @@ import random
 import math
 
 MOVES = [0] * go.LN
+INPUT_BOARD = torch.zeros(1, 1, go.N, go.N)
 
 def conv5x5(in_channel, out_channel):
     return nn.Conv2d(in_channel, out_channel, 5, stride=1, padding=2, bias=False)
@@ -69,16 +70,38 @@ class Policy():
         if os.path.isfile(pars):
             self.resnet.load_state_dict(torch.load(pars))
 
+    # prepare input plane for resnet
+    # INPUT_BOARD[0]: enemy:-1, empty:0, self:1, ko: 2
+    def input_board(self, position):
+        global INPUT_BOARD
+
+        c = 0
+        x = 0
+        y = 0
+        while c < go.LN:
+            v = go.COORDS[c]
+
+            if v == position.ko:
+                INPUT_BOARD[0, 0, y, x] = 2
+            else:
+                INPUT_BOARD[0, 0, y, x] = position.board[v] * position.next
+
+            x += 1
+            if x == go.N:
+                y += 1
+                x = 0
+            c = y * go.N + x
+
     def get(self, position):
-        position.input_board()
+        self.input_board(position)
 
         x = None
         out = None
         if torch.cuda.is_available():
-            x = Variable(go.INPUT_BOARD).cuda()
+            x = Variable(INPUT_BOARD).cuda()
             out = self.resnet(x)[0].data.cpu().numpy()
         else:
-            x = Variable(go.INPUT_BOARD)
+            x = Variable(INPUT_BOARD)
             out = self.resnet(x)[0].data.numpy()
 
         position.update_group()
@@ -105,15 +128,15 @@ class Policy():
         pos = position
 
         while pos.pass_count() < 2:
-            pos.input_board()
+            self.input_board(pos)
 
             x = None
             out = None
             if torch.cuda.is_available():
-                x = Variable(go.INPUT_BOARD).cuda()
+                x = Variable(INPUT_BOARD).cuda()
                 out = self.resnet(x)[0].data.cpu().numpy()
             else:
-                x = Variable(go.INPUT_BOARD)
+                x = Variable(INPUT_BOARD)
                 out = self.resnet(x)[0].data.numpy()
 
             cs = np.argsort(out)
@@ -173,8 +196,8 @@ class Policy():
 
                     target_data[j] = v
 
-                    pos.parent.input_board()
-                    input_data[j].copy_(go.INPUT_BOARD[0])
+                    self.input_board(pos.parent)
+                    input_data[j].copy_(INPUT_BOARD[0])
 
                     j += 1
 
@@ -206,14 +229,14 @@ class Policy():
                 p, q = go.toJI(pos.vertex)
                 v = q * go.N + p - go.N - 1
 
-            pos.parent.input_board()
+            self.input_board(pos.parent)
 
             y = None
             if torch.cuda.is_available():
-                x = Variable(go.INPUT_BOARD).cuda()
+                x = Variable(INPUT_BOARD).cuda()
                 y = self.resnet(x).data.cpu()
             else:
-                x = Variable(go.INPUT_BOARD)
+                x = Variable(INPUT_BOARD)
                 y = self.resnet(x).data
 
             _, predicted = torch.max(y, 1)
@@ -224,3 +247,22 @@ class Policy():
         n = len(positions)
         print('Right:%d, N:%d, Rate: %.1f' % (right, n, right/n*100))
 
+def print_input(self):
+    i = go.N
+    s = "\n"
+    while i > 0:
+        s += str(i).zfill(2) + " "
+        i -= 1
+        j = 0
+        while j < go.N:
+            s += str(int(INPUT_BOARD[0, 0, i, j])) + " "
+            j += 1
+        s += "\n"
+
+    s += "   "
+    while i < go.N:
+        s += "{} ".format("ABCDEFGHJKLMNOPQRSTYVWYZ"[i])
+        i += 1
+
+    s += "\n"
+    print(s)
