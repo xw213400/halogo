@@ -3,7 +3,6 @@
 
 #include "Pool.h"
 #include "Position.h"
-#include "tensorflow/core/framework/tensor.h"
 
 namespace go
 {
@@ -35,8 +34,6 @@ extern Pool<Position> POSITION_POOL;
 extern Position *POSITION;
 extern Group *GROUP_FLAG;
 
-extern tensorflow::Tensor INPUT_BOARD;
-
 void init();
 
 void clear();
@@ -44,8 +41,6 @@ void clear();
 std::pair<int, int> toJI(int);
 
 bool isTrunk(Position *);
-
-void debugInput();
 
 } // namespace go
 

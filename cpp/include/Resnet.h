@@ -28,11 +28,17 @@ class Resnet : public Policy
 
     void quickSort(float *arr, int l, int r, int* idx);
 
+    void updateInputBoard(Position*);
+
+    void debugInput();
+
     tensorflow::Session *_session;
     tensorflow::Scope _scope;
     tensorflow::GraphDef _def;
     std::unordered_map<uint64_t, float> _hash;
     int* _sortArray;
+
+    static tensorflow::Tensor INPUT_BOARD;
 };
 
 #endif

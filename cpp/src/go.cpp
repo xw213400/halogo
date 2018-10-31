@@ -4,7 +4,6 @@
 #include "MCTSPlayer.h"
 
 using namespace std;
-using namespace tensorflow;
 
 namespace go
 {
@@ -46,8 +45,6 @@ uint64_t CODE_SWAP = 0;
 Pool<Position> POSITION_POOL("POSITION");
 Position *POSITION = nullptr;
 Group *GROUP_FLAG = new Group();
-
-Tensor INPUT_BOARD(DT_FLOAT, {1, N, N, 1});
 
 } // namespace go
 
@@ -119,49 +116,4 @@ void go::clear(void)
     }
 
     POSITION->clear();
-}
-
-void go::debugInput()
-{
-    int i = N;
-    string s = "\n";
-    while (i > 0)
-    {
-        s += (i < 10 ? "0" : "") + to_string(i) + " ";
-        i--;
-        int j = 0;
-        while (j < N)
-        {
-            int idx = i * N + j;
-            int8_t c = INPUT_BOARD.flat<float>()(idx);
-            j += 1;
-            if (c == BLACK)
-            {
-                s += "X ";
-            }
-            else if (c == WHITE)
-            {
-                s += "O ";
-            }
-            else if (c == WALL) //KO
-            {
-                s += "# ";
-            }
-            else
-            {
-                s += "+ ";
-            }
-        }
-        s += "\n";
-    }
-
-    string x_ = "ABCDEFGHJKLMNOPQRSTYVWYZ";
-    s += "   ";
-    while (i < N)
-    {
-        s += x_.substr(i, 1) + " ";
-        i++;
-    }
-
-    cout << s << endl;
 }

@@ -6,6 +6,8 @@
 using namespace std;
 using namespace tensorflow;
 
+Tensor Resnet::INPUT_BOARD(DT_FLOAT, {1, go::N, go::N, 1});
+
 Output Resnet::conv5x5(Input x, int in_channel, int out_channel)
 {
     auto filter = ops::Variable(_scope, {5, 5, in_channel, out_channel}, DT_FLOAT);
@@ -69,10 +71,10 @@ Resnet::Resnet(float puct) : Policy(puct), _scope(Scope::NewRootScope())
 
 void Resnet::get(Position *position, std::vector<Position *> &positions)
 {
-    position->updateInputBoard();
+    updateInputBoard(position);
     std::vector<Tensor> outputs;
 
-    TF_CHECK_OK(_session->Run({{"xx", go::INPUT_BOARD}}, {"fc"}, {}, &outputs));
+    // TF_CHECK_OK(_session->Run({{"xx", go::INPUT_BOARD}}, {"fc"}, {}, &outputs));
 
     position->updateGroup();
 
@@ -109,7 +111,7 @@ float Resnet::sim(Position *position)
 
     while (pos->passCount() < 2)
     {
-        position->updateInputBoard();
+        updateInputBoard(position);
         std::vector<Tensor> outputs;
         // _session->Run({ go::INPUT_BOARD}, {"output:0"}, {}, &outputs);
 
@@ -159,6 +161,19 @@ void Resnet::clear()
     _hash.clear();
 }
 
+void Resnet::updateInputBoard(Position* position) {
+    for (int i = 0; i != go::LN; ++i)
+    {
+        int v = go::COORDS[i];
+
+        if (v == position->ko()) {
+            INPUT_BOARD.flat<float>()(i) = 2.0f;
+        } else {
+            INPUT_BOARD.flat<float>()(i) = position->boardi(v) * position->next();
+        }
+    }
+}
+
 void Resnet::quickSort(float *arr, int l, int r, int *idx)
 {
     float tempa;
@@ -190,4 +205,49 @@ void Resnet::quickSort(float *arr, int l, int r, int *idx)
         quickSort(arr, l, i - 1, idx);
         quickSort(arr, j + 1, r, idx);
     }
+}
+
+void Resnet::debugInput()
+{
+    int i = go::N;
+    string s = "\n";
+    while (i > 0)
+    {
+        s += (i < 10 ? "0" : "") + to_string(i) + " ";
+        i--;
+        int j = 0;
+        while (j < go::N)
+        {
+            int idx = i * go::N + j;
+            int8_t c = INPUT_BOARD.flat<float>()(idx);
+            j += 1;
+            if (c == go::BLACK)
+            {
+                s += "X ";
+            }
+            else if (c == go::WHITE)
+            {
+                s += "O ";
+            }
+            else if (c == go::WALL) //KO
+            {
+                s += "# ";
+            }
+            else
+            {
+                s += "+ ";
+            }
+        }
+        s += "\n";
+    }
+
+    string x_ = "ABCDEFGHJKLMNOPQRSTYVWYZ";
+    s += "   ";
+    while (i < go::N)
+    {
+        s += x_.substr(i, 1) + " ";
+        i++;
+    }
+
+    cout << s << endl;
 }

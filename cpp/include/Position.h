@@ -12,8 +12,6 @@ class Position
 
     Position *move(int);
 
-    void updateInputBoard(void);
-
     float territory(int);
 
     float score();
@@ -34,6 +32,16 @@ class Position
     inline int8_t next()
     {
         return _next;
+    }
+
+    inline int8_t boardi(int i)
+    {
+        return _board[i];
+    }
+
+    inline int ko()
+    {
+        return _ko;
     }
 
     inline void parent(Position *pos)
