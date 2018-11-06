@@ -39,7 +39,7 @@ def Residual_block(board, input_channel, output_channel):
     return tf.nn.relu(out)
 
 
-def resnet(batch, board, num_planes=32):
+def resnet(board, num_planes=32):
     kernel = tf.random_normal([5, 5, 1, num_planes])
     conv0 = tf.nn.conv2d(board, kernel, [1, 1, 1, 1], 'SAME')
     conv1 = Residual_block(conv0, num_planes, num_planes)
@@ -49,19 +49,25 @@ def resnet(batch, board, num_planes=32):
     conv5 = Residual_block(conv4, num_planes, num_planes)
     kernel2 = tf.random_normal([1, 1, num_planes, 4])
     conv6 = tf.nn.conv2d(conv5, kernel2, [1, 1, 1, 1], 'VALID')
-    linear = tf.reshape(conv6, [batch, -1])
+    linear = tf.reshape(conv6, [10, -1])
     weight = tf.Variable(tf.random_normal([go.LN*4, go.LN+1]))
-
-    return tf.matmul(linear, weight)
-
+    pooling = tf.matmul(linear, weight)
+    return tf.nn.softmax(pooling)
 
 def train(positions, epoch=1):
+    board = tf.placeholder(tf.float32, [None, go.N, go.N, 1])
+    labels = tf.placeholder(tf.float32, [None, go.LN+1])
+
+    predict = resnet(board)
+
+    cross_entropy = tf.reduce_mean(-tf.reduce_sum(labels *
+                                                  tf.log(predict), reduction_indices=[1]))
+    train_step = tf.train.GradientDescentOptimizer(
+        0.01).minimize(cross_entropy)
+
     sess = tf.Session()
     init = tf.global_variables_initializer()
     sess.run(init)
-
-    # tf.summary.scalar('loss', loss)
-    optimizer = tf.train.GradientDescentOptimizer(0.001)
 
     for e in range(epoch):
         batch = 10
@@ -71,9 +77,9 @@ def train(positions, epoch=1):
         random.shuffle(positions)
         while i < n:
             j = 0
-            y_data = np.zeros(batch, dtype=np.float32)
-            board = tf.placeholder(tf.float32, [batch, go.N, go.N, 1])
-            input_data = np.zeros(
+            y_data = np.zeros(
+                batch*(go.LN+1), dtype=np.float32).reshape(batch, go.LN+1)
+            x_data = np.zeros(
                 batch*go.LN, dtype=np.float32).reshape(batch, go.N, go.N, 1)
             while j < batch:
                 k = i * batch + j
@@ -83,25 +89,25 @@ def train(positions, epoch=1):
                     p, q = go.toJI(pos.vertex)
                     v = q * go.N + p - go.N - 1
 
-                y_data[j] = v
-                input_board(pos.parent, input_data[j])
+                y_data[j][v] = 1
+                input_board(pos.parent, x_data[j])
 
                 j += 1
 
-            predict = resnet(batch, board)
-            y = sess.run(predict, feed_dict={board: input_data})
-
-            loss = tf.losses.softmax_cross_entropy(y, y_data)
-            train = optimizer.minimize(loss)
-
-            sess.run(train)
+            sess.run(train_step, feed_dict={labels: y_data, board: x_data})
 
             i += 1
-            running_loss += sess.run(loss)
-            if i % 100 == 0 or i == n:
-                print('epoch: %d, i:%d, loss %.3f' %
-                      (e, i*batch, running_loss / 100))
-                running_loss = 0.0
+            if i % 10 == 0:
+                y_pre = sess.run(predict, feed_dict={board: x_data})
+                correct_prediction = tf.equal(tf.argmax(y_pre,1), tf.argmax(y_data,1))
+                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+                result = sess.run(accuracy, feed_dict={labels: y_data, board: x_data})
+                print(result)
+            # running_loss += sess.run(cross_entropy, feed_dict={labels: y_data, board: x_data})
+            # if i % 100 == 0 or i == n:
+            #     print('epoch: %d, i:%d, loss %.3f' %
+            #           (e, i*batch, running_loss / 100))
+            #     running_loss = 0.0
 
 
 def main(path, epoch=1):
