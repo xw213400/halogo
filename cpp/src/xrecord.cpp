@@ -10,7 +10,7 @@
 #include "RandMove.h"
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
-#include "Resnet.h"
+// #include "Resnet.h"
 
 using namespace std;
 using namespace rapidjson;
@@ -34,8 +34,8 @@ int main(int argc, char *argv[])
     go::init();
 
     MCTSPlayer *playerA = new MCTSPlayer(6000, new RandMove(0.5f));
-    // MCTSPlayer *playerB = new MCTSPlayer(6000, new RandMove(0.5f));
-    MCTSPlayer *playerB = new MCTSPlayer(6000, new Resnet(0.5f));
+    MCTSPlayer *playerB = new MCTSPlayer(6000, new RandMove(0.5f));
+    // MCTSPlayer *playerB = new MCTSPlayer(6000, new Resnet(0.5f));
 
     int a_win = 0;
     int b_win = 0;

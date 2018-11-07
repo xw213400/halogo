@@ -38,8 +38,12 @@ def Residual_block(board, input_channel, output_channel):
     out = tf.add(conv, board)
     return tf.nn.relu(out)
 
+def train(positions, epoch=1):
+    board = tf.placeholder(tf.float32, [None, go.N, go.N, 1])
+    labels = tf.placeholder(tf.float32, [None, go.LN+1])
 
-def resnet(board, num_planes=32):
+    num_planes = 32
+
     kernel = tf.random_normal([5, 5, 1, num_planes])
     conv0 = tf.nn.conv2d(board, kernel, [1, 1, 1, 1], 'SAME')
     conv1 = Residual_block(conv0, num_planes, num_planes)
@@ -49,22 +53,16 @@ def resnet(board, num_planes=32):
     conv5 = Residual_block(conv4, num_planes, num_planes)
     kernel2 = tf.random_normal([1, 1, num_planes, 4])
     conv6 = tf.nn.conv2d(conv5, kernel2, [1, 1, 1, 1], 'VALID')
-    linear = tf.reshape(conv6, [10, -1])
+    linear = tf.reshape(conv6, [-1, go.LN*4])
     weight = tf.Variable(tf.random_normal([go.LN*4, go.LN+1]))
-    pooling = tf.matmul(linear, weight)
-    return tf.nn.softmax(pooling)
+    predict = tf.matmul(linear, weight)
 
-def train(positions, epoch=1):
-    board = tf.placeholder(tf.float32, [None, go.N, go.N, 1])
-    labels = tf.placeholder(tf.float32, [None, go.LN+1])
-
-    predict = resnet(board)
-
+    softmax = tf.nn.softmax(predict)
     cross_entropy = tf.reduce_mean(-tf.reduce_sum(labels *
-                                                  tf.log(predict), reduction_indices=[1]))
+                                                  tf.log(softmax+0.0000000001), reduction_indices=[1]))
     train_step = tf.train.GradientDescentOptimizer(
         0.01).minimize(cross_entropy)
-
+    
     sess = tf.Session()
     init = tf.global_variables_initializer()
     sess.run(init)
@@ -73,7 +71,7 @@ def train(positions, epoch=1):
         batch = 10
         n = math.floor(len(positions)/batch)
         i = 0
-        running_loss = 0.0
+
         random.shuffle(positions)
         while i < n:
             j = 0
@@ -95,19 +93,9 @@ def train(positions, epoch=1):
                 j += 1
 
             sess.run(train_step, feed_dict={labels: y_data, board: x_data})
+            print(sess.run(softmax, feed_dict={board: x_data}))
 
             i += 1
-            if i % 10 == 0:
-                y_pre = sess.run(predict, feed_dict={board: x_data})
-                correct_prediction = tf.equal(tf.argmax(y_pre,1), tf.argmax(y_data,1))
-                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-                result = sess.run(accuracy, feed_dict={labels: y_data, board: x_data})
-                print(result)
-            # running_loss += sess.run(cross_entropy, feed_dict={labels: y_data, board: x_data})
-            # if i % 100 == 0 or i == n:
-            #     print('epoch: %d, i:%d, loss %.3f' %
-            #           (e, i*batch, running_loss / 100))
-            #     running_loss = 0.0
 
 
 def main(path, epoch=1):
