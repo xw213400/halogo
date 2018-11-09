@@ -62,12 +62,10 @@ def train(positions, epoch=1):
         labels=labels, logits=predict)
     cross_entropy = tf.reduce_mean(cross_entropy)
 
-    # softmax = tf.nn.softmax(predict)
-    # cross_entropy = tf.reduce_mean(-tf.reduce_sum(labels *
-    #                                               tf.log(softmax+0.0000000001), reduction_indices=[1]))
     train_step = tf.train.GradientDescentOptimizer(
         0.01).minimize(cross_entropy)
 
+    saver = tf.train.Saver(max_to_keep=2)
     sess = tf.Session()
     init = tf.global_variables_initializer()
     sess.run(init)
@@ -98,9 +96,45 @@ def train(positions, epoch=1):
                 j += 1
 
             sess.run(train_step, feed_dict={labels: y_data, board: x_data})
-            # print(sess.run(softmax, feed_dict={board: x_data}))
 
             i += 1
+
+        print("epoch: %d" % e)
+        saver.save(sess, './module/goai_tf', global_step=e+1)
+
+def test(positions):
+    board = tf.placeholder(tf.float32, [None, go.N, go.N, 1])
+
+    num_planes = 32
+
+    kernel = tf.random_normal([5, 5, 1, num_planes])
+    conv0 = tf.nn.conv2d(board, kernel, [1, 1, 1, 1], 'SAME')
+    conv1 = Residual_block(conv0, num_planes, num_planes)
+    conv2 = Residual_block(conv1, num_planes, num_planes)
+    conv3 = Residual_block(conv2, num_planes, num_planes)
+    conv4 = Residual_block(conv3, num_planes, num_planes)
+    conv5 = Residual_block(conv4, num_planes, num_planes)
+    kernel2 = tf.random_normal([1, 1, num_planes, 4])
+    conv6 = tf.nn.conv2d(conv5, kernel2, [1, 1, 1, 1], 'VALID')
+    linear = tf.reshape(conv6, [-1, go.LN * 4])
+    weight = tf.Variable(tf.random_normal([go.LN * 4, go.LN + 1]))
+    predict = tf.matmul(linear, weight)
+
+
+    model_file = tf.train.latest_checkpoint('./module/')
+    saver = tf.train.Saver()
+    sess = tf.Session()
+    init = tf.global_variables_initializer()
+    sess.run(init)
+    saver.restore(sess, model_file)
+
+    for pos in positions:
+        if pos.vertex != 0:
+            x_data = np.zeros(go.LN, dtype=np.float32).reshape(1, go.N, go.N, 1)
+            p, q = go.toJI(pos.vertex)
+            v = q * go.N + p - go.N - 1
+            input_board(pos.parent, x_data[0])
+            prediction = sess.run(predict, feed_dict={board: x_data})
 
 
 def main(path, epoch=1):
