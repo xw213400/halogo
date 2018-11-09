@@ -22,15 +22,12 @@ class Resnet : public Policy
   private:
     void resnet(int num_planes = 30);
 
-    void quickSort(const std::vector<double>& arr, int l, int r, int* idx);
-
     void updateInputBoard(Position*);
 
     void debugInput();
 
     std::shared_ptr<torch::jit::script::Module> _module;
     std::unordered_map<uint64_t, float> _hash;
-    int* _sortArray;
 
     static torch::Tensor INPUT_BOARD;
 };

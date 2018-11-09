@@ -4,6 +4,11 @@
 
 using namespace std;
 
+bool comp(const pair<float, int>& a, const pair<float, int>& b)
+{
+    return a.first > b.first;
+}
+
 torch::Tensor Resnet::INPUT_BOARD(torch::zeros({1, 1, go::N, go::N}));
 
 Resnet::Resnet(float puct, const std::string &model) : Policy(puct)
@@ -18,23 +23,31 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
     vector<torch::jit::IValue> inputs;
     inputs.push_back(INPUT_BOARD);
 
-    auto outputs = _module->forward(inputs);
-    auto datalist = outputs.toDoubleListRef();
+    auto outputs = _module->forward(inputs).toTensor();
+    auto outdata = outputs.accessor<float, 2>()[0];
+    vector<pair<float, int>> datas(go::LN + 1);
 
     for (int i = 0; i <= go::LN; ++i)
     {
-        _sortArray[i] = i;
+        datas[i] = make_pair(outdata[i], i);
     }
 
-    quickSort(datalist, 0, go::LN, _sortArray);
+    sort(datas.begin(), datas.end(), comp);
+
+    // cout << "+++++++++++" << endl;
+    // for (int i = 0; i <= go::LN; ++i)
+    // {
+    //     auto p = datas[i];
+    //     cout << i << "  " << p.second << "  " << p.first << endl;
+    // }
 
     position->updateGroup();
     positions.push_back(position->move(go::PASS));
     for (int i = 0; i <= go::LN; ++i)
     {
-        if (_sortArray[i] != go::LN)
+        if (datas[i].second != go::LN)
         {
-            int v = go::COORDS[_sortArray[i]];
+            int v = go::COORDS[datas[i].second];
             Position *pos = position->move(v);
             if (pos != nullptr)
             {
@@ -60,21 +73,25 @@ float Resnet::sim(Position *position)
 
         vector<torch::jit::IValue> inputs;
         inputs.push_back(INPUT_BOARD);
-        auto outputs = _module->forward(inputs).toDoubleListRef();
+
+        auto outputs = _module->forward(inputs).toTensor();
+        auto outdata = outputs.accessor<float, 2>()[0];
+        vector<pair<float, int>> datas(go::LN + 1);
 
         for (int i = 0; i <= go::LN; ++i)
         {
-            _sortArray[i] = i;
+            datas[i] = make_pair(outdata[i], i);
         }
-        quickSort(outputs, 0, go::LN, _sortArray);
+
+        sort(datas.begin(), datas.end(), comp);
 
         position->updateGroup();
         Position *pp = nullptr;
         for (int i = 0; i <= go::LN; ++i)
         {
-            if (_sortArray[i] != go::LN)
+            if (datas[i].second != go::LN)
             {
-                int v = go::COORDS[_sortArray[i]];
+                int v = go::COORDS[datas[i].second];
                 pp = pos->move(v);
                 if (pp != nullptr)
                 {
@@ -132,35 +149,6 @@ void Resnet::updateInputBoard(Position *position)
             x = 0;
         }
         c = y * go::N + x;
-    }
-}
-
-void Resnet::quickSort(const std::vector<double> &arr, int l, int r, int *idx)
-{
-    int tempi;
-    int i, j, x;
-    if (l < r)
-    {
-        i = l;
-        j = r;
-        x = arr[idx[(l + r) / 2]];
-        while (1)
-        {
-            while (i <= r && arr[idx[i]] < x)
-                i++;
-            while (j >= 0 && arr[idx[j]] > x)
-                j--;
-            if (i >= j)
-                break;
-            else
-            {
-                tempi = idx[i];
-                idx[i] = idx[j];
-                idx[j] = tempi;
-            }
-        }
-        quickSort(arr, l, i - 1, idx);
-        quickSort(arr, j + 1, r, idx);
     }
 }
 
