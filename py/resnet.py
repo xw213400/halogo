@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import numpy as np
 import go
 import torch
@@ -8,6 +10,7 @@ import torch.optim as optim
 import os.path
 import random
 import math
+from torch.jit import ScriptModule, script_method, trace
 
 MOVES = [0] * go.LN
 INPUT_BOARD = torch.zeros(1, 1, go.N, go.N)
@@ -15,44 +18,24 @@ INPUT_BOARD = torch.zeros(1, 1, go.N, go.N)
 def conv5x5(in_channel, out_channel):
     return nn.Conv2d(in_channel, out_channel, 5, stride=1, padding=2, bias=False)
 
-
-class Residual_block(nn.Module):
-    def __init__(self, in_channel, out_channel):
-        super(Residual_block, self).__init__()
-
-        self.conv = conv5x5(in_channel, out_channel)
-        # self.bn = nn.BatchNorm2d(out_channel)
-
-    def forward(self, x):
-        out = self.conv(x) + x
-        out = F.relu(out, True)
-        # out = self.bn(out)
-
-        return out
-
-
-class Resnet(nn.Module):
+# class Resnet(nn.Module):
+class Resnet(ScriptModule):
     def __init__(self, num_planes):
         super(Resnet, self).__init__()
 
-        self.entry_block = conv5x5(1, num_planes)
+        self.entryblock = trace(conv5x5(1, num_planes), torch.rand(1, 1, go.N, go.N))
+        self.rbconv = trace(conv5x5(num_planes, num_planes), torch.rand(1, num_planes, go.N, go.N))
+        self.classifier = trace(nn.Conv2d(num_planes, 4, 1, stride=1), torch.rand(1, 32, go.N, go.N))
+        self.fc = trace(nn.Linear(go.LN * 4, go.LN + 1), torch.rand(324))
 
-        self.residual_layers = nn.Sequential(
-            Residual_block(num_planes, num_planes),
-            Residual_block(num_planes, num_planes),
-            Residual_block(num_planes, num_planes),
-            Residual_block(num_planes, num_planes),
-            # Residual_block(num_planes, num_planes),
-            # Residual_block(num_planes, num_planes),
-            Residual_block(num_planes, num_planes)
-        )
-
-        self.classifier = nn.Conv2d(num_planes, 4, 1, stride=1)
-        self.fc = nn.Linear(go.LN * 4, go.LN + 1)
-
+    @script_method
     def forward(self, x):
-        out = self.entry_block(x)
-        out = self.residual_layers(out)
+        out = self.entryblock(x)
+        out = F.relu(self.rbconv(out) + out)
+        out = F.relu(self.rbconv(out) + out)
+        out = F.relu(self.rbconv(out) + out)
+        out = F.relu(self.rbconv(out) + out)
+        out = F.relu(self.rbconv(out) + out)
         out = self.classifier(out)
         out = out.view(-1, go.LN * 4)
         out = self.fc(out)
@@ -216,7 +199,7 @@ class Policy():
                 self.optimizer.step()
 
                 i += 1
-                running_loss += loss.data[0]
+                running_loss += loss.item()
                 if i % 100 == 0 or i == n:
                     print('epoch: %d, i:%d, loss %.3f' % (e, i*batch, running_loss / 100))
                     running_loss = 0.0

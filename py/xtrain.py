@@ -30,7 +30,8 @@ def main(path, epoch=1):
                 s += 1
 
     policy.train(positions, epoch)
-    torch.save(policy.resnet.state_dict(), path+'resnet_pars.pkl')
+    # torch.save(policy.resnet.state_dict(), path+'resnet_pars.pkl')
+    policy.resnet.save(path+'goai.pt')
     
 
 if __name__ == '__main__':

@@ -10,7 +10,7 @@ set(CMAKE_BUILD_TYPE "Debug")
 
 include_directories (include third_party)
 include_directories(../../tensorflow ../../tensorflow/bazel-genfiles)
-include_directories(../../libtorch)
+include_directories(third_party/libtorch/include)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
