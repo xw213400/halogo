@@ -32,119 +32,107 @@ def input_board(position, board):
 
 
 def Residual_block(board, input_channel, output_channel):
-    kernel = tf.random_normal([5, 5, input_channel, output_channel])
+    kernel = tf.random_normal([5, 5, input_channel, output_channel], stddev=0.005)
     conv = tf.nn.conv2d(board, kernel, [
                         1, 1, 1, 1], 'SAME')
     out = tf.add(conv, board)
     return tf.nn.relu(out)
 
 
-def train(positions, epoch=1):
-    board = tf.placeholder(tf.float32, [None, go.N, go.N, 1])
-    labels = tf.placeholder(tf.float32, [None, go.LN + 1])
+def train(trainset, evalset, epoch=1):
+    with tf.Graph().as_default():
 
-    num_planes = 32
+        board = tf.placeholder(tf.float32, [None, go.N, go.N, 1])
+        labels = tf.placeholder(tf.int32, [None])
 
-    kernel = tf.random_normal([5, 5, 1, num_planes])
-    conv0 = tf.nn.conv2d(board, kernel, [1, 1, 1, 1], 'SAME')
-    conv1 = Residual_block(conv0, num_planes, num_planes)
-    conv2 = Residual_block(conv1, num_planes, num_planes)
-    conv3 = Residual_block(conv2, num_planes, num_planes)
-    conv4 = Residual_block(conv3, num_planes, num_planes)
-    conv5 = Residual_block(conv4, num_planes, num_planes)
-    kernel2 = tf.random_normal([1, 1, num_planes, 4])
-    conv6 = tf.nn.conv2d(conv5, kernel2, [1, 1, 1, 1], 'VALID')
-    linear = tf.reshape(conv6, [-1, go.LN * 4])
-    weight = tf.Variable(tf.random_normal([go.LN * 4, go.LN + 1]))
-    predict = tf.matmul(linear, weight)
+        num_planes = 32
 
-    cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(
-        labels=labels, logits=predict)
-    cross_entropy = tf.reduce_mean(cross_entropy)
+        kernel = tf.random_normal([5, 5, 1, num_planes], stddev=0.005)
+        conv0 = tf.nn.conv2d(board, kernel, [1, 1, 1, 1], 'SAME')
+        conv1 = Residual_block(conv0, num_planes, num_planes)
+        conv2 = Residual_block(conv1, num_planes, num_planes)
+        conv3 = Residual_block(conv2, num_planes, num_planes)
+        conv4 = Residual_block(conv3, num_planes, num_planes)
+        conv5 = Residual_block(conv4, num_planes, num_planes)
+        kernel2 = tf.random_normal([1, 1, num_planes, 4], stddev=0.005)
+        conv6 = tf.nn.conv2d(conv5, kernel2, [1, 1, 1, 1], 'VALID')
+        linear = tf.reshape(conv6, [-1, go.LN * 4])
+        weight = tf.Variable(tf.random_normal([go.LN * 4, go.LN + 1], stddev=0.001))
+        predict = tf.matmul(linear, weight)
 
-    train_step = tf.train.GradientDescentOptimizer(
-        0.01).minimize(cross_entropy)
+        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
+            labels=labels, logits=predict)
+        cross_entropy_mean = tf.reduce_mean(cross_entropy)
 
-    saver = tf.train.Saver(max_to_keep=2)
-    sess = tf.Session()
-    init = tf.global_variables_initializer()
-    sess.run(init)
+        # tf.add_to_collection('losses', cross_entropy_mean)
+        # total_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
 
-    for e in range(epoch):
-        batch = 10
-        n = math.floor(len(positions) / batch)
-        i = 0
+        train_step = tf.train.GradientDescentOptimizer(
+            0.0001).compute_gradients(cross_entropy_mean)
 
-        random.shuffle(positions)
-        while i < n:
-            j = 0
-            y_data = np.zeros(
-                batch * (go.LN + 1), dtype=np.float32).reshape(batch, go.LN + 1)
-            x_data = np.zeros(
-                batch * go.LN, dtype=np.float32).reshape(batch, go.N, go.N, 1)
-            while j < batch:
-                k = i * batch + j
-                pos = positions[k]
-                v = go.LN
+        saver = tf.train.Saver(max_to_keep=2)
+        sess = tf.Session()
+        init = tf.global_variables_initializer()
+        sess.run(init)
+
+        for e in range(epoch):
+            batch = 10
+            n = math.floor(len(trainset) / batch)
+            i = 0
+
+            random.shuffle(trainset)
+            while i < n:
+                j = 0
+                y_data = np.zeros(batch, dtype=np.float32)
+                x_data = np.zeros(
+                    batch * go.LN, dtype=np.float32).reshape(batch, go.N, go.N, 1)
+                while j < batch:
+                    k = i * batch + j
+                    pos = trainset[k]
+                    v = go.LN
+                    if pos.vertex != 0:
+                        p, q = go.toJI(pos.vertex)
+                        v = q * go.N + p - go.N - 1
+
+                    y_data[j] = v
+                    input_board(pos.parent, x_data[j])
+
+                    j += 1
+
+                sess.run(train_step, feed_dict={labels: y_data, board: x_data})
+
+                i += 1
+
+            right = 0
+            for pos in evalset:
                 if pos.vertex != 0:
+                    x_data = np.zeros(go.LN, dtype=np.float32).reshape(1, go.N, go.N, 1)
                     p, q = go.toJI(pos.vertex)
                     v = q * go.N + p - go.N - 1
+                    input_board(pos.parent, x_data[0])
+                    prediction = sess.run(predict, feed_dict={board: x_data})
+                    sortedmoves = np.argsort(prediction[0])[::-1]
+                    if v == sortedmoves[0]:
+                        right += 1
 
-                y_data[j][v] = 1
-                input_board(pos.parent, x_data[j])
+            ratio = right/len(evalset)*100.0
 
-                j += 1
+            print("epoch: %d, ratio: %f" % (e, ratio))
 
-            sess.run(train_step, feed_dict={labels: y_data, board: x_data})
-
-            i += 1
-
-        print("epoch: %d" % e)
-        saver.save(sess, './module/goai_tf', global_step=e+1)
-
-def test(positions):
-    board = tf.placeholder(tf.float32, [None, go.N, go.N, 1])
-
-    num_planes = 32
-
-    kernel = tf.random_normal([5, 5, 1, num_planes])
-    conv0 = tf.nn.conv2d(board, kernel, [1, 1, 1, 1], 'SAME')
-    conv1 = Residual_block(conv0, num_planes, num_planes)
-    conv2 = Residual_block(conv1, num_planes, num_planes)
-    conv3 = Residual_block(conv2, num_planes, num_planes)
-    conv4 = Residual_block(conv3, num_planes, num_planes)
-    conv5 = Residual_block(conv4, num_planes, num_planes)
-    kernel2 = tf.random_normal([1, 1, num_planes, 4])
-    conv6 = tf.nn.conv2d(conv5, kernel2, [1, 1, 1, 1], 'VALID')
-    linear = tf.reshape(conv6, [-1, go.LN * 4])
-    weight = tf.Variable(tf.random_normal([go.LN * 4, go.LN + 1]))
-    predict = tf.matmul(linear, weight)
+            saver.save(sess, './module/goai_tf', global_step=e+1)
 
 
-    model_file = tf.train.latest_checkpoint('./module/')
-    saver = tf.train.Saver()
-    sess = tf.Session()
-    init = tf.global_variables_initializer()
-    sess.run(init)
-    saver.restore(sess, model_file)
 
-    for pos in positions:
-        if pos.vertex != 0:
-            x_data = np.zeros(go.LN, dtype=np.float32).reshape(1, go.N, go.N, 1)
-            p, q = go.toJI(pos.vertex)
-            v = q * go.N + p - go.N - 1
-            input_board(pos.parent, x_data[0])
-            prediction = sess.run(predict, feed_dict={board: x_data})
-
-
-def main(path, epoch=1):
+def main(epoch=1):
     sys.setrecursionlimit(500000)
     go.init(9)
 
-    positions = []
-    records = [f for f in listdir(path) if f[-4:] == 'json']
-    for f in records:
-        with open(path + f) as json_data:
+    trainset = []
+    evalset = []
+    trainfiles = [f for f in listdir('../data/train/') if f[-4:] == 'json']
+    testfiles = [f for f in listdir('../data/test/') if f[-4:] == 'json']
+    for f in trainfiles:
+        with open('../data/train/' + f) as json_data:
             record = json.load(json_data)
             s = 0
             parent = go.Position()
@@ -154,21 +142,29 @@ def main(path, epoch=1):
                 position.parent = parent
                 parent = position
                 if position.vertex != 0:
-                    positions.append(position)
+                    trainset.append(position)
                 s += 1
 
-    train(positions, epoch)
+    for f in testfiles:
+        with open('../data/test/' + f) as json_data:
+            record = json.load(json_data)
+            s = 0
+            parent = go.Position()
+            while s < len(record) and s <= go.LN * 0.75:
+                position = go.Position()
+                position.fromJSON(record[s])
+                position.parent = parent
+                parent = position
+                if position.vertex != 0:
+                    evalset.append(position)
+                s += 1
+
+    train(trainset, evalset, epoch)
 
 
 if __name__ == '__main__':
-    path = '../data/'
     epoch = 1
     if len(sys.argv) >= 2:
-        path += sys.argv[1] + '/'
-    if len(sys.argv) >= 3:
-        epoch = int(sys.argv[2])
+        epoch = int(sys.argv[1])
 
-    if path != '../data/':
-        main(path, epoch)
-    else:
-        print('Data is not exist!')
+    main(epoch)
