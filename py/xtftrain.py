@@ -32,7 +32,7 @@ def input_board(position, board):
 
 
 def Residual_block(board, input_channel, output_channel):
-    kernel = tf.random_normal([5, 5, input_channel, output_channel], stddev=0.005)
+    kernel = tf.random_uniform([5, 5, input_channel, output_channel], minval=-0.2, maxval=0.2)
     conv = tf.nn.conv2d(board, kernel, [
                         1, 1, 1, 1], 'SAME')
     out = tf.add(conv, board)
@@ -40,40 +40,35 @@ def Residual_block(board, input_channel, output_channel):
 
 
 def train(trainset, evalset, epoch=1):
-    with tf.Graph().as_default():
+    board = tf.placeholder(tf.float32, [None, go.N, go.N, 1])
+    labels = tf.placeholder(tf.int32, [None])
 
-        board = tf.placeholder(tf.float32, [None, go.N, go.N, 1])
-        labels = tf.placeholder(tf.int32, [None])
+    num_planes = 32
 
-        num_planes = 32
+    kernel = tf.random_uniform([5, 5, 1, num_planes], minval=-0.2, maxval=0.2)
+    conv0 = tf.nn.conv2d(board, kernel, [1, 1, 1, 1], 'SAME')
+    conv1 = Residual_block(conv0, num_planes, num_planes)
+    conv2 = Residual_block(conv1, num_planes, num_planes)
+    conv3 = Residual_block(conv2, num_planes, num_planes)
+    conv4 = Residual_block(conv3, num_planes, num_planes)
+    conv5 = Residual_block(conv4, num_planes, num_planes)
+    kernel2 = tf.random_uniform([1, 1, num_planes, 4], minval=-1./num_planes, maxval=1./num_planes)
+    conv6 = tf.nn.conv2d(conv5, kernel2, [1, 1, 1, 1], 'VALID')
+    linear = tf.reshape(conv6, [-1, go.LN * 4])
+    weight = tf.Variable(tf.random_uniform([go.LN * 4, go.LN + 1], minval=-0.25/go.LN, maxval=0.25/go.LN))
+    predict = tf.matmul(linear, weight)
 
-        kernel = tf.random_normal([5, 5, 1, num_planes], stddev=0.005)
-        conv0 = tf.nn.conv2d(board, kernel, [1, 1, 1, 1], 'SAME')
-        conv1 = Residual_block(conv0, num_planes, num_planes)
-        conv2 = Residual_block(conv1, num_planes, num_planes)
-        conv3 = Residual_block(conv2, num_planes, num_planes)
-        conv4 = Residual_block(conv3, num_planes, num_planes)
-        conv5 = Residual_block(conv4, num_planes, num_planes)
-        kernel2 = tf.random_normal([1, 1, num_planes, 4], stddev=0.005)
-        conv6 = tf.nn.conv2d(conv5, kernel2, [1, 1, 1, 1], 'VALID')
-        linear = tf.reshape(conv6, [-1, go.LN * 4])
-        weight = tf.Variable(tf.random_normal([go.LN * 4, go.LN + 1], stddev=0.001))
-        predict = tf.matmul(linear, weight)
+    cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
+        labels=labels, logits=predict)
+    cross_entropy_mean = tf.reduce_mean(cross_entropy)
 
-        cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            labels=labels, logits=predict)
-        cross_entropy_mean = tf.reduce_mean(cross_entropy)
+    opt = tf.train.GradientDescentOptimizer(0.001)
+    train_step = opt.minimize(cross_entropy_mean)
 
-        # tf.add_to_collection('losses', cross_entropy_mean)
-        # total_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
-
-        train_step = tf.train.GradientDescentOptimizer(
-            0.0001).compute_gradients(cross_entropy_mean)
-
-        saver = tf.train.Saver(max_to_keep=2)
-        sess = tf.Session()
+    with tf.Session() as sess:
         init = tf.global_variables_initializer()
         sess.run(init)
+        saver = tf.train.Saver(max_to_keep=2)
 
         for e in range(epoch):
             batch = 10
@@ -115,9 +110,9 @@ def train(trainset, evalset, epoch=1):
                     if v == sortedmoves[0]:
                         right += 1
 
-            ratio = right/len(evalset)*100.0
+            # ratio = right/len(evalset)*100.0
 
-            print("epoch: %d, ratio: %f" % (e, ratio))
+            print("epoch: %d, right: %d / %d" % (e, right, len(evalset)))
 
             saver.save(sess, './module/goai_tf', global_step=e+1)
 
