@@ -15,20 +15,20 @@ from torch.jit import ScriptModule, script_method, trace
 MOVES = [0] * go.LN
 INPUT_BOARD = torch.zeros(1, 1, go.N, go.N)
 
+
 def conv5x5(in_channel, out_channel):
     return nn.Conv2d(in_channel, out_channel, 5, stride=1, padding=2, bias=False)
 
-# class Resnet(nn.Module):
-class Resnet(ScriptModule):
+
+class Resnet(nn.Module):
     def __init__(self, num_planes):
         super(Resnet, self).__init__()
 
-        self.entryblock = trace(conv5x5(1, num_planes), torch.rand(1, 1, go.N, go.N))
-        self.rbconv = trace(conv5x5(num_planes, num_planes), torch.rand(1, num_planes, go.N, go.N))
-        self.classifier = trace(nn.Conv2d(num_planes, 4, 1, stride=1), torch.rand(1, 32, go.N, go.N))
-        self.fc = trace(nn.Linear(go.LN * 4, go.LN + 1), torch.rand(324))
+        self.entryblock = conv5x5(1, num_planes)
+        self.rbconv = conv5x5(num_planes, num_planes)
+        self.classifier = nn.Conv2d(num_planes, 4, 1, stride=1)
+        self.fc = nn.Linear(go.LN * 4, go.LN + 1)
 
-    @script_method
     def forward(self, x):
         out = self.entryblock(x)
         out = F.relu(self.rbconv(out) + out)
@@ -42,9 +42,33 @@ class Resnet(ScriptModule):
 
         return out
 
+# # cpp version module
+# class Resnet(ScriptModule):
+#     def __init__(self, num_planes):
+#         super(Resnet, self).__init__()
+
+#         self.entryblock = trace(conv5x5(1, num_planes), torch.rand(1, 1, go.N, go.N))
+#         self.rbconv = trace(conv5x5(num_planes, num_planes), torch.rand(1, num_planes, go.N, go.N))
+#         self.classifier = trace(nn.Conv2d(num_planes, 4, 1, stride=1), torch.rand(1, 32, go.N, go.N))
+#         self.fc = trace(nn.Linear(go.LN * 4, go.LN + 1), torch.rand(324))
+
+#     @script_method
+#     def forward(self, x):
+#         out = self.entryblock(x)
+#         out = F.relu(self.rbconv(out) + out)
+#         out = F.relu(self.rbconv(out) + out)
+#         out = F.relu(self.rbconv(out) + out)
+#         out = F.relu(self.rbconv(out) + out)
+#         out = F.relu(self.rbconv(out) + out)
+#         out = self.classifier(out)
+#         out = out.view(-1, go.LN * 4)
+#         out = self.fc(out)
+
+#         return out
+
 
 class Policy():
-    def __init__(self, PUCT=1, pars='../data/resnet_pars.pkl'):
+    def __init__(self, PUCT=1, pars='../data/goai.pth'):
         self.PUCT = PUCT
         self.HASH = {}
         self.resnet = Resnet(32)
@@ -135,7 +159,7 @@ class Policy():
                     if ppp is not None:
                         break
                 i -= 1
-            
+
             if ppp is None:
                 pos = pos.move(0)
             else:
@@ -145,7 +169,7 @@ class Policy():
         while pos is not position:
             pos.release()
             pos = pos.parent
-        
+
         self.HASH[position.hash_code] = score
 
         return score
@@ -153,25 +177,26 @@ class Policy():
     def clear(self):
         self.HASH = {}
 
-    def train(self, positions, epoch=1):
+    def train(self, trainset, estimset, epoch):
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = optim.SGD(self.resnet.parameters(), lr=0.001, momentum=0.9)
+        self.optimizer = optim.SGD(
+            self.resnet.parameters(), lr=0.001, momentum=0.9)
         if torch.cuda.is_available():
             self.criterion = self.criterion.cuda()
 
         for e in range(epoch):
             batch = 10
-            n = math.floor(len(positions)/batch)
+            n = math.floor(len(trainset) / batch)
             i = 0
             running_loss = 0.0
-            random.shuffle(positions)
+            random.shuffle(trainset)
             while i < n:
                 j = 0
                 target_data = torch.LongTensor(batch)
                 input_data = torch.zeros(batch, 1, go.N, go.N)
                 while j < batch:
                     k = i * batch + j
-                    pos = positions[k]
+                    pos = trainset[k]
                     v = go.LN
                     if pos.vertex != 0:
                         p, q = go.toJI(pos.vertex)
@@ -200,13 +225,20 @@ class Policy():
 
                 i += 1
                 running_loss += loss.item()
-                if i % 100 == 0 or i == n:
-                    print('epoch: %d, i:%d, loss %.3f' % (e, i*batch, running_loss / 100))
-                    running_loss = 0.0
 
-    def test(self, positions):
-        right = 0
-        for pos in positions:
+            rights = self.test(estimset)
+            result = ''
+            right = 0
+            for r in range(10):
+                right += rights[r]
+                result += '%d:%.1f, ' % (r, right / len(estimset) * 100)
+
+            print('epoch: %d, loss %.3f, Est: %s' % (e, running_loss / n, result))
+            torch.save(self.resnet.state_dict(), '../data/goai_%d.pth' % e)
+
+    def test(self, estimset):
+        rights = [0] * 10
+        for pos in estimset:
             v = go.LN
             if pos.vertex != 0:
                 p, q = go.toJI(pos.vertex)
@@ -222,13 +254,18 @@ class Policy():
                 x = Variable(INPUT_BOARD)
                 y = self.resnet(x).data
 
-            _, predicted = torch.max(y, 1)
+            predicted = torch.argsort(y[0])
+            prediction = predicted.numpy()[::-1]
 
-            if v == predicted[0]:
-                right += 1
-        
-        n = len(positions)
-        print('Right:%d, N:%d, Rate: %.1f' % (right, n, right/n*100))
+            i = 0
+            while i < 10:
+                if v == prediction[i]:
+                    rights[i] += 1
+                    break
+                i += 1
+
+        return rights
+
 
 def print_input(self):
     i = go.N
