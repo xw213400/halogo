@@ -5,8 +5,8 @@ cmake_minimum_required (VERSION 3.5)
 add_definitions(-std=c++11)
 
 set(TARGET_TYPE "record")
-set(TARGET_PATH "torch")
-set(CMAKE_BUILD_TYPE "Release")
+set(TARGET_PATH "tensorflow")
+set(CMAKE_BUILD_TYPE "Debug")
 
 include_directories (include third_party)
 include_directories(../../tensorflow ../../tensorflow/bazel-genfiles)

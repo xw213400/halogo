@@ -41,7 +41,7 @@ def Residual_block(board, input_channel, output_channel):
 
 def train(trainset, evalset, epoch=1):
     board = tf.placeholder(tf.float32, [None, go.N, go.N, 1])
-    labels = tf.placeholder(tf.int32, [None])
+    labels = tf.placeholder(tf.int64, [None])
 
     num_planes = 32
 
@@ -65,6 +65,8 @@ def train(trainset, evalset, epoch=1):
     opt = tf.train.GradientDescentOptimizer(0.001)
     train_step = opt.minimize(cross_entropy_mean)
 
+    # iii = 0
+
     with tf.Session() as sess:
         init = tf.global_variables_initializer()
         sess.run(init)
@@ -74,6 +76,7 @@ def train(trainset, evalset, epoch=1):
             batch = 10
             n = math.floor(len(trainset) / batch)
             i = 0
+            loss = 0
 
             random.shuffle(trainset)
             while i < n:
@@ -94,9 +97,16 @@ def train(trainset, evalset, epoch=1):
 
                     j += 1
 
+                # iii += 1
+                # if iii == 20:
+                #     print(sess.run(predict, feed_dict={board: x_data}).shape)
+
                 sess.run(train_step, feed_dict={labels: y_data, board: x_data})
+                loss += sess.run(cross_entropy_mean, feed_dict={labels: y_data, board: x_data})
 
                 i += 1
+
+            loss /= n
 
             right = 0
             for pos in evalset:
@@ -112,7 +122,7 @@ def train(trainset, evalset, epoch=1):
 
             # ratio = right/len(evalset)*100.0
 
-            print("epoch: %d, right: %d / %d" % (e, right, len(evalset)))
+            print("epoch: %d, loss: %f, right: %d / %d" % (e, loss, right, len(evalset)))
 
             saver.save(sess, './module/goai_tf', global_step=e+1)
 
