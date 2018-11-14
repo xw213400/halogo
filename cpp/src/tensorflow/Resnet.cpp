@@ -62,7 +62,7 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
     for (int i = 0; i <= go::LN; ++i)
     {
         if (datas[i].second != go::LN)
-        {
+        { 
             int v = go::COORDS[datas[i].second];
             Position *pos = position->move(v);
             if (pos != nullptr)

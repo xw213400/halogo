@@ -11,7 +11,7 @@
 
 # Folders
 bin
-data
+data*
 third_party
 lib
 
