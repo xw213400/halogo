@@ -62,7 +62,7 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
     for (int i = 0; i <= go::LN; ++i)
     {
         if (datas[i].second != go::LN)
-        { 
+        {
             int v = go::COORDS[datas[i].second];
             Position *pos = position->move(v);
             if (pos != nullptr)
@@ -82,46 +82,117 @@ float Resnet::sim(Position *position)
     }
 
     Position *pos = position;
+    vector<Position *> positions(go::LN);
+    int steps = pos->getSteps();
+
+    Position *pp = nullptr;
+    Position *ppp = nullptr;
 
     while (pos->passCount() < 2)
     {
-        updateInputBoard(position);
-        std::vector<Tensor> outputs;
-
-        TF_CHECK_OK(_session->Run({{"0:0", INPUT_BOARD}}, {"add_7:0"}, {}, &outputs));
-
-        position->updateGroup();
-
-        auto cs = outputs[0].flat<float>().data();
-
-        vector<pair<float, int>> datas(go::LN + 1);
-
-        for (int i = 0; i <= go::LN; ++i)
+        if (steps <= go::LN * 0.75)
         {
-            datas[i] = make_pair(cs[i], i);
-        }
+            updateInputBoard(position);
+            std::vector<Tensor> outputs;
 
-        sort(datas.begin(), datas.end(), comp);
+            TF_CHECK_OK(_session->Run({{"0:0", INPUT_BOARD}}, {"add_7:0"}, {}, &outputs));
 
-        Position *pp = nullptr;
-        for (int i = 0; i <= go::LN; ++i)
-        {
-            if (datas[i].second != go::LN)
+            position->updateGroup();
+
+            auto cs = outputs[0].flat<float>().data();
+
+            vector<pair<float, int>> datas(go::LN + 1);
+
+            for (int i = 0; i <= go::LN; ++i)
             {
-                int v = go::COORDS[datas[i].second];
-                pp = pos->move(v);
-                if (pp != nullptr)
+                datas[i] = make_pair(cs[i], i);
+            }
+
+            sort(datas.begin(), datas.end(), comp);
+
+            pp = ppp = nullptr;
+            pos->updateGroup();
+
+            for (int i = 0; i <= go::LN; ++i)
+            {
+                if (datas[i].second != go::LN)
                 {
-                    pos = pp;
-                    break;
+                    int v = go::COORDS[datas[i].second];
+                    pp = pos->move(v);
+                    if (pp != nullptr)
+                    {
+                        if (ppp == nullptr)
+                        {
+                            ppp = pp;
+                        }
+                        if ((rand() % 100) * 0.01 <= 0.3f)
+                        {
+                            pos = pp;
+                            break;
+                        }
+                        else
+                        {
+                            if (pp != ppp)
+                            {
+                                pp->release();
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (ppp == nullptr)
+            {
+                pos = pos->move(go::PASS);
+            }
+            else
+            {
+                if (pos != pp)
+                {
+                    pos = ppp;
+                }
+                if (pos != ppp)
+                {
+                    ppp->release();
                 }
             }
         }
-
-        if (pp == nullptr)
+        else
         {
-            pos = pos->move(go::PASS);
+            positions.clear();
+
+            pos->getChildren(positions);
+
+            size_t n = positions.size();
+
+            pp = nullptr;
+
+            if (n >= 2)
+            {
+                int i = rand() % n;
+                pp = positions[i];
+                for (auto it = positions.begin(); it != positions.end(); ++it)
+                {
+                    ppp = *it;
+                    if (ppp != pp)
+                    {
+                        ppp->release();
+                    }
+                }
+            }
+            else if (n == 1)
+            {
+                pp = positions[0];
+            }
+            else
+            {
+                pp = pos->move(go::PASS);
+            }
+
+            pos = pp;
         }
+
+        steps++;
     }
 
     float score = pos->score();
