@@ -57,7 +57,7 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
     sort(datas.begin(), datas.end(), comp);
 
     positions.push_back(position->move(go::PASS));
-    for (int i = go::LN; i >= 0; --i)
+    for (int i = 0; i <= go::LN; ++i)
     {
         if (datas[i].second != go::LN)
         {
@@ -82,14 +82,17 @@ float Resnet::sim(Position *position)
     Position *pos = position;
     vector<Position *> positions(go::LN);
     int steps = pos->getSteps();
+    int simstep = 0;
 
     Position *pp = nullptr;
     Position *ppp = nullptr;
 
     while (pos->passCount() < 2)
     {
-        if (steps <= go::LN * 0.75)
+        if (steps <= go::LN * 0.75 && simstep < 20)
         {
+            simstep++;
+
             updateInputBoard(position);
             std::vector<Tensor> outputs;
 
@@ -123,7 +126,7 @@ float Resnet::sim(Position *position)
                         {
                             ppp = pp;
                         }
-                        if ((rand() % 100) * 0.01 <= 0.2f)
+                        if ((rand() % 100) * 0.01 <= 0.8f)
                         {
                             pos = pp;
                             break;
