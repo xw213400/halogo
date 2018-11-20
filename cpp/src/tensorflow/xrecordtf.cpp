@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     MCTSPlayer *playerA = new MCTSPlayer(6000, new RandMove(0.5f));
     // MCTSPlayer *playerB = new MCTSPlayer(6000, new RandMove(0.5f));
     // MCTSPlayer *playerA = new MCTSPlayer(6000, new Resnet(0.5f, "goai.pt"));
-    MCTSPlayer *playerB = new MCTSPlayer(2000, new Resnet(0.5f, "../../data/goai.pb"));
+    MCTSPlayer *playerB = new MCTSPlayer(4000, new Resnet(0.5f, "../../data/goai.pb"));
 
     int a_win = 0;
     int b_win = 0;

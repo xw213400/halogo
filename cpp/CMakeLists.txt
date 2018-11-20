@@ -15,7 +15,7 @@ include_directories(../../tensorflow ../../tensorflow/bazel-genfiles ../../tenso
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")  
-set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O0 -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
 if (${TARGET_PATH} STREQUAL "random")
     add_subdirectory(src/random)

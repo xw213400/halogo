@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include "Policy.h"
 #include "tensorflow/core/public/session.h"
-#include "tensorflow/cc/ops/standard_ops.h"
 
 class Resnet : public Policy
 {

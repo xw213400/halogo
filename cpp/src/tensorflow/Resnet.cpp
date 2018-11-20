@@ -1,8 +1,6 @@
 
 #include "go.h"
 #include "tf/Resnet.h"
-#include "tensorflow/cc/ops/array_ops.h"
-#include "tensorflow/core/platform/env.h"
 
 using namespace std;
 using namespace tensorflow;
