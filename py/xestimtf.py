@@ -48,7 +48,7 @@ with tf.Session() as sess:
             record = json.load(json_data)
             s = 0
             parent = go.Position()
-            while s < len(record) and s <= go.LN * 0.75:
+            while s < len(record) and s <= go.LN:
                 position = go.Position()
                 position.fromJSON(record[s])
                 position.parent = parent

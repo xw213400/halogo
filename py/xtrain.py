@@ -20,7 +20,7 @@ def main(path, epoch=1):
             record = json.load(json_data)
             s = 0
             parent = go.Position()
-            while s < len(record) and s <= go.LN * 0.75:
+            while s < len(record) and s <= go.LN:
                 position = go.Position()
                 position.fromJSON(record[s])
                 position.parent = parent
@@ -36,7 +36,7 @@ def main(path, epoch=1):
             record = json.load(json_data)
             s = 0
             parent = go.Position()
-            while s < len(record) and s <= go.LN * 0.75:
+            while s < len(record) and s <= go.LN:
                 position = go.Position()
                 position.fromJSON(record[s])
                 position.parent = parent
