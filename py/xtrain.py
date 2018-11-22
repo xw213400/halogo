@@ -10,7 +10,6 @@ import json
 
 def main(path, epoch=1):
     sys.setrecursionlimit(500000)
-    go.init(13)
     policy = resnet.Policy(1, path+'goai.pth')
 
     trainset = []

@@ -126,7 +126,7 @@ float Resnet::sim(Position *position)
                         {
                             ppp = pp;
                         }
-                        if ((rand() % 100) * 0.01 <= 0.6f)
+                        if ((rand() % 10000) * 0.0001 <= 0.1f)
                         {
                             pos = pp;
                             break;

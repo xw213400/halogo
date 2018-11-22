@@ -12,7 +12,7 @@ RIGHT = 1
 # + + +
 # + + +
 # # # #
-N = 13
+N = 19
 LN = N * N
 M = N + 1
 LM = M * (M+1) + 1
@@ -481,8 +481,10 @@ def init(n):
     POSITION = POSITION_POOL.pop()
     POSITION.clear()
 
+init(N)
+
 def clear():
-    global POSITION, POSITION_POOL
+    global POSITION
 
     p = POSITION.parent
     while p is not None:
