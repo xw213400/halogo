@@ -10,7 +10,7 @@ import torch.optim as optim
 import os.path
 import random
 import math
-from torch.jit import ScriptModule, script_method, trace
+# from torch.jit import ScriptModule, script_method, trace
 
 MOVES = [0] * go.LN
 INPUT_BOARD = torch.zeros(1, 1, go.N, go.N)
@@ -254,8 +254,8 @@ class Policy():
                 x = Variable(INPUT_BOARD)
                 y = self.resnet(x).data
 
-            predicted = torch.argsort(y[0])
-            prediction = predicted.numpy()[::-1]
+            predicted = np.argsort(y[0].numpy())
+            prediction = predicted[::-1]
 
             i = 0
             while i < 10:
