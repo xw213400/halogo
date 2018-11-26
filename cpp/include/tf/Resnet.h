@@ -8,7 +8,7 @@
 class Resnet : public Policy
 {
   public:
-    Resnet(float, const std::string&);
+    Resnet(float, const std::string &);
 
     virtual ~Resnet(){};
 
@@ -19,7 +19,7 @@ class Resnet : public Policy
     void clear();
 
   private:
-    void updateInputBoard(Position*);
+    void updateInputBoard(Position *);
 
     void debugInput();
 

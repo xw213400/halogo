@@ -56,8 +56,7 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
 
     sort(datas.begin(), datas.end(), comp);
 
-    positions.push_back(position->move(go::PASS));
-    for (int i = go::LN; i >= 0; --i)
+    for (int i = 0; i <= go::LN; ++i)
     {
         if (datas[i].second != go::LN)
         {
@@ -66,9 +65,16 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
             if (pos != nullptr)
             {
                 positions.push_back(pos);
+                if (positions.size() > 20)
+                {
+                    break;
+                }
             }
         }
     }
+
+    positions.push_back(position->move(go::PASS));
+    reverse(positions.begin(), positions.end());
 }
 
 float Resnet::sim(Position *position)
@@ -126,7 +132,7 @@ float Resnet::sim(Position *position)
                         {
                             ppp = pp;
                         }
-                        if ((rand() % 10000) * 0.0001 <= 0.1f)
+                        if ((rand() % 10000) * 0.0001 <= 0.5f)
                         {
                             pos = pp;
                             break;

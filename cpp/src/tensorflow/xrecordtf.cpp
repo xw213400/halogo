@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
 
     go::init();
 
-    MCTSPlayer *playerA = new MCTSPlayer(3000, new Resnet(0.5f, "../../data/goai.pb"));
-    MCTSPlayer *playerB = new MCTSPlayer(3000, new RandMove(0.5f));
+    MCTSPlayer *playerA = new MCTSPlayer(1000, new Resnet(0.5f, "../../data/goai.pb"));
+    MCTSPlayer *playerB = new MCTSPlayer(1000, new RandMove(0.5f));
     // MCTSPlayer *playerB = new MCTSPlayer(3000, new RandMove(0.5f));
     // MCTSPlayer *playerA = new MCTSPlayer(6000, new Resnet(0.5f, "goai.pt"));
 

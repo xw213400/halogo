@@ -18,10 +18,8 @@ def main(step):
 
     sys.setrecursionlimit(500000)
     go.init(9)
-    net = resnet.Resnet(32)
     pars = '../data/resnet_pars.pkl'
-    if os.path.isfile(pars):
-        net.load_state_dict(torch.load(pars))
+    policy = resnet.Policy(0.5, pars)
 
     parent = go.Position()
     position = go.Position()
@@ -32,10 +30,10 @@ def main(step):
 
     position.parent = parent
 
-    parent.input_board()
+    policy.input_board(parent)
 
-    x = Variable(go.INPUT_BOARD)
-    out = net(x)[0].data.numpy()
+    x = Variable(resnet.INPUT_BOARD)
+    out = policy.resnet(x)[0].data.numpy()
 
     print('next:', parent.next)
     parent.debug()
