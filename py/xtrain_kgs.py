@@ -2,7 +2,7 @@
 
 import sys
 import go
-import resnet
+import resnet2
 import torch
 from os.path import isfile, join
 from os import listdir
@@ -57,7 +57,7 @@ def replay_sgf(sgf_contents):
 
 def main(path, epoch=1):
     sys.setrecursionlimit(500000)
-    policy = resnet.Policy(1, path+'goai.pth')
+    policy = resnet2.Policy(0.5, path+'goai.pth')
 
     trainset = []
     trainpos = [f for f in listdir(path+'train') if f[-4:] == '.sgf']
