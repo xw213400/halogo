@@ -36,7 +36,7 @@ class Resnet(nn.Module):
         out = F.relu(self.rbconv(out) + out)
         out = F.relu(self.rbconv(out) + out)
         out = F.relu(self.rbconv(out) + out)
-        # out = F.relu(self.rbconv(out) + out)
+        out = F.relu(self.rbconv(out) + out)
         # out = F.relu(self.rbconv(out) + out)
         # out = F.relu(self.rbconv(out) + out)
         out = self.classifier(out)
@@ -81,7 +81,8 @@ class Policy():
             self.resnet.load_state_dict(torch.load(pars))
 
     # prepare input plane for resnet
-    # INPUT_BOARD[0]: enemy:-1, empty:0, self:1, ko: 2
+    # INPUT_BOARD[0]: board:1, ko: -1
+    # INPUT_BOARD[1]: enemy:-1, empty:0, self:1
     def input_board(self, position):
         global INPUT_BOARD
 
