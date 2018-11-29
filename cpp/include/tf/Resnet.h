@@ -5,10 +5,19 @@
 #include "Policy.h"
 #include "tensorflow/core/public/session.h"
 
+struct NNParam
+{
+    float puct = 0.5f;
+    std::string pdfile;
+    std::size_t branches = 20;
+    int simstep = 8;
+    float simrand = 0.5f;
+};
+
 class Resnet : public Policy
 {
   public:
-    Resnet(float, const std::string &);
+    Resnet(NNParam*);
 
     virtual ~Resnet(){};
 
@@ -23,11 +32,13 @@ class Resnet : public Policy
 
     void debugInput();
 
+    NNParam* _param;
+    
     tensorflow::Session *_session;
     tensorflow::GraphDef _def;
     std::unordered_map<uint64_t, float> _hash;
 
-    static tensorflow::Tensor INPUT_BOARD;
+    tensorflow::Tensor _input_board;
 };
 
 #endif

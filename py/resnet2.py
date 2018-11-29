@@ -36,7 +36,7 @@ class Resnet(nn.Module):
         out = F.relu(self.rbconv(out) + out)
         out = F.relu(self.rbconv(out) + out)
         out = F.relu(self.rbconv(out) + out)
-        out = F.relu(self.rbconv(out) + out)
+        # out = F.relu(self.rbconv(out) + out)
         # out = F.relu(self.rbconv(out) + out)
         # out = F.relu(self.rbconv(out) + out)
         out = self.classifier(out)

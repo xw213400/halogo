@@ -10,9 +10,7 @@ bool comp(const pair<float, int> &a, const pair<float, int> &b)
     return a.first > b.first;
 }
 
-Tensor Resnet::INPUT_BOARD(DT_FLOAT, {1, 1, go::N, go::N});
-
-Resnet::Resnet(float puct, const std::string &pdfile) : Policy(puct)
+Resnet::Resnet(NNParam* param) : Policy(param->puct), _input_board(DT_FLOAT, {1, 2, go::N, go::N})
 {
     Status s = NewSession(SessionOptions(), &_session);
 
@@ -21,7 +19,7 @@ Resnet::Resnet(float puct, const std::string &pdfile) : Policy(puct)
         cerr << "NewSession Error!" << endl;
     }
 
-    s = ReadBinaryProto(Env::Default(), pdfile, &_def);
+    s = ReadBinaryProto(Env::Default(), param->pdfile, &_def);
 
     if (!s.ok())
     {
@@ -34,6 +32,8 @@ Resnet::Resnet(float puct, const std::string &pdfile) : Policy(puct)
     {
         cerr << "Create Graph Error!" << endl;
     }
+
+    _param = param;
 }
 
 void Resnet::get(Position *position, std::vector<Position *> &positions)
@@ -41,7 +41,7 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
     updateInputBoard(position);
     std::vector<Tensor> outputs;
 
-    TF_CHECK_OK(_session->Run({{"0:0", INPUT_BOARD}}, {"add_7:0"}, {}, &outputs));
+    TF_CHECK_OK(_session->Run({{"0:0", _input_board}}, {"add_7:0"}, {}, &outputs));
 
     position->updateGroup();
 
@@ -65,7 +65,7 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
             if (pos != nullptr)
             {
                 positions.push_back(pos);
-                if (positions.size() > 20)
+                if (positions.size() >= _param->branches)
                 {
                     break;
                 }
@@ -95,14 +95,14 @@ float Resnet::sim(Position *position)
 
     while (pos->passCount() < 2)
     {
-        if (steps <= go::LN && simstep < 8)
+        if (steps <= go::LN && simstep < _param->simstep)
         {
             simstep++;
 
             updateInputBoard(position);
             std::vector<Tensor> outputs;
 
-            TF_CHECK_OK(_session->Run({{"0:0", INPUT_BOARD}}, {"add_7:0"}, {}, &outputs));
+            TF_CHECK_OK(_session->Run({{"0:0", _input_board}}, {"add_7:0"}, {}, &outputs));
 
             position->updateGroup();
 
@@ -132,7 +132,7 @@ float Resnet::sim(Position *position)
                         {
                             ppp = pp;
                         }
-                        if ((rand() % 10000) * 0.0001 <= 0.5f)
+                        if ((rand() % 10000) * 0.0001 <= _param->simrand)
                         {
                             pos = pp;
                             break;
@@ -227,12 +227,13 @@ void Resnet::updateInputBoard(Position *position)
 
         if (v == position->ko())
         {
-            INPUT_BOARD.flat<float>()(i) = 2.0f;
+            _input_board.flat<float>()(i) = -1.0f;
         }
         else
         {
-            INPUT_BOARD.flat<float>()(i) = position->boardi(v) * position->next();
+            _input_board.flat<float>()(i) = 1.0f;
         }
+        _input_board.flat<float>()(i + go::LN) = position->boardi(v) * position->next();
     }
 }
 
@@ -248,7 +249,7 @@ void Resnet::debugInput()
         while (j < go::N)
         {
             int idx = i * go::N + j;
-            int8_t c = INPUT_BOARD.flat<float>()(idx);
+            int8_t c = _input_board.flat<float>()(idx);
             j += 1;
             if (c == go::BLACK)
             {

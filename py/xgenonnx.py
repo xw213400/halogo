@@ -4,11 +4,11 @@ import sys
 import torch
 from torch.autograd import Variable
 import go
-import resnet
+import resnet2
 
 def main(path):
-    policy = resnet.Policy(0.5, path)
-    dummy_input = Variable(torch.randn(1, 1, go.N, go.N))
+    policy = resnet2.Policy(0.5, path)
+    dummy_input = Variable(torch.randn(1, 2, go.N, go.N))
     if torch.cuda.is_available():
         dummy_input = dummy_input.cuda()
     torch.onnx.export(policy.resnet, dummy_input, "../data/goai.onnx")
