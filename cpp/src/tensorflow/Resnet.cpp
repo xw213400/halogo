@@ -73,7 +73,10 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
         }
     }
 
-    positions.push_back(position->move(go::PASS));
+    if (positions.size() < 10)
+    {
+        positions.push_back(position->move(go::PASS));
+    }
     reverse(positions.begin(), positions.end());
 }
 

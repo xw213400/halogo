@@ -46,10 +46,10 @@ int main(int argc, char *argv[])
     paramB.simstep = 8;
     paramB.simrand = 0.5;
 
-    MCTSPlayer *playerA = new MCTSPlayer(800, new Resnet(&paramA));
+    MCTSPlayer *playerA = new MCTSPlayer(900, new Resnet(&paramA));
     // MCTSPlayer *playerB = new MCTSPlayer(1000, new RandMove(0.5f));
     // MCTSPlayer *playerB = new MCTSPlayer(3000, new RandMove(0.5f));
-    MCTSPlayer *playerB = new MCTSPlayer(800, new Resnet(&paramB));
+    MCTSPlayer *playerB = new MCTSPlayer(900, new Resnet(&paramB));
 
     int a_win = 0;
     int b_win = 0;
