@@ -1,27 +1,25 @@
 #ifndef __MCTSPLAYER_H__
 #define __MCTSPLAYER_H__
 
-#include "Policy.h"
+#include "Player.h"
 #include "MCTSNode.h"
 #include "Pool.h"
 
-class MCTSPlayer
+class MCTSPlayer : public Player
 {
   public:
-    MCTSPlayer(int, Policy *);
+    MCTSPlayer(Policy *, int);
 
-    ~MCTSPlayer();
+    virtual ~MCTSPlayer() {}
 
-    bool move();
+    virtual bool move();
 
-    void clear();
+    virtual void clear();
 
     static Pool<MCTSNode> POOL;
 
   private:
     int _sims;
-
-    Policy *_policy;
 
     MCTSNode *_best;
 };

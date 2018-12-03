@@ -6,10 +6,9 @@ using namespace std;
 
 Pool<MCTSNode> MCTSPlayer::POOL("MCTS");
 
-MCTSPlayer::MCTSPlayer(int sims, Policy *policy)
+MCTSPlayer::MCTSPlayer(Policy *policy, int sims) : Player(policy)
 {
     _sims = sims;
-    _policy = policy;
     _best = nullptr;
 }
 
