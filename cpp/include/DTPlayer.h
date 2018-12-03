@@ -1,29 +1,29 @@
 #ifndef __DTLAYER_H__
 #define __DTLAYER_H__
 
-#include "Policy.h"
-#include "MCTSNode.h"
+#include "Player.h"
+#include "DTNode.h"
 #include "Pool.h"
 
-class DTPlayer
+class DTPlayer : public Player
 {
   public:
-    DTPlayer(int, Policy *);
+    DTPlayer(Policy *);
 
-    ~DTPlayer();
+    virtual ~DTPlayer() {}
 
-    bool move();
+    virtual bool move();
 
-    void clear();
+    virtual void clear();
 
-    static Pool<MCTSNode> POOL;
+    static Pool<DTNode> POOL;
 
   private:
     int _sims;
 
     Policy *_policy;
 
-    MCTSNode *_best;
+    DTNode *_best;
 };
 
 #endif

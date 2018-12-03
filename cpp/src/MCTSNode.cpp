@@ -11,7 +11,6 @@ MCTSNode::MCTSNode(void)
     _children.reserve(go::LN + 1);
     _parent = nullptr;
     _position = nullptr;
-    leaves = 0;
 }
 
 MCTSNode::~MCTSNode(void)
@@ -29,17 +28,8 @@ void MCTSNode::init(Policy *policy, MCTSNode *pParent, Position *position)
     {
         policy->get(_position, _positions);
     }
-
-    leaves = _positions.size();
-
-    MCTSNode *p = _parent;
-    while (p != nullptr)
-    {
-        p->leaves += leaves;
-        p = p->_parent;
-    }
-
     _children.clear();
+
     score = U = 0.f;
     N = 0;
     Q = 0.f;
@@ -87,14 +77,6 @@ MCTSNode *MCTSNode::expand(void)
     auto node = MCTSPlayer::POOL.pop();
     node->init(_policy, this, pos);
     _children.push_back(node);
-
-    leaves--;
-    MCTSNode *p = _parent;
-    while (p != nullptr)
-    {
-        p->leaves--;
-        p = p->_parent;
-    }
 
     return node;
 }

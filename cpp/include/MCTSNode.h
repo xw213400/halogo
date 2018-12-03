@@ -63,17 +63,11 @@ class MCTSNode
         return N;
     }
 
-    inline int getLeaves()
-    {
-        return leaves;
-    }
-
     inline std::string text() {
         std::string text = "[";
         text += std::to_string(_position->vertex()) + "\t";
         text += std::to_string(N) + "\t";
         text += std::to_string(Q) + "\t";
-        text += std::to_string(leaves) + "\t";
         text += std::to_string(U) + "]";
         return text;
     }
@@ -83,7 +77,6 @@ class MCTSNode
     MCTSNode *_parent;
     Position *_position;
     std::vector<Position *> _positions;
-    int leaves;
     std::vector<MCTSNode *> _children;
     float Q, U, score;
     int N;
