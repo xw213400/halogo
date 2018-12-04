@@ -4,30 +4,49 @@
 
 using namespace std;
 
-Pool<DTNode> DTPlayer::POOL("DT");
-
-DTPlayer::DTPlayer(const std::string& pdfile, int depth) : Player(nullptr)
+DTPlayer::DTPlayer(const std::string &pdfile, int depth, int branches) : Player(nullptr)
 {
-    _best = nullptr;
     _depth = depth;
+    _branches = branches;
     _net = new DTResnet(pdfile);
+    
+    _nodes.resize(depth);
+    for (int i = 0; i != depth; ++i)
+    {
+        Moves<DTNode>& ns = _nodes[i];
+        ns.resize(branches);
+    }
+}
+
+void DTPlayer::clearNodes(Moves<DTNode>& nodes)
+{
+    for (size_t i = 0; i != nodes.size(); ++i)
+    {
+        DTNode *node = nodes.get(i);
+        node->release();
+    }
+
+    nodes.clear();
 }
 
 // alpha -10000
 // beta 10000
 float DTPlayer::alphabeta(DTNode *node, int depth, float alpha, float beta)
 {
-    if (depth == 0 || node->children().size() == 0)
+    if (depth == 0)
     {
         return node->evaluate();
     }
 
-    node->expand(_net);
+    Moves<DTNode>& ns = _nodes[depth];
+    _net->get(node->position(), ns);
 
-    for (auto i = node->children().begin(); i != node->children().end(); ++i)
+    for (size_t i = 0; i != ns.size(); ++i)
     {
-        DTNode *child = *i;
+        DTNode *child = ns.get(i);
+
         float val = alphabeta(child, depth - 1, -beta, -alpha);
+
         if (val >= beta) //cutting
         {
             return beta;
@@ -38,82 +57,49 @@ float DTPlayer::alphabeta(DTNode *node, int depth, float alpha, float beta)
         }
     }
 
+    clearNodes(ns);
+
     return alpha;
 }
 
 bool DTPlayer::move()
 {
-    DTNode *root = nullptr;
+    int depth = _depth-1;
 
-    if (_best != nullptr)
-    {
-        if (_best->position()->next() == go::POSITION->next())
-        {
-            if (_best->position()->vertex() == go::POSITION->vertex())
-            {
-                root = _best;
-            }
-        }
-        else
-        {
-            auto children = _best->children();
-            for (auto i = children.begin(); i != children.end(); ++i)
-            {
-                if ((*i)->position()->vertex() == go::POSITION->vertex())
-                {
-                    root = *i;
-                }
-                else
-                {
-                    (*i)->release();
-                }
-            }
-            _best->release(false);
-            _best = nullptr;
-        }
-    }
+    Moves<DTNode>& nsroot = _nodes[depth--];
 
-    if (root == nullptr)
-    {
-        root = POOL.pop();
-        root->init(go::POSITION, 0.0f);
-    }
-    else if (root->position() != go::POSITION)
-    {
-        root->position()->release();
-        root->position(go::POSITION);
-        auto children = root->children();
-        for (auto i = children.begin(); i != children.end(); ++i)
-        {
-            (*i)->position()->parent(go::POSITION);
-        }
-    }
+    DTNode *root = nsroot.get(0);
+    root->init(go::POSITION, 0.0f);
 
     clock_t start = clock();
 
-    auto children = root->expand(_net);
-    if (children.empty())
+    Moves<DTNode>& ns = _nodes[depth--];
+    _net->get(root->position(), ns);
+
+    if (ns.empty())
     {
-        root->release();
+        clearNodes(nsroot);
         return false;
     }
     else
     {
-        _best = children[0];
+        DTNode *best = ns.get(0);
         float alpha = -1000000.0f;
         float beta = 1000000.0f;
-        for (size_t i = 1; i < children.size(); ++i)
+        for (size_t i = 1; i < ns.size(); ++i)
         {
-            DTNode *node = children[i];
-            float val = alphabeta(node, _depth - 1, -beta, -alpha);
+            DTNode *node = ns.get(i);
+            float val = alphabeta(node, depth, -beta, -alpha);
+            cout << val << " ";
             if (val > alpha)
             {
                 alpha = val;
-                _best = children[i];
+                best = ns.get(i);
             }
         }
+        cout << endl;
 
-        int vertex = _best->position()->vertex();
+        int vertex = best->position()->vertex();
 
         go::POSITION->resetLiberty();
         go::POSITION = go::POSITION->move(vertex);
@@ -125,19 +111,11 @@ bool DTPlayer::move()
         cout << setw(3) << setfill('0') << go::POSITION->getSteps()
              << " V:[" << ji.second << "," << ji.first << "] PP:"
              << go::POSITION_POOL.size() << " GP:" << Group::POOL.size()
-             << " MP:" << DTPlayer::POOL.size()
              << " Q:" << setprecision(2) << alpha
              << " DT:" << dt << endl;
 
-        for (auto i = children.begin(); i != children.end(); ++i)
-        {
-            if (*i != _best)
-            {
-                (*i)->release();
-            }
-        }
-
-        root->release(false);
+        clearNodes(ns);
+        clearNodes(nsroot);
 
         return true;
     }
@@ -145,9 +123,4 @@ bool DTPlayer::move()
 
 void DTPlayer::clear(void)
 {
-    if (_best != nullptr)
-    {
-        _best->release();
-        _best = nullptr;
-    }
 }

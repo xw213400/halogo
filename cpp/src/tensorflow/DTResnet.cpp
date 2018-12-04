@@ -34,7 +34,7 @@ DTResnet::DTResnet(const string &pdfile) : _input_board(DT_FLOAT, {1, 2, go::N, 
     }
 }
 
-void DTResnet::get(Position *position, std::vector<DTNode *> &nodes)
+void DTResnet::get(Position *position, Moves<DTNode> &nodes)
 {
     updateInputBoard(position);
     std::vector<Tensor> outputs;
@@ -55,6 +55,7 @@ void DTResnet::get(Position *position, std::vector<DTNode *> &nodes)
     sort(datas.begin(), datas.end(), comp);
 
     int passidx = -1;
+    int nodeidx = 0;
     for (int i = 0; i <= go::LN; ++i)
     {
         if (datas[i].second != go::LN)
@@ -63,10 +64,9 @@ void DTResnet::get(Position *position, std::vector<DTNode *> &nodes)
             Position *pos = position->move(v);
             if (pos != nullptr)
             {
-                DTNode *node = DTPlayer::POOL.pop();
+                DTNode *node = nodes.get(nodeidx++);
                 node->init(pos, datas[i].first);
-                nodes.push_back(node);
-                if (nodes.size() >= DTNode::BRANCHES)
+                if (nodes.full())
                 {
                     break;
                 }
@@ -78,11 +78,10 @@ void DTResnet::get(Position *position, std::vector<DTNode *> &nodes)
         }
     }
 
-    if (nodes.size() < 10)
+    if (nodes.size() < nodes.capacity() / 2)
     {
-        DTNode *node = DTPlayer::POOL.pop();
+        DTNode *node = nodes.get(nodeidx);
         node->init(position->move(go::PASS), datas[passidx].first);
-        nodes.push_back(node);
     }
 }
 

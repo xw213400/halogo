@@ -48,13 +48,12 @@ int main(int argc, char *argv[])
     // paramB.simrand = 0.5;
 
     MCTSPlayer::POOL.resize(50000);
-    DTPlayer::POOL.resize(50000);
 
-    MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramA), 900);
+    MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramA), 100);
     // MCTSPlayer *playerB = new MCTSPlayer(1000, new RandMove(0.5f));
     // MCTSPlayer *playerB = new MCTSPlayer(3000, new RandMove(0.5f));
     // MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramB), 1050);
-    DTPlayer *playerA = new DTPlayer("../../data/goai.pb", 12);
+    DTPlayer *playerA = new DTPlayer("../../data/goai.pb", 6, 20);
 
     int a_win = 0;
     int b_win = 0;

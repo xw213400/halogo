@@ -3,24 +3,24 @@
 
 #include "DTNode.h"
 #include "tensorflow/core/public/session.h"
+#include "Moves.h"
 
-class DTNode;
 
 class DTResnet
 {
-  public:
-    DTResnet(const std::string &);
+public:
+  DTResnet(const std::string &);
 
-    ~DTResnet(){};
+  ~DTResnet(){};
 
-    void get(Position *, std::vector<DTNode *> &);
+  void get(Position *, Moves<DTNode> &);
 
-  private:
-    void updateInputBoard(Position *);
+private:
+  void updateInputBoard(Position *);
 
-    tensorflow::Session *_session;
-    tensorflow::GraphDef _def;
-    tensorflow::Tensor _input_board;
+  tensorflow::Session *_session;
+  tensorflow::GraphDef _def;
+  tensorflow::Tensor _input_board;
 };
 
 #endif

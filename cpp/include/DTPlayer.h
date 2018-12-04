@@ -3,13 +3,13 @@
 
 #include "Player.h"
 #include "DTNode.h"
-#include "Pool.h"
+#include "Moves.h"
 #include "tf/DTResnet.h"
 
 class DTPlayer : public Player
 {
   public:
-    DTPlayer(const std::string&, int);
+    DTPlayer(const std::string&, int, int);
 
     virtual ~DTPlayer() {}
 
@@ -17,16 +17,18 @@ class DTPlayer : public Player
 
     virtual void clear();
 
-    static Pool<DTNode> POOL;
-
   private:
     float alphabeta(DTNode *, int, float, float);
 
+    void clearNodes(Moves<DTNode>& nodes);
+
     DTResnet *_net;
 
-    DTNode *_best;
-
     int _depth;
+
+    int _branches;
+
+    std::vector<Moves<DTNode>> _nodes;
 };
 
 #endif
