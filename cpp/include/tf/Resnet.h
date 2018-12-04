@@ -21,11 +21,11 @@ class Resnet : public Policy
 
     virtual ~Resnet(){};
 
-    void get(Position *, std::vector<Position *> &);
+    virtual void get(Position *, std::vector<Position *> &);
 
-    float sim(Position *);
+    virtual float sim(Position *);
 
-    void clear();
+    virtual void clear();
 
   private:
     void updateInputBoard(Position *);

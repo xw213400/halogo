@@ -5,7 +5,7 @@
 using namespace std;
 using namespace tensorflow;
 
-bool comp(const pair<float, int> &a, const pair<float, int> &b)
+bool compareScore(const pair<float, int> &a, const pair<float, int> &b)
 {
     return a.first > b.first;
 }
@@ -54,7 +54,7 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
         datas[i] = make_pair(cs[i], i);
     }
 
-    sort(datas.begin(), datas.end(), comp);
+    sort(datas.begin(), datas.end(), compareScore);
 
     for (int i = 0; i <= go::LN; ++i)
     {
@@ -118,7 +118,7 @@ float Resnet::sim(Position *position)
                 datas[i] = make_pair(cs[i], i);
             }
 
-            sort(datas.begin(), datas.end(), comp);
+            sort(datas.begin(), datas.end(), compareScore);
 
             pp = ppp = nullptr;
             pos->updateGroup();

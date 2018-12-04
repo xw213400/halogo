@@ -11,6 +11,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "tf/Resnet.h"
+#include "DTPlayer.h"
 
 using namespace std;
 using namespace rapidjson;
@@ -41,15 +42,19 @@ int main(int argc, char *argv[])
     paramA.simstep = 8;
     paramA.simrand = 0.5;
 
-    paramB.pdfile = "../../data/goai.pb";
-    paramB.branches = 20;
-    paramB.simstep = 30;
-    paramB.simrand = 0.5;
+    // paramB.pdfile = "../../data/goai.pb";
+    // paramB.branches = 20;
+    // paramB.simstep = 0;
+    // paramB.simrand = 0.5;
 
-    MCTSPlayer *playerA = new MCTSPlayer(new Resnet(&paramA), 900);
+    MCTSPlayer::POOL.resize(50000);
+    DTPlayer::POOL.resize(50000);
+
+    MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramA), 900);
     // MCTSPlayer *playerB = new MCTSPlayer(1000, new RandMove(0.5f));
     // MCTSPlayer *playerB = new MCTSPlayer(3000, new RandMove(0.5f));
-    MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramB), 650);
+    // MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramB), 1050);
+    DTPlayer *playerA = new DTPlayer("../../data/goai.pb", 12);
 
     int a_win = 0;
     int b_win = 0;
@@ -73,7 +78,15 @@ int main(int argc, char *argv[])
         Document positions(kArrayType);
         Document::AllocatorType &allocator = positions.GetAllocator();
 
-        MCTSPlayer *player = swap ? playerB : playerA;
+        Player *player = nullptr;
+        if (swap)
+        {
+            player = playerB;
+        }
+        else
+        {
+            player = playerA;
+        }
 
         while (go::POSITION->passCount() < 2)
         {

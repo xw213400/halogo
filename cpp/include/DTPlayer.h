@@ -4,11 +4,12 @@
 #include "Player.h"
 #include "DTNode.h"
 #include "Pool.h"
+#include "tf/DTResnet.h"
 
 class DTPlayer : public Player
 {
   public:
-    DTPlayer(Policy *);
+    DTPlayer(const std::string&, int);
 
     virtual ~DTPlayer() {}
 
@@ -19,11 +20,13 @@ class DTPlayer : public Player
     static Pool<DTNode> POOL;
 
   private:
-    int _sims;
+    float alphabeta(DTNode *, int, float, float);
 
-    Policy *_policy;
+    DTResnet *_net;
 
     DTNode *_best;
+
+    int _depth;
 };
 
 #endif

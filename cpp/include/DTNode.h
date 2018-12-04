@@ -3,21 +3,27 @@
 
 #include <vector>
 #include "Position.h"
-#include "Policy.h"
+#include "tf/DTResnet.h"
+
+class DTResnet;
 
 class DTNode
 {
   public:
     DTNode();
+
     ~DTNode();
 
-    void init(Policy *, DTNode *, Position *);
+    void init(Position *, float);
 
-    DTNode *select();
-
-    DTNode *expand();
+    const std::vector<DTNode *> &expand(DTResnet *net);
 
     void release(bool recursive = true);
+
+    inline float evaluate()
+    {
+        return _evaluate;
+    }
 
     inline Position *position()
     {
@@ -34,16 +40,12 @@ class DTNode
         return _children;
     }
 
-    inline DTNode *getParent()
-    {
-        return _parent;
-    }
+    static const int BRANCHES = 20;
 
   private:
-    Policy *_policy;
-    DTNode *_parent;
     Position *_position;
     std::vector<DTNode *> _children;
+    float _evaluate;
 };
 
 #endif
