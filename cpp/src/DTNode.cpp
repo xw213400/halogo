@@ -4,6 +4,8 @@
 
 using namespace std;
 
+vector<Position*> DTNode::POSITIONS;
+
 DTNode::DTNode()
 {
     _position = nullptr;
@@ -18,12 +20,15 @@ void DTNode::init(Position *position, float evaluate)
 {
     _position = position;
     _evaluate = evaluate;
+
+    POSITIONS.push_back(position);
 }
 
-void DTNode::release(bool recursive)
+void DTNode::Release()
 {
-    if (_position != nullptr && !go::isTrunk(_position))
+    for (auto i = POSITIONS.begin(); i != POSITIONS.end(); ++i)
     {
-        _position->release();
+        (*i)->release();
     }
+    POSITIONS.clear();
 }

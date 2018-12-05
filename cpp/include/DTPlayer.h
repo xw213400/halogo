@@ -20,8 +20,6 @@ class DTPlayer : public Player
   private:
     float alphabeta(DTNode *, int, float, float);
 
-    void clearNodes(Moves<DTNode>& nodes);
-
     DTResnet *_net;
 
     int _depth;

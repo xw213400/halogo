@@ -78,7 +78,7 @@ void DTResnet::get(Position *position, Moves<DTNode> &nodes)
         }
     }
 
-    if (nodes.size() < nodes.capacity() / 2)
+    if (!nodes.full())
     {
         DTNode *node = nodes.get(nodeidx);
         node->init(position->move(go::PASS), datas[passidx].first);

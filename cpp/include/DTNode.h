@@ -13,7 +13,7 @@ class DTNode
 
     void init(Position *, float);
 
-    void release(bool recursive = true);
+    static void Release();
 
     inline float evaluate()
     {
@@ -28,6 +28,8 @@ class DTNode
   private:
     Position *_position;
     float _evaluate;
+
+    static std::vector<Position*> POSITIONS;
 };
 
 #endif

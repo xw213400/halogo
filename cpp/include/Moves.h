@@ -38,6 +38,10 @@ class Moves
 
     inline T *get(std::size_t i)
     {
+        if (i >= _length)
+        {
+            std::cerr << "Moves can not push any more." << std::endl;
+        }
         if (i >= _mark)
         {
             _mark = i + 1;
