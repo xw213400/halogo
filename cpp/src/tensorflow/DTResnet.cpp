@@ -47,41 +47,34 @@ void DTResnet::get(Position *position, Moves<DTNode> &nodes)
 
     vector<pair<float, int>> datas(go::LN + 1);
 
-    for (int i = 0; i <= go::LN; ++i)
+    float passscore = cs[go::LN];
+
+    for (int i = 0; i < go::LN; ++i)
     {
         datas[i] = make_pair(cs[i], i);
     }
 
     sort(datas.begin(), datas.end(), comp);
 
-    int passidx = -1;
-    int nodeidx = 0;
     for (int i = 0; i <= go::LN; ++i)
     {
-        if (datas[i].second != go::LN)
+        int v = go::COORDS[datas[i].second];
+        Position *pos = position->move(v);
+        if (pos != nullptr)
         {
-            int v = go::COORDS[datas[i].second];
-            Position *pos = position->move(v);
-            if (pos != nullptr)
+            DTNode *node = nodes.add();
+            node->init(pos, datas[i].first);
+            if (nodes.full())
             {
-                DTNode *node = nodes.get(nodeidx++);
-                node->init(pos, datas[i].first);
-                if (nodes.full())
-                {
-                    break;
-                }
+                break;
             }
-        }
-        else
-        {
-            passidx = i;
         }
     }
 
     if (!nodes.full())
     {
-        DTNode *node = nodes.get(nodeidx);
-        node->init(position->move(go::PASS), datas[passidx].first);
+        DTNode *node = nodes.add();
+        node->init(position->move(go::PASS), passscore);
     }
 }
 

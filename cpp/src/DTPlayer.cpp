@@ -22,9 +22,9 @@ DTPlayer::DTPlayer(const std::string &pdfile, int depth, int branches) : Player(
 // beta 10000
 float DTPlayer::alphabeta(DTNode *node, int depth, float alpha, float beta)
 {
-    if (depth == 0)
+    if (depth == 0 || node->position()->passCount() >= 2)
     {
-        return _depth % 2 == 0 ? -node->evaluate() : node->evaluate();
+        return depth % 2 == 0 ? -node->evaluate() : node->evaluate();
     }
 
     Moves<DTNode> &ns = _nodes[depth];
@@ -38,6 +38,7 @@ float DTPlayer::alphabeta(DTNode *node, int depth, float alpha, float beta)
 
         if (val >= beta) //cutting
         {
+            ns.clear();
             return beta;
         }
         if (val > alpha)
@@ -75,8 +76,6 @@ bool DTPlayer::move()
         }
     }
 
-    cout << endl;
-
     int vertex = best->position()->vertex();
 
     go::POSITION->resetLiberty();
@@ -85,7 +84,7 @@ bool DTPlayer::move()
 
     int dt = (clock() - start) * 1000 / CLOCKS_PER_SEC;
 
-    auto ji = go::toJI(go::POSITION->vertex());
+    auto ji = go::toJI(vertex);
     cout << setw(3) << setfill('0') << go::POSITION->getSteps()
          << " V:[" << ji.second << "," << ji.first << "] PP:"
          << go::POSITION_POOL.size() << " GP:" << Group::POOL.size()
