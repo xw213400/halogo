@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
     MCTSPlayer::POOL.resize(50000);
 
-    MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramA), 900);
+    MCTSPlayer *playerA = new MCTSPlayer(new Resnet(&paramA), 900);
     // MCTSPlayer *playerB = new MCTSPlayer(1000, new RandMove(0.5f));
     // MCTSPlayer *playerB = new MCTSPlayer(3000, new RandMove(0.5f));
     MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramB), 1050);
