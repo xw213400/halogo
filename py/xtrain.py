@@ -2,7 +2,7 @@
 
 import sys
 import go
-import resnet
+import resnet2
 import torch
 from os.path import isfile, join
 from os import listdir
@@ -10,7 +10,7 @@ import json
 
 def main(path, epoch=1):
     sys.setrecursionlimit(500000)
-    policy = resnet.Policy(1, path+'goai.pth')
+    policy = resnet2.Policy(1, path+'goai.pth')
 
     trainset = []
     trainpos = [f for f in listdir(path+'train') if f[-4:] == 'json']
@@ -55,4 +55,4 @@ if __name__ == '__main__':
     if len(sys.argv) >= 2:
         epoch = int(sys.argv[1])
 
-    main('../data/', epoch)
+    main('../data-9-rand/', epoch)

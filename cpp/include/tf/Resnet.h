@@ -11,7 +11,9 @@ struct NNParam
     std::string pdfile;
     std::size_t branches = 20;
     int simstep = 8;
+    int simmax = go::LN;
     float simrand = 0.5f;
+    std::size_t addPass = 4;
 };
 
 class Resnet : public Policy

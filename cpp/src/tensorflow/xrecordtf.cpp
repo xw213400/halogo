@@ -38,21 +38,21 @@ int main(int argc, char *argv[])
     NNParam paramB;
 
     paramA.pdfile = "../../data/goai.pb";
-    paramA.branches = 20;
+    paramA.branches = 60;
     paramA.simstep = 8;
     paramA.simrand = 0.5;
 
     paramB.pdfile = "../../data/goai.pb";
-    paramB.branches = 20;
-    paramB.simstep = 0;
-    paramB.simrand = 0.5;
+    paramB.branches = 60;
+    paramB.simstep = 8;
+    paramB.simrand = 0.2;
 
     MCTSPlayer::POOL.resize(50000);
 
-    MCTSPlayer *playerA = new MCTSPlayer(new Resnet(&paramA), 900);
-    // MCTSPlayer *playerB = new MCTSPlayer(1000, new RandMove(0.5f));
-    // MCTSPlayer *playerB = new MCTSPlayer(3000, new RandMove(0.5f));
-    MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramB), 1050);
+    // MCTSPlayer *playerA = new MCTSPlayer(new Resnet(&paramA), 900);
+    MCTSPlayer *playerA = new MCTSPlayer(new RandMove(0.5f), 6000);
+    // MCTSPlayer *playerB = new MCTSPlayer(new RandMove(0.5f), 6000);
+    MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramB), 6000);
     // DTPlayer *playerA = new DTPlayer("../../data/goai.pb", 6, 20);
 
     int a_win = 0;

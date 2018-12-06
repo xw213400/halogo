@@ -73,7 +73,7 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
         }
     }
 
-    if (positions.size() < 10)
+    if (positions.size() < _param->addPass)
     {
         positions.push_back(position->move(go::PASS));
     }
@@ -98,7 +98,7 @@ float Resnet::sim(Position *position)
 
     while (pos->passCount() < 2)
     {
-        if (steps <= go::LN && simstep < _param->simstep)
+        if (steps <= _param->simmax && simstep < _param->simstep)
         {
             simstep++;
 
