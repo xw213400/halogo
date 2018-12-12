@@ -43,20 +43,23 @@ int main(int argc, char *argv[])
     paramA.simrand = 0.5;
 
     paramB.pdfile = "../../data/goai.pb";
-    paramB.branches = 60;
-    paramB.simstep = 8;
-    paramB.simrand = 0.2;
+    paramB.branches = 40;
+    paramB.simstep = 10;
+    paramB.simrand = 0.5;
+    paramB.simmax = ceil(go::LN * 0.8f);
 
     MCTSPlayer::POOL.resize(50000);
 
     // MCTSPlayer *playerA = new MCTSPlayer(new Resnet(&paramA), 900);
     MCTSPlayer *playerA = new MCTSPlayer(new RandMove(0.5f), 6000);
     // MCTSPlayer *playerB = new MCTSPlayer(new RandMove(0.5f), 6000);
-    MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramB), 6000);
+    MCTSPlayer *playerB = new MCTSPlayer(new Resnet(&paramB), 5000);
     // DTPlayer *playerA = new DTPlayer("../../data/goai.pb", 6, 20);
 
     int a_win = 0;
     int b_win = 0;
+    int x_win = 0;
+    int o_win = 0;
     bool swap = true;
 
     for (int c = 0; c != count; ++c)
@@ -114,14 +117,16 @@ int main(int argc, char *argv[])
         float score = go::POSITION->score() - go::KOMI;
         if (score > 0)
         {
+            x_win++;
             swap ? ++b_win : ++a_win;
         }
         else if (score < 0)
         {
+            o_win++;
             swap ? ++a_win : ++b_win;
         }
 
-        cout << "A win: " << a_win << ", B win: " << b_win << endl;
+        cout << "A win:" << a_win << ", B win:" << b_win << "; X win:" << x_win << ", O win:" << o_win << endl;
 
         playerA->clear();
         playerB->clear();

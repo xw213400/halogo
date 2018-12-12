@@ -7,10 +7,13 @@ import torch
 from os.path import isfile, join
 from os import listdir
 import json
+import math
 
 def main(path, epoch=1):
     sys.setrecursionlimit(500000)
     policy = resnet2.Policy(1, path+'goai.pth')
+
+    maxN = math.ceil(go.LN * 0.8)
 
     trainset = []
     trainpos = [f for f in listdir(path+'train') if f[-4:] == 'json']
@@ -19,7 +22,7 @@ def main(path, epoch=1):
             record = json.load(json_data)
             s = 0
             parent = go.Position()
-            while s < len(record) and s <= go.LN:
+            while s < len(record) and s <= maxN:
                 position = go.Position()
                 position.fromJSON(record[s])
                 position.parent = parent
@@ -35,7 +38,7 @@ def main(path, epoch=1):
             record = json.load(json_data)
             s = 0
             parent = go.Position()
-            while s < len(record) and s <= go.LN:
+            while s < len(record) and s <= maxN:
                 position = go.Position()
                 position.fromJSON(record[s])
                 position.parent = parent
