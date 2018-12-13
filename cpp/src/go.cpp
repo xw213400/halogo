@@ -15,7 +15,7 @@ const int8_t WALL = 2;
 const int PASS = 0;
 
 const int N = 9;
-const float KOMI = 5.5f;
+const float KOMI = 3.5f;
 const int LN = N * N;
 const int M = N + 1;
 const int LM = M * (M + 1) + 1;

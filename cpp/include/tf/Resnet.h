@@ -9,7 +9,7 @@ struct NNParam
 {
     float puct = 0.5f;
     std::string pdfile;
-    std::size_t branches = 20;
+    std::size_t branches = go::LN;
     int simstep = 8;
     int simmax = go::LN;
     float simrand = 0.5f;

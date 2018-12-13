@@ -16,16 +16,16 @@ MOVES = [0] * go.LN
 INPUT_BOARD = torch.zeros(1, 2, go.N, go.N)
 
 
-def conv5x5(in_channel, out_channel):
-    return nn.Conv2d(in_channel, out_channel, 5, stride=1, padding=2, bias=False)
+def conv3x3(in_channel, out_channel):
+    return nn.Conv2d(in_channel, out_channel, 3, stride=1, padding=1, bias=False)
 
 
 class Resnet(nn.Module):
     def __init__(self, num_planes):
         super(Resnet, self).__init__()
 
-        self.entryblock = conv5x5(2, num_planes)
-        self.rbconv = conv5x5(num_planes, num_planes)
+        self.entryblock = conv3x3(2, num_planes)
+        self.rbconv = conv3x3(num_planes, num_planes)
         self.classifier = nn.Conv2d(num_planes, 4, 1, stride=1)
         self.fc = nn.Linear(go.LN * 4, go.LN + 1)
 
@@ -74,7 +74,7 @@ class Policy():
     def __init__(self, PUCT=0.5, pars='../data/goai.pth'):
         self.PUCT = PUCT
         self.HASH = {}
-        self.resnet = Resnet(32)
+        self.resnet = Resnet(128)
         if torch.cuda.is_available():
             self.resnet.cuda()
         if os.path.isfile(pars):
