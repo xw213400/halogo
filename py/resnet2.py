@@ -35,7 +35,7 @@ class Resnet(nn.Module):
         out = F.relu(self.rbconv(out) + out)
         out = F.relu(self.rbconv(out) + out)
         out = F.relu(self.rbconv(out) + out)
-        out = F.relu(self.rbconv(out) + out)
+        # out = F.relu(self.rbconv(out) + out)
         # out = F.relu(self.rbconv(out) + out)
         # out = F.relu(self.rbconv(out) + out)
         # out = F.relu(self.rbconv(out) + out)
@@ -74,7 +74,7 @@ class Policy():
     def __init__(self, PUCT=0.5, pars='../data/goai.pth'):
         self.PUCT = PUCT
         self.HASH = {}
-        self.resnet = Resnet(128)
+        self.resnet = Resnet(96)
         if torch.cuda.is_available():
             self.resnet.cuda()
         if os.path.isfile(pars):

@@ -41,7 +41,7 @@ void Resnet::get(Position *position, std::vector<Position *> &positions)
     updateInputBoard(position);
     std::vector<Tensor> outputs;
 
-    TF_CHECK_OK(_session->Run({{"0:0", _input_board}}, {"add_7:0"}, {}, &outputs));
+    TF_CHECK_OK(_session->Run({{"0:0", _input_board}}, {"add_6:0"}, {}, &outputs));
 
     position->updateGroup();
 
@@ -98,14 +98,14 @@ float Resnet::sim(Position *position)
 
     while (pos->passCount() < 2)
     {
-        if (steps <= _param->simmax && simstep < _param->simstep)
+        if (steps < _param->simmax && simstep < _param->simstep)
         {
             simstep++;
 
             updateInputBoard(position);
             std::vector<Tensor> outputs;
 
-            TF_CHECK_OK(_session->Run({{"0:0", _input_board}}, {"add_7:0"}, {}, &outputs));
+            TF_CHECK_OK(_session->Run({{"0:0", _input_board}}, {"add_6:0"}, {}, &outputs));
 
             position->updateGroup();
 
@@ -201,8 +201,6 @@ float Resnet::sim(Position *position)
 
             pos = pp;
         }
-
-        steps++;
     }
 
     float score = pos->score();
