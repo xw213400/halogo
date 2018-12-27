@@ -41,7 +41,6 @@ int main(int argc, char *argv[])
     paramA.simrand = 0.5;
 
     paramB.pdfile = "../../data/goai.pb";
-    paramB.puct = 0.7f;
     paramB.simrand = 0.2f;
     paramB.simmax = 54;
     paramB.branches = 80;
