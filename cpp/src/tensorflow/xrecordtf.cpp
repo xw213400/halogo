@@ -41,10 +41,10 @@ int main(int argc, char *argv[])
     paramA.simrand = 0.5;
 
     paramB.pdfile = "../../data/goai.pb";
-    paramB.simrand = 0.2f;
-    paramB.simmax = 54;
-    paramB.branches = 80;
-    paramB.simstep = 10;
+    paramB.simrand = 0.15f;
+    paramB.simmax = 50;
+    paramB.branches = 68;
+    paramB.simstep = 50;
 
     MCTSPlayer::POOL.resize(50000);
 

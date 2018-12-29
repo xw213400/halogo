@@ -91,16 +91,17 @@ float Resnet::sim(Position *position)
     Position *pos = position;
     vector<Position *> positions(go::LN);
     int steps = pos->getSteps();
-    int simstep = 0;
+    int simstep = steps + _param->simstep;
+    simstep = simstep > _param->simmax ? _param->simmax : simstep;
 
     Position *pp = nullptr;
     Position *ppp = nullptr;
 
     while (pos->passCount() < 2)
     {
-        if (steps < _param->simmax && simstep < _param->simstep)
+        if (steps < simstep)
         {
-            simstep++;
+            steps++;
 
             updateInputBoard(position);
             std::vector<Tensor> outputs;
@@ -123,6 +124,8 @@ float Resnet::sim(Position *position)
             pp = ppp = nullptr;
             pos->updateGroup();
 
+            float prob = _param->simrand;
+
             for (int i = 0; i <= go::LN; ++i)
             {
                 if (datas[i].second != go::LN)
@@ -135,7 +138,8 @@ float Resnet::sim(Position *position)
                         {
                             ppp = pp;
                         }
-                        if ((rand() % 10000) * 0.0001 <= _param->simrand)
+
+                        if ((rand() % 10000) * 0.0001f <= prob)
                         {
                             pos = pp;
                             break;
@@ -147,6 +151,8 @@ float Resnet::sim(Position *position)
                                 pp->release();
                             }
                         }
+
+                        prob *= _param->simrand;
                     }
                 }
             }

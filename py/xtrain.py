@@ -13,7 +13,7 @@ def main(path, epoch=1):
     sys.setrecursionlimit(500000)
     policy = resnet2.Policy(1, path+'goai.pth')
 
-    maxN = math.ceil(go.LN * 0.8)
+    maxN = math.ceil(go.LN * 0.61)
 
     trainset = []
     trainpos = [f for f in listdir(path+'train') if f[-4:] == 'json']
