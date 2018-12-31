@@ -152,7 +152,7 @@ float Resnet::sim(Position *position)
                             }
                         }
 
-                        prob *= _param->simrand;
+                        prob *= 1.0f - _param->simrand;
                     }
                 }
             }
